@@ -33,6 +33,8 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 #mm{position:fixed;z-index:4;right:calc(env(safe-area-inset-right) + 6px);width:110px;height:110px;border:2px solid #8a6a3a;border-radius:4px;background:#000}
 #side{position:fixed;z-index:4;left:calc(env(safe-area-inset-left) + 6px);display:flex;flex-direction:column;gap:6px}
 #side button{width:48px;height:48px;border-radius:10px;background:#3a2a18e8;border:1px solid #a7834a;font-size:20px;position:relative;padding:0}
+#side button em{position:absolute;left:0;right:0;top:1px;font-size:10px;font-style:normal;color:#ffe9b0;line-height:1}
+#side button span .ico,#side button>span{margin-top:6px}
 #side button i{position:absolute;right:2px;bottom:1px;font-size:11px;font-style:normal;color:#ffe9b0}
 #side button.on{background:#7a5a20;box-shadow:0 0 0 2px #ffd27a}
 #bottom{position:fixed;left:0;right:0;bottom:0;z-index:5;display:flex;gap:6px;min-height:66px;
@@ -92,9 +94,9 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 </div>
 <canvas id="mm" width="160" height="160"></canvas>
 <div id="side">
- <button id="bidle" title="閒置村民"><span data-ic="villager"></span><i id="nidle">0</i></button>
- <button id="barmy" title="全部軍隊"><span data-ic="barracks"></span><i id="narmy">0</i></button>
- <button id="bhome" title="回到城鎮中心"><span data-ic="tc"></span></button>
+ <button id="bidle" title="閒置村民"><span data-ic="villager"></span><i id="nidle">0</i><em>閒置</em></button>
+ <button id="barmy" title="全部軍隊"><span data-ic="barracks"></span><i id="narmy">0</i><em>全軍</em></button>
+ <button id="bhome" title="回到城鎮中心"><span data-ic="tc"></span><em>主城</em></button>
 </div>
 <div id="bottom"><div id="info"></div><div id="acts"></div></div>
 <div id="toast"></div>
@@ -103,13 +105,19 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 <div class="ov show" id="ovStart">
  <h1>王國紀元</h1>
  <h2>中世紀即時戰略・手機版</h2>
+ <div>人數</div>
+ <div class="row" id="npRow"><button data-n="2">2 人</button><button data-n="3">3 人</button><button data-n="4" class="sel">4 人</button></div>
+ <div>模式</div>
+ <div class="row" id="modeRow"><button data-m="ffa" class="sel">各自為戰</button><button data-m="2v2">2 對 2</button></div>
+ <div id="setupNote" style="font-size:13px;opacity:.8;margin-bottom:4px"></div>
  <div>難度</div>
  <div class="row" id="diffRow"><button data-d="easy">簡單</button><button data-d="normal" class="sel">普通</button><button data-d="hard">困難</button></div>
  <button class="go" id="bcont" style="display:none"></button>
  <button class="go" id="bstart">開始新遊戲</button>
  <button id="bart" class="artbtn">🎨 上傳美術圖</button>
  <div class="help">
- <b>目標：</b>摧毀敵方的城鎮中心<span data-ic="tc"></span>。<br>
+ <b>目標：</b>摧毀所有敵方的城鎮中心<span data-ic="tc"></span>，城鎮中心被摧毀的一方就出局。<br>
+ <b>攻擊移動</b>（預設開）：選軍隊後點地面，行軍途中遇到敵人會自動開打。<br>
  <b>點一下</b>單位＝選取；<b>連點兩下</b>＝選取畫面上同類單位。<br>
  選了單位後<b>點地面</b>＝移動、<b>點資源</b>＝採集、<b>點敵人</b>＝攻擊。<br>
  <b>單指拖曳</b>＝移動畫面；<b>雙指</b>＝縮放；<b>按住空白處，出現圓圈後拖曳</b>＝框選士兵。<br>
@@ -150,10 +158,14 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 
 <script>
 'use strict';
-const VERSION='2026-11-20f';
+const VERSION='2026-11-21a';
 // ================= constants =================
 const W=80,H=80,T=32,NN=W*H,STEP=0.05,CAP=10,MAXPOP=100,TER=9;
-const TEAM=['#3b82f6','#ef4444'],TEAMD=['#1e3a8a','#7f1d1d'];
+const TEAM=['#3b82f6','#ef4444','#22c55e','#eab308'],TEAMD=['#1e3a8a','#7f1d1d','#14532d','#713f12'],TEAML=['#a0c8ff','#ff9090','#90f0a0','#ffe680'];
+const PNAME=['藍方','紅方','綠方','黃方'],PHUE=[null,356,125,48];
+let ME=0,NP=2,TEAMS=[0,1];
+const isEnemy=(a,b)=>a!==b&&TEAMS[a]!==TEAMS[b];
+const isAlly=o=>TEAMS[o]===TEAMS[ME];
 const RI={food:'🍖',wood:'🪵',gold:'🪙',stone:'🪨'};
 const RT=[null,'wood','food','gold','stone'];
 const RNAME=[null,'樹木','漿果叢','金礦','石礦'];
@@ -196,17 +208,17 @@ const SBH={apikey:SB_KEY,Authorization:'Bearer '+SB_KEY};
 const ART_SRC={},ART_PRI={},ART_ROWS={};let artRefresh=null;
 const pubUrl=path=>SB_URL+'/storage/v1/object/public/kingdom-era/'+path;
 const TEAMED=k=>!!UNITS[k]||k==='villager_f'||k==='militia2';
-function loadImg(k,src,pri,cors){const im=new Image();if(cors)im.crossOrigin='anonymous';im.onload=()=>{if((ART_PRI[k]||0)>pri)return;ART_PRI[k]=pri;IMG[k]=im;ART_SRC[k]=src;if(TEAMED(k))IMG[k+'_1']=redVariant(im);if(k==='grass'&&G)drawTerrain();artRefresh&&artRefresh()};im.src=src}
-function unloadImg(k){delete IMG[k];delete IMG[k+'_1'];delete ART_SRC[k];ART_PRI[k]=0;if(GH_LIST.includes(k))loadImg(k,'img/'+k+'.png?v='+VERSION,1);else if(k==='grass'&&G)drawTerrain();artRefresh&&artRefresh()}
+function loadImg(k,src,pri,cors){const im=new Image();if(cors)im.crossOrigin='anonymous';im.onload=()=>{if((ART_PRI[k]||0)>pri)return;ART_PRI[k]=pri;IMG[k]=im;ART_SRC[k]=src;if(TEAMED(k))for(let c=1;c<4;c++)IMG[k+'_'+c]=hueVariant(im,PHUE[c]);if(k==='grass'&&G)drawTerrain();artRefresh&&artRefresh()};im.src=src}
+function unloadImg(k){delete IMG[k];for(let c=1;c<4;c++)delete IMG[k+'_'+c];delete ART_SRC[k];ART_PRI[k]=0;if(GH_LIST.includes(k))loadImg(k,'img/'+k+'.png?v='+VERSION,1);else if(k==='grass'&&G)drawTerrain();artRefresh&&artRefresh()}
 let GH_LIST=[];
 fetch('img/list.json?v='+VERSION,{cache:'no-store'}).then(r=>r.ok?r.json():[]).then(list=>{GH_LIST=(list||[]).filter(k=>ASSET_KEYS.includes(k));GH_LIST.forEach(k=>loadImg(k,'img/'+k+'.png?v='+VERSION,1))}).catch(()=>{});
 function loadCloudArt(){return fetch(SB_URL+'/rest/v1/ke_art?select=slot,path,prev_path,updated_at',{headers:SBH,cache:'no-store'}).then(r=>r.ok?r.json():[]).then(rows=>{(rows||[]).forEach(r=>{ART_ROWS[r.slot]=r;if(ASSET_KEYS.includes(r.slot))loadImg(r.slot,pubUrl(r.path),2,true)});return true}).catch(()=>false)}
 loadCloudArt();
 // enemy version: shift blue hues to red
-function redVariant(im){try{const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;const g=c.getContext('2d');g.drawImage(im,0,0);const d=g.getImageData(0,0,c.width,c.height),a=d.data;
+function hueVariant(im,nh){try{const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;const g=c.getContext('2d');g.drawImage(im,0,0);const d=g.getImageData(0,0,c.width,c.height),a=d.data;
  for(let i=0;i<a.length;i+=4){if(a[i+3]<10)continue;const r=a[i]/255,gg=a[i+1]/255,b=a[i+2]/255;const mx=Math.max(r,gg,b),mn=Math.min(r,gg,b),dl=mx-mn;if(dl<.12)continue;
   let h;if(mx===r)h=((gg-b)/dl)%6;else if(mx===gg)h=(b-r)/dl+2;else h=(r-gg)/dl+4;h*=60;if(h<0)h+=360;
-  if(h<185||h>255)continue;const s=Math.min(1,dl/mx*1.6+.15),v=Math.min(1,mx*1.12);const nh=356;const f=(n)=>{const k=(n+nh/60)%6;return v-v*s*Math.max(0,Math.min(k,4-k,1))};a[i]=f(5)*255;a[i+1]=f(3)*255;a[i+2]=f(1)*255}
+  if(h<185||h>255)continue;const s=Math.min(1,dl/mx*1.6+.15),v=Math.min(1,mx*1.12);const f=(n)=>{const k=(n+nh/60)%6;return v-v*s*Math.max(0,Math.min(k,4-k,1))};a[i]=f(5)*255;a[i+1]=f(3)*255;a[i+2]=f(1)*255}
  g.putImageData(d,0,0);return c}catch(e){return im}}
 
 
@@ -274,13 +286,17 @@ let AIS=[null,null];
 function updBlk(i){const b=bldAt[i];blk[i]=(resType[i]>0||(b>=0&&!ents.get(b).def.farm))?1:0}
 
 // ================= map =================
-const P0={x:14,y:66},P1={x:W-14,y:H-66};
+const P0={x:14,y:66};
+// slot -> base centre & rotation (0 BL,1 TR,2 TL,3 BR); 2v2 = left side (0,2) vs right side (1,3)
+const BASES=[{x:14,y:66,r:0},{x:66,y:14,r:2},{x:14,y:14,r:1},{x:66,y:66,r:3}];
+function rotT(x,y,r){return r===0?[x,y]:r===1?[W-1-y,x]:r===2?[W-1-x,H-1-y]:[y,H-1-x]}
+function rotR(tx,ty,sz,r){return r===0?[tx,ty]:r===1?[W-ty-sz,tx]:r===2?[W-tx-sz,H-ty-sz]:[ty,H-tx-sz]}
 let terrainCv=null,mmBase=null;
 function genMap(seed){
  const R=mulberry32(seed);
  resType.fill(0);resAmt.fill(0);bldAt.fill(-1);blk.fill(0);explored.fill(0);vis.fill(0);
- const nearTC=(x,y,r)=>Math.hypot(x+.5-P0.x,y+.5-P0.y)<r||Math.hypot(x+.5-P1.x,y+.5-P1.y)<r;
- const put=(x,y,t,a)=>{for(const [px,py] of [[x,y],[W-1-x,H-1-y]]){if(px<1||py<1||px>W-2||py>H-2)continue;const i=idx(px,py);if(resType[i])continue;if(nearTC(px,py,t==1?6.5:3.3))continue;resType[i]=t;resAmt[i]=a}};
+ const nearTC=(x,y,r)=>BASES.some(B=>Math.hypot(x+.5-B.x,y+.5-B.y)<r);
+ const put=(x,y,t,a)=>{for(const [px,py] of [0,1,2,3].map(r=>rotT(x,y,r))){if(px<1||py<1||px>W-2||py>H-2)continue;const i=idx(px,py);if(resType[i])continue;if(nearTC(px,py,t==1?6.5:3.3))continue;resType[i]=t;resAmt[i]=a}};
  const blob=(cx,cy,r,t,a)=>{for(let y=Math.floor(cy-r);y<=cy+r;y++)for(let x=Math.floor(cx-r);x<=cx+r;x++){const d=Math.hypot(x-cx,y-cy);if(d<=r&&R()<0.95-0.5*d/(r+1))put(x,y,t,a)}};
  const rect=(x0,y0,w,h,t,a)=>{for(let y=y0;y<y0+h;y++)for(let x=x0;x<x0+w;x++)put(x,y,t,a)};
  rect(P0.x-6,P0.y+4,3,2,2,150);             // berries
@@ -291,7 +307,7 @@ function genMap(seed){
  rect(28,50,2,1,4,600);
  blob(P0.x+9,P0.y-8,3.3,1,100); blob(P0.x-7,P0.y-11,3,1,100); blob(P0.x+2,P0.y+11,2.4,1,100);
  let k=0,tries=0;
- while(k<30&&tries<400){tries++;const cx=2+R()*(W-4),cy=2+R()*(H-4);if(nearTC(cx,cy,12))continue;if(Math.hypot(cx-39,cy-39)<4)continue;blob(cx,cy,1.8+R()*3.2,1,100);k++}
+ while(k<15&&tries<400){tries++;const cx=2+R()*(W-4),cy=2+R()*(H-4);if(nearTC(cx,cy,12))continue;if(Math.hypot(cx-39,cy-39)<4)continue;blob(cx,cy,1.8+R()*3.2,1,100);k++}
  // edges
  for(let i=0;i<W;i++){if(R()<.7)put(i,1,1,100);if(R()<.7)put(1,i,1,100)}
  for(let i=0;i<NN;i++)blk[i]=resType[i]?1:0;
@@ -323,7 +339,7 @@ function addBld(o,type,tx,ty){
  ents.set(b.id,b);blds.push(b);
  for(let y=ty;y<ty+d.s;y++)for(let x=tx;x<tx+d.s;x++){const i=idx(x,y);bldAt[i]=b.id;updBlk(i)}
  if(!d.farm)for(const u of units){if(u.x>=tx-.2&&u.x<=tx+d.s+.2&&u.y>=ty-.2&&u.y<=ty+d.s+.2){const p=nearestFree(u.x,u.y);u.x=p.x;u.y=p.y;u.path.length=0}}
- if(o===0){reveal(b.x,b.y,d.los+d.s/2);if(gt>0)sfx('build')}
+ if(isAlly(o))reveal(b.x,b.y,d.los+d.s/2);if(o===ME&&gt>0)sfx('build');
  return b}
 function addUnit(o,type,x,y){const d=UNITS[type];
  const u={id:++nid,kind:'u',o,type,def:d,x,y,hp:0,maxhp:0,task:null,path:[],carry:0,ctype:null,cd:0,face:1,repath:0,acq:Math.random()*.5,anim:0,atkT:0,hitT:0,lx:x,ly:y,moving:0,stuck:0};
@@ -344,7 +360,7 @@ function inTerritory(o,cx,cy){for(const b of blds)if(b.o===o&&Math.hypot(b.x-cx,
 function tilesFree(o,type,tx,ty,margin){const s=BLDS[type].s;
  for(let y=ty-margin;y<ty+s+margin;y++)for(let x=tx-margin;x<tx+s+margin;x++){if(!inb(x,y)||x<1||y<1||x>W-2||y>H-2)return false;const i=idx(x,y);
   const inside=x>=tx&&x<tx+s&&y>=ty&&y<ty+s;
-  if(inside){if(blk[i]||bldAt[i]>=0)return false;if(o===0&&!explored[i])return false}
+  if(inside){if(blk[i]||bldAt[i]>=0)return false;if(o===ME&&!explored[i])return false}
   else if(margin&&(bldAt[i]>=0&&!ents.get(bldAt[i]).def.farm))return false}
  for(const p of plans){const ps=BLDS[p.type].s;if(tx<p.tx+ps&&tx+s>p.tx&&ty<p.ty+ps&&ty+s>p.ty)return false}
  return true}
@@ -390,12 +406,12 @@ function approach(u,dt,x0,y0,x1,y1,reach){
 // ================= unit update =================
 function moveAlong(u,dt){if(!u.path.length){u.moving=0;return true}u.moving=1;const p=u.path[0];const dx=p.x-u.x,dy=p.y-u.y,d=Math.hypot(dx,dy),sp=u.def.spd*dt;
  if(Math.abs(dx)>.02)u.face=dx>0?1:-1;
- if(d<=sp){u.x=p.x;u.y=p.y;u.path.shift();return!u.path.length}u.x+=dx/d*sp;u.y+=dy/d*sp;return false}
-function enemyOf(o){return 1-o}
-function findEnemy(u,r){let best=null,bd=r;const eo=enemyOf(u.o);
- for(const e of units)if(e.o===eo&&!e.dead){const d=Math.hypot(e.x-u.x,e.y-u.y);if(d<bd){bd=d;best=e}}
+ const last=u.path.length===1;
+ if(d<=sp||(!last&&d<.45)||(last&&d<.12)){if(d<=sp){u.x=p.x;u.y=p.y}u.path.shift();return!u.path.length}u.x+=dx/d*sp;u.y+=dy/d*sp;return false}
+function findEnemy(u,r){let best=null,bd=r;
+ for(const e of units)if(isEnemy(u.o,e.o)&&!e.dead){const d=Math.hypot(e.x-u.x,e.y-u.y);if(d<bd){bd=d;best=e}}
  if(best)return best;bd=r;
- for(const b of blds)if(b.o===eo&&!b.dead){const d=distRect(u.x,u.y,b.tx,b.ty,b.tx+b.s,b.ty+b.s);if(d<bd){bd=d;best=b}}
+ for(const b of blds)if(isEnemy(u.o,b.o)&&!b.dead){const d=distRect(u.x,u.y,b.tx,b.ty,b.tx+b.s,b.ty+b.s);if(d<bd){bd=d;best=b}}
  return best}
 function updUnit(u,dt){
  u.cd=Math.max(0,u.cd-dt);u.repath-=dt;u.anim+=dt;
@@ -403,19 +419,20 @@ function updUnit(u,dt){
  if(u.stuck>8){u.task=null;u.stuck=0;u.path.length=0}
  if(!t){if(!u.def.vil){u.acq-=dt;if(u.acq<=0){u.acq=.5;const e=findEnemy(u,stat(u.o,u.type,'los'));if(e)u.task={k:'attack',t:e.id,auto:1}}}moveAlong(u,dt);return}
  switch(t.k){
-  case'move':if(moveAlong(u,dt))u.task=null;break;
+  case'move':if(t.am&&!u.def.vil){u.acq-=dt;if(u.acq<=0){u.acq=.5;const e=findEnemy(u,stat(u.o,u.type,'los'));if(e){u.task={k:'attack',t:e.id,auto:1,then:t};u.path.length=0;break}}}if(moveAlong(u,dt))u.task=null;break;
   case'attack':doAttack(u,t,dt);break;
   case'gather':doGather(u,t,dt);break;
   case'farm':doFarm(u,t,dt);break;
   case'build':doBuild(u,t,dt);break;
  }}
+function endAttack(u,t){u.path.length=0;if(t.then&&t.then.dest){const m=t.then;u.task=m;const tx=Math.floor(m.dest.x),ty=Math.floor(m.dest.y);pathRect(u,tx,ty,tx,ty,m.dest)}else u.task=null}
 function doAttack(u,t,dt){
- const e=ents.get(t.t);if(!e||e.dead){u.task=null;u.path.length=0;return}
+ const e=ents.get(t.t);if(!e||e.dead){endAttack(u,t);return}
  const rng=stat(u.o,u.type,'rng');
  const d=e.kind==='u'?Math.hypot(e.x-u.x,e.y-u.y)-.3:distRect(u.x,u.y,e.tx,e.ty,e.tx+e.s,e.ty+e.s);
  const reach=rng>0?rng:.75;
  if(d<=reach){u.path.length=0;u.moving=0;u.face=e.x>u.x?1:-1;if(u.cd<=0){u.cd=u.def.cd;u.atkT=.35;hit(u,e,rng>0)}return}
- if(t.auto&&d>stat(u.o,u.type,'los')*2){u.task=null;u.path.length=0;return}
+ if(t.auto&&d>stat(u.o,u.type,'los')*2){endAttack(u,t);return}
  if(u.repath<=0||!u.path.length){u.repath=1;
   if(e.kind==='u'){const ex=Math.floor(e.x),ey=Math.floor(e.y);const ok=pathRect(u,ex-1,ey-1,ex+1,ey+1,rng>0?null:{x:e.x,y:e.y});if(!ok)u.stuck++}
   else{const ok=pathRect(u,e.tx-1,e.ty-1,e.tx+e.s,e.ty+e.s);if(!ok)u.stuck++}}
@@ -434,7 +451,7 @@ function hit(src,e,ranged){
  else applyDmg(src,e,dmg)}
 function applyDmg(src,e,dmg){
  if(!e||e.dead)return;e.hp-=dmg;e.hitT=.15;
- if(e.o===0&&gt-(G.lastAlert||-99)>12){G.lastAlert=gt;toast('⚠️ 我方遭到攻擊！');sfx('alert');sayV('attacked',null,true);pings.push({x:e.x,y:e.y,t:3})}
+ if(e.o===ME&&gt-(G.lastAlert||-99)>12){G.lastAlert=gt;toast('⚠️ 我方遭到攻擊！');sfx('alert');sayV('attacked',null,true);pings.push({x:e.x,y:e.y,t:3})}
  if(e.kind==='u'&&!e.def.vil&&(!e.task||e.task.k==='move'&&e.task.auto)&&src.kind==='u')e.task={k:'attack',t:src.id,auto:1};
  if(AIS[e.o])AIS[e.o].threat={x:src.x,y:src.y,t:gt,id:src.id};
  if(e.hp<=0)kill(e,src)}
@@ -451,10 +468,10 @@ function findRes(rt,x,y,maxR){const cx=Math.floor(x),cy=Math.floor(y);let best=-
   let open=false;for(const [dx,dy] of DIRS){const nx=xx+dx,ny=yy+dy;if(inb(nx,ny)&&!blk[idx(nx,ny)]){open=true;break}}if(!open)continue;
   const d=Math.hypot(xx+.5-x,yy+.5-y);if(d<bd){bd=d;best=i}}return best}
 function findDrop(o,rtype,x,y){let best=null,bd=1e9;for(const b of blds)if(b.o===o&&!b.dead&&b.def.drop&&b.def.drop.includes(rtype)){const d=distRect(x,y,b.tx,b.ty,b.tx+b.s,b.ty+b.s);if(d<bd){bd=d;best=b}}return best}
-function gatherMult(o){return o===1?DIFF[G.diff].mult:(G.auto0?DIFF[G.diff].mult:1)}
+function gatherMult(o){return AIS[o]?DIFF[G.diff].mult:1}
 function doDrop(u,t,dt,after){
  let b=t.drop?ents.get(t.drop):null;if(!b||b.dead){b=findDrop(u.o,u.ctype,u.x,u.y);t.drop=b?b.id:0}
- if(!b){if(u.o===0&&gt-(G.lastDropMsg||-99)>8){G.lastDropMsg=gt;toast('附近沒有可存放資源的建築')}u.task=null;return}
+ if(!b){if(u.o===ME&&gt-(G.lastDropMsg||-99)>8){G.lastDropMsg=gt;toast('附近沒有可存放資源的建築')}u.task=null;return}
  if(approach(u,dt,b.tx,b.ty,b.tx+b.s-1,b.ty+b.s-1,1.05)){players[u.o].res[u.ctype]+=Math.round(u.carry*10)/10;players[u.o].gathered+=u.carry;u.carry=0;t.ph='go';t.drop=0;after&&after()}}
 function doGather(u,t,dt){
  const i=t.i,rx=i%W,ry=(i/W)|0;
@@ -489,7 +506,7 @@ function doBuild(u,t,dt){
  if(approach(u,dt,p.tx,p.ty,p.tx+s-1,p.ty+s-1,.95)){
   plans.splice(plans.indexOf(p),1);
   if(tilesFree(p.o,p.type,p.tx,p.ty,0)&&inTerritory(p.o,p.tx+s/2,p.ty+s/2)){const b=addBld(p.o,p.type,p.tx,p.ty);p.done=b;postBuild(u,b,t)}
-  else{p.dead=1;refund(p.o,BLDS[p.type].cost);if(p.o===0)toast('建造位置被擋住了，已退還資源');u.task=null}}}
+  else{p.dead=1;refund(p.o,BLDS[p.type].cost);if(p.o===ME)toast('建造位置被擋住了，已退還資源');u.task=null}}}
 function postBuild(u,b,t){
  if(b.dead){u.task=null;return}
  if(b.def.farm){const f=b.farmer&&ents.get(b.farmer);if(!f||f.dead||f===u||!(f.task&&f.task.k==='farm'&&f.task.b===b.id)){b.farmer=u.id;u.task={k:'farm',b:b.id,ph:'go'};return}}
@@ -502,40 +519,40 @@ function postBuild(u,b,t){
  u.task=null}
 
 // ================= buildings update =================
-function enqueue(o,b,item){if(b.queue.length>=5){if(o===0)toast('佇列已滿');return false}
- if(!afford(o,item.cost)){if(o===0)toast('資源不足：缺 '+lackTxt(o,item.cost));return false}
+function enqueue(o,b,item){if(b.queue.length>=5){if(o===ME)toast('佇列已滿');return false}
+ if(!afford(o,item.cost)){if(o===ME)toast('資源不足：缺 '+lackTxt(o,item.cost));return false}
  pay(o,item.cost);b.queue.push(item);return true}
 function updBld(b,dt){
  b.cd=Math.max(0,b.cd-dt);
- if(b.def.atk&&b.cd<=0){let best=null,bd=b.def.rng+b.s/2;const eo=enemyOf(b.o);for(const e of units)if(e.o===eo&&!e.dead){const d=Math.hypot(e.x-b.x,e.y-b.y);if(d<bd){bd=d;best=e}}
+ if(b.def.atk&&b.cd<=0){let best=null,bd=b.def.rng+b.s/2;for(const e of units)if(isEnemy(b.o,e.o)&&!e.dead){const d=Math.hypot(e.x-b.x,e.y-b.y);if(d<bd){bd=d;best=e}}
   if(best){b.cd=2;sfx('arrow',b.x,b.y);fx.push({k:'arrow',x:b.x,y:b.y-b.s*.4,tx:best.x,ty:best.y,t:0,life:.4,dmg:damage(b,best),e:best.id,src:b.o,srcId:b.id})}}
  const q=b.queue[0];if(!q)return;
- if(q.k==='u'&&!q.started){if(popUsed(b.o)<players[b.o].cap)q.started=true;else{if(b.o===0&&gt-(G.lastHoused||-99)>10){G.lastHoused=gt;toast('人口已滿，請蓋房屋');sayV('housed')}return}}
+ if(q.k==='u'&&!q.started){if(popUsed(b.o)<players[b.o].cap)q.started=true;else{if(b.o===ME&&gt-(G.lastHoused||-99)>10){G.lastHoused=gt;toast('人口已滿，請蓋房屋');sayV('housed')}return}}
  q.p+=dt;if(q.p<q.t)return;b.queue.shift();
  const P=players[b.o];
- if(q.k==='u'){const sp=spawnPoint(b);const u=addUnit(b.o,q.type,sp.x,sp.y);if(b.o===0)sfx('train');
+ if(q.k==='u'){const sp=spawnPoint(b);const u=addUnit(b.o,q.type,sp.x,sp.y);if(b.o===ME)sfx('train');
   if(b.rally){if(b.rally.res>=0&&u.def.vil&&resType[b.rally.res])setGather(u,b.rally.res);else if(b.rally.farm&&u.def.vil){const f=ents.get(b.rally.farm);if(f&&!f.dead){u.task={k:'farm',b:f.id,ph:'go'}}}
    else{u.task={k:'move'};pathRect(u,Math.floor(b.rally.x),Math.floor(b.rally.y),Math.floor(b.rally.x),Math.floor(b.rally.y),b.rally)}}}
- else if(q.k==='age'){P.age++;P.aging=false;refreshStats(b.o);if(b.o===0){sfx('age');say('王國進入'+AGES[P.age]+'！',1,true);toast('🎉 進入'+AGES[P.age]+'！');fx.push({k:'ring',x:b.x,y:b.y,t:0,life:1.5})}}
- else if(q.k==='tech'){P.tech[q.type]=1;refreshStats(b.o);if(b.o===0)toast('研究完成：'+TECHS[q.type].n)}}
+ else if(q.k==='age'){P.age++;P.aging=false;refreshStats(b.o);if(b.o===ME){sfx('age');say('王國進入'+AGES[P.age]+'！',1,true);toast('🎉 進入'+AGES[P.age]+'！');fx.push({k:'ring',x:b.x,y:b.y,t:0,life:1.5})}}
+ else if(q.k==='tech'){P.tech[q.type]=1;refreshStats(b.o);if(b.o===ME)toast('研究完成：'+TECHS[q.type].n)}}
 function spawnPoint(b){const tx=b.rally?b.rally.x:b.x,ty=b.rally?b.rally.y:b.y+b.s;let best=null,bd=1e9;
  for(let y=b.ty-1;y<=b.ty+b.s;y++)for(let x=b.tx-1;x<=b.tx+b.s;x++){if(x>=b.tx&&x<b.tx+b.s&&y>=b.ty&&y<b.ty+b.s)continue;if(!inb(x,y)||blk[idx(x,y)])continue;const d=Math.hypot(x+.5-tx,y+.5-ty);if(d<bd){bd=d;best={x:x+.5,y:y+.5}}}
  return best||nearestFree(b.x,b.y+b.s/2+1)}
 
 // ================= commands (shared by player & AI) =================
-function cmdMove(list,wx,wy,auto){const n=list.length,cols=Math.ceil(Math.sqrt(n));
+function cmdMove(list,wx,wy,auto,am){const n=list.length,cols=Math.ceil(Math.sqrt(n));
  list.forEach((u,k)=>{const ox=(k%cols-(cols-1)/2)*.8,oy=(Math.floor(k/cols)-(Math.ceil(n/cols)-1)/2)*.8;let p={x:wx+ox,y:wy+oy};
   if(!inb(Math.floor(p.x),Math.floor(p.y))||blk[idx(Math.floor(p.x),Math.floor(p.y))])p=nearestFree(p.x,p.y);
-  u.task={k:'move',auto};u.stuck=0;const tx=Math.floor(p.x),ty=Math.floor(p.y);pathRect(u,tx,ty,tx,ty,p)})}
+  u.task={k:'move',auto,am:am?1:0,dest:{x:p.x,y:p.y}};u.stuck=0;const tx=Math.floor(p.x),ty=Math.floor(p.y);pathRect(u,tx,ty,tx,ty,p)})}
 function cmdAttack(list,e){list.forEach(u=>{u.task={k:'attack',t:e.id};u.path.length=0;u.repath=0;u.stuck=0})}
 function cmdGather(list,i){const rt=resType[i],rx=i%W,ry=(i/W)|0;const used=new Set();
  list.forEach((u,k)=>{let j=i;if(rt===1&&k>0){j=-1;let bd=1e9;for(let yy=ry-4;yy<=ry+4;yy++)for(let xx=rx-4;xx<=rx+4;xx++){if(!inb(xx,yy))continue;const q=idx(xx,yy);if(resType[q]!==1||used.has(q))continue;let open=false;for(const [dx,dy] of DIRS){const nx=xx+dx,ny=yy+dy;if(inb(nx,ny)&&!blk[idx(nx,ny)]){open=true;break}}if(!open)continue;const d=Math.hypot(xx-rx,yy-ry);if(d<bd){bd=d;j=q}}if(j<0)j=i}
   used.add(j);if(u.def.vil)setGather(u,j)})}
 function cmdFarm(list,f){list.forEach((u,k)=>{let t=f;if(k>0){t=freeFarm(u.o,f.x,f.y)||null}if(t){t.farmer=u.id;u.task={k:'farm',b:t.id,ph:'go'};u.path.length=0}})}
 function cmdBuild(o,list,type,tx,ty){const d=BLDS[type];
- if(lockReason(o,type)){if(o===0)toast(lockReason(o,type));return false}
- if(!canPlace(o,type,tx,ty)){if(o===0)toast('這裡不能蓋（要在自己領地內的空地）');return false}
- if(!afford(o,d.cost)){if(o===0)toast('資源不足：缺 '+lackTxt(o,d.cost));return false}
+ if(lockReason(o,type)){if(o===ME)toast(lockReason(o,type));return false}
+ if(!canPlace(o,type,tx,ty)){if(o===ME)toast('這裡不能蓋（要在自己領地內的空地）');return false}
+ if(!afford(o,d.cost)){if(o===ME)toast('資源不足：缺 '+lackTxt(o,d.cost));return false}
  pay(o,d.cost);const p={o,type,tx,ty};plans.push(p);
  list.forEach(u=>{const prev=u.task&&(u.task.k==='gather'||u.task.k==='farm')?u.task:(u.task&&u.task.k==='build'?u.task.prev:null);u.task={k:'build',p,prev};u.path.length=0;u.repath=0;u.stuck=0});
  return true}
@@ -553,7 +570,7 @@ function aiBuild(o,type,cx,cy,vils){
  let bu=null,bd=1e9;for(const v of vils){if(v.task&&v.task.k==='build')continue;const d=Math.hypot(v.x-sp.tx,v.y-sp.ty)-(v.task?0:5);if(d<bd){bd=d;bu=v}}
  if(!bu)return false;return cmdBuild(o,[bu],type,sp.tx,sp.ty)}
 function aiTick(A){
- const o=A.o,P=players[o],eo=enemyOf(o);
+ const o=A.o,P=players[o];if(P.out)return;
  const myU=units.filter(u=>u.o===o&&!u.dead),vils=myU.filter(u=>u.def.vil),army=myU.filter(u=>!u.def.vil);
  const myB=blds.filter(b=>b.o===o&&!b.dead);const tc=myB.find(b=>b.type==='tc');if(!tc)return;
  const has=t=>myB.some(b=>b.type===t)||plans.some(p=>p.o===o&&p.type===t);
@@ -598,7 +615,7 @@ function aiTick(A){
   if(bi===2||bi===3){const g=findRes(bi===2?3:4,tc.x,tc.y,25);if(g>=0){setGather(v,g);continue}bi=1}
   const lc=myB.find(b=>b.type==='lumber')||tc;const w=findRes(1,lc.x,lc.y,22);if(w>=0)setGather(v,w)}
  // military production
- const pc={inf:0,arch:0,cav:0,spear:0};for(const u of units)if(u.o===eo&&!u.dead&&!u.def.vil){pc[u.def.cls]++;if(u.type==='spear')pc.spear++}
+ const pc={inf:0,arch:0,cav:0,spear:0};for(const u of units)if(isEnemy(o,u.o)&&!u.dead&&!u.def.vil){pc[u.def.cls]++;if(u.type==='spear')pc.spear++}
  for(const b of myB){if(!b.def.train||b.type==='tc'||b.queue.length>=2)continue;
   let opts=b.def.train.filter(t=>UNITS[t].age<=P.age);if(!opts.length)continue;
   let pick=opts[Math.floor(Math.random()*opts.length)];
@@ -606,19 +623,19 @@ function aiTick(A){
   if(b.type==='stable')pick=opts.includes('knight')&&P.res.gold>200?'knight':'scout';
   const c=UNITS[pick].cost;if(canSpend(c)&&popUsed(o)<P.cap)enqueue(o,b,{k:'u',type:pick,t:UNITS[pick].t,p:0,cost:c})}
  // defense
- if(A.threat&&gt-A.threat.t<6){const th=ents.get(A.threat.id);if(th&&!th.dead&&th.o===eo){for(const u of army)if(!A.attacking&&(!u.task||u.task.auto))u.task={k:'attack',t:th.id,auto:0}}}
+ if(A.threat&&gt-A.threat.t<6){const th=ents.get(A.threat.id);if(th&&!th.dead&&isEnemy(o,th.o)){for(const u of army)if(!A.attacking&&(!u.task||u.task.auto))u.task={k:'attack',t:th.id,auto:0}}}
  // attack
- const enemyB=blds.filter(b=>b.o===eo&&!b.dead);
+ const enemyB=blds.filter(b=>isEnemy(o,b.o)&&!b.dead);
  if(!A.attacking&&gt>=A.next&&army.length>=A.wave){A.attacking=true;A.wave+=3;A.next=gt+DIFF[G.diff].gap}
  if(A.attacking){if(army.length<2){A.attacking=false}else{
   for(const u of army){if(u.task&&u.task.k==='attack')continue;let best=null,bd=1e9;for(const b of enemyB){const d=Math.hypot(b.x-u.x,b.y-u.y)+(b.type==='tc'?-6:0);if(d<bd){bd=d;best=b}}if(best)u.task={k:'attack',t:best.id}}}}
  else{ // gather idle army near base
-  for(const u of army){if(!u.task&&Math.hypot(u.x-tc.x,u.y-tc.y)>12){cmdMove([u],tc.x+(o?-6:6),tc.y+(o?6:-6),1)}}}
+  for(const u of army){if(!u.task&&Math.hypot(u.x-tc.x,u.y-tc.y)>12){cmdMove([u],tc.x+Math.sign(W/2-tc.x)*6,tc.y+Math.sign(H/2-tc.y)*6,1)}}}
 }
 
 // ================= fog =================
 function reveal(x,y,r){const r2=r*r;for(let yy=Math.max(0,Math.floor(y-r));yy<=Math.min(H-1,Math.ceil(y+r));yy++)for(let xx=Math.max(0,Math.floor(x-r));xx<=Math.min(W-1,Math.ceil(x+r));xx++){const dx=xx+.5-x,dy=yy+.5-y;if(dx*dx+dy*dy<=r2){const i=idx(xx,yy);vis[i]=1;explored[i]=1}}}
-function updFog(){vis.fill(0);for(const u of units)if(u.o===0&&!u.dead)reveal(u.x,u.y,stat(0,u.type,'los'));for(const b of blds)if(b.o===0&&!b.dead)reveal(b.x,b.y,b.def.los+b.s/2)}
+function updFog(){vis.fill(0);for(const u of units)if(isAlly(u.o)&&!u.dead)reveal(u.x,u.y,stat(u.o,u.type,'los'));for(const b of blds)if(isAlly(b.o)&&!b.dead)reveal(b.x,b.y,b.def.los+b.s/2)}
 
 // ================= main tick =================
 let fogT=0,aiT=0,winT=0;
@@ -635,7 +652,7 @@ function tick(dt){
  fogT-=dt;if(fogT<=0){fogT=.25;updFog()}
  aiT-=dt;if(aiT<=0){aiT=1;for(const A of AIS)if(A)aiTick(A)}
  winT-=dt;if(winT<=0){winT=1;checkWin();cleanPlans()}}
-function cleanPlans(){for(let k=plans.length-1;k>=0;k--){const p=plans[k];if(!units.some(u=>!u.dead&&u.task&&u.task.k==='build'&&u.task.p===p)){plans.splice(k,1);p.dead=1;refund(p.o,BLDS[p.type].cost);if(p.o===0)toast('建造已取消，資源已退還')}}}
+function cleanPlans(){for(let k=plans.length-1;k>=0;k--){const p=plans[k];if(!units.some(u=>!u.dead&&u.task&&u.task.k==='build'&&u.task.p===p)){plans.splice(k,1);p.dead=1;refund(p.o,BLDS[p.type].cost);if(p.o===ME)toast('建造已取消，資源已退還')}}}
 function separate(){const grid=new Map();for(const u of units){if(u.dead)continue;const k=Math.floor(u.x)+Math.floor(u.y)*W;let a=grid.get(k);if(!a)grid.set(k,a=[]);a.push(u)}
  for(const u of units){if(u.dead)continue;const cx=Math.floor(u.x),cy=Math.floor(u.y);
   for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const a=grid.get(cx+dx+(cy+dy)*W);if(!a)continue;for(const v of a){if(v.id<=u.id)continue;let ddx=v.x-u.x,ddy=v.y-u.y;let d=Math.hypot(ddx,ddy);if(d>=.5)continue;if(d<.01){ddx=Math.random()-.5;ddy=Math.random()-.5;d=Math.hypot(ddx,ddy)}
@@ -644,24 +661,30 @@ function separate(){const grid=new Map();for(const u of units){if(u.dead)continu
    const ux=u.x-nx*uw*2,uy=u.y-ny*uw*2,vx=v.x+nx*vw*2,vy=v.y+ny*vw*2;
    if(inb(Math.floor(ux),Math.floor(uy))&&!blk[idx(Math.floor(ux),Math.floor(uy))]){u.x=ux;u.y=uy}
    if(inb(Math.floor(vx),Math.floor(vy))&&!blk[idx(Math.floor(vx),Math.floor(vy))]){v.x=vx;v.y=vy}}}}}
-function checkWin(){if(G.over)return;const t0=blds.some(b=>b.o===0&&b.type==='tc'),t1=blds.some(b=>b.o===1&&b.type==='tc');
- if(!t1||!t0){G.over=true;G.win=!t1&&t0;showEnd()}}
+function checkWin(){if(G.over)return;
+ for(let o=0;o<NP;o++){const P=players[o];if(P.out)continue;if(!blds.some(b=>b.o===o&&!b.dead&&b.type==='tc')){P.out=true;AIS[o]=null;
+  for(const u of units)if(u.o===o&&!u.dead)kill(u,null);for(const b of blds)if(b.o===o&&!b.dead)kill(b,null);for(let k=plans.length-1;k>=0;k--)if(plans[k].o===o)plans.splice(k,1);
+  if(o!==ME){toast(PNAME[o]+'被消滅了！');say(PNAME[o]+'已被消滅',1,true)}}}
+ const meOut=players[ME].out,othersAlive=players.some((P,o)=>!P.out&&TEAMS[o]!==TEAMS[ME]);
+ if(meOut||!othersAlive){G.over=true;G.win=!meOut;showEnd()}}
 
 // ================= new game =================
-function newGame(diff,seed){
- seed=seed||((Math.random()*1e9)|0);G={diff,over:false,win:false,shade:null,speed:1,auto0:false,seed};
+function newGame(diff,seed,np,mode){
+ np=np||2;mode=mode||'ffa';seed=seed||((Math.random()*1e9)|0);G={diff,over:false,win:false,shade:null,speed:1,auto0:false,seed,np,mode,amove:1};
+ NP=np;TEAMS=mode==='2v2'&&np===4?[0,1,0,1]:[0,1,2,3].slice(0,np);ME=0;
  units=[];blds=[];plans=[];ents=new Map();nid=0;gt=0;fx=[];marks=[];pings=[];
- players=[0,1].map(()=>({res:{food:200,wood:250,gold:100,stone:200},age:0,aging:false,tech:{},cap:10,trained:0,kills:0,gathered:0}));
+ players=Array.from({length:np},()=>({res:{food:200,wood:250,gold:100,stone:200},age:0,aging:false,tech:{},cap:10,trained:0,kills:0,gathered:0,out:false}));
  genMap(seed);
- const tc0=addBld(0,'tc',P0.x-2,P0.y-2),tc1=addBld(1,'tc',W-(P0.x-2)-BLDS.tc.s,H-(P0.y-2)-BLDS.tc.s);
- for(const [hx,hy] of [[P0.x-3,P0.y-6],[P0.x,P0.y-6]]){addBld(0,'house',hx,hy);addBld(1,'house',W-hx-BLDS.house.s,H-hy-BLDS.house.s)}
- for(const [o,tc,sg] of [[0,tc0,1],[1,tc1,-1]]){
-  [[-1.5,2.6],[0,2.7],[1.5,2.6]].forEach(([dx,dy])=>addUnit(o,'villager',tc.x+dx*sg,tc.y+dy*sg));
-  addUnit(o,'scout',tc.x+3*sg,tc.y+1.5*sg)}
+ for(let o=0;o<np;o++){const r=BASES[o].r;const [tx,ty]=rotR(P0.x-2,P0.y-2,BLDS.tc.s,r);const tc=addBld(o,'tc',tx,ty);
+  for(const [hx,hy] of [[P0.x-3,P0.y-6],[P0.x,P0.y-6]]){const [x,y]=rotR(hx,hy,BLDS.house.s,r);addBld(o,'house',x,y)}
+  const sx=Math.sign(W/2-tc.x),sy=Math.sign(H/2-tc.y);
+  [[2.6,-1.5],[2.7,0],[2.6,1.5]].forEach(([dx,dy])=>{const p=nearestFree(tc.x+dx*sx,tc.y+dy*sy);addUnit(o,'villager',p.x,p.y)});
+  const ps=nearestFree(tc.x+2*sx,tc.y+3*sy);addUnit(o,'scout',ps.x,ps.y)}
  for(const p of players)p.trained=0;
- AIS=[null,aiInit(1)];
+ AIS=players.map((p,o)=>o===ME?null:aiInit(o));
  updFog();selIds=[];placing=null;buildTab=0;
- cam.z=clamp(Math.min(VW,VH)/(T*(VH>VW?12:11)),.7,1.5);centerOn(tc0.x,tc0.y);
+ const my=blds.find(b=>b.o===ME&&b.type==='tc');
+ cam.z=clamp(Math.min(VW,VH)/(T*(VH>VW?12:11)),.7,1.5);centerOn(my.x,my.y);
  lastSig='';renderPanel(true);$('bspeed').textContent='速度 1x'}
 
 // ================= camera & input =================
@@ -698,13 +721,13 @@ cv.addEventListener('pointerup',endPtr);cv.addEventListener('pointercancel',endP
 cv.addEventListener('wheel',e=>{e.preventDefault();const wx=e.clientX/cam.z+cam.x,wy=e.clientY/cam.z+cam.y;cam.z=clamp(cam.z*(e.deltaY<0?1.1:.9),.45,2.4);cam.x=wx-e.clientX/cam.z;cam.y=wy-e.clientY/cam.z;clampCam()},{passive:false});
 cv.addEventListener('contextmenu',e=>e.preventDefault());
 function doBox(){const a=toWorld(Math.min(box.x0,box.x1),Math.min(box.y0,box.y1)),b=toWorld(Math.max(box.x0,box.x1),Math.max(box.y0,box.y1));
- const list=units.filter(u=>u.o===0&&!u.dead&&u.x>=a.x&&u.x<=b.x&&u.y>=a.y&&u.y<=b.y);
+ const list=units.filter(u=>u.o===ME&&!u.dead&&u.x>=a.x&&u.x<=b.x&&u.y>=a.y&&u.y<=b.y);
  if(list.length){selIds=list.map(u=>u.id);placing=null;sayUnit(list.find(u=>!u.def.vil)||list[0],'sel')}lastSig=''}
 function pickAt(wx,wy){const r=Math.max(.5,22/(T*cam.z));let best=null,bd=r;
- for(const u of units){if(u.dead)continue;if(u.o!==0&&!vis[idx(Math.floor(u.x),Math.floor(u.y))])continue;const d=Math.hypot(u.x-wx,u.y-(wy+.1));if(d<bd){bd=d;best=u}}
+ for(const u of units){if(u.dead)continue;if(!isAlly(u.o)&&!vis[idx(Math.floor(u.x),Math.floor(u.y))])continue;const d=Math.hypot(u.x-wx,u.y-(wy+.1));if(d<bd){bd=d;best=u}}
  if(best)return best;const tx=Math.floor(wx),ty=Math.floor(wy);if(!inb(tx,ty))return null;const i=idx(tx,ty);
- if(bldAt[i]>=0){const b=ents.get(bldAt[i]);if(b&&(b.o===0||explored[i]))return b}
- {let bb=null,bd2=Math.max(.35,14/(T*cam.z));for(const b of blds){if(b.dead||(b.o!==0&&!explored[idx(b.tx,b.ty)]))continue;const d=distRect(wx,wy,b.tx,b.ty,b.tx+b.s,b.ty+b.s);if(d<bd2){bd2=d;bb=b}}if(bb&&!resType[i])return bb}
+ if(bldAt[i]>=0){const b=ents.get(bldAt[i]);if(b&&(isAlly(b.o)||explored[i]))return b}
+ {let bb=null,bd2=Math.max(.35,14/(T*cam.z));for(const b of blds){if(b.dead||(!isAlly(b.o)&&!explored[idx(b.tx,b.ty)]))continue;const d=distRect(wx,wy,b.tx,b.ty,b.tx+b.s,b.ty+b.s);if(d<bd2){bd2=d;bb=b}}if(bb&&!resType[i])return bb}
  if(resType[i]&&explored[i])return{kind:'r',i};
  // forgiving search for resource nearby
  let bi=-1,bdd=.75;for(let yy=ty-1;yy<=ty+1;yy++)for(let xx=tx-1;xx<=tx+1;xx++){if(!inb(xx,yy))continue;const j=idx(xx,yy);if(!resType[j]||!explored[j])continue;const d=distRect(wx,wy,xx,yy,xx+1,yy+1);if(d<bdd){bdd=d;bi=j}}
@@ -712,21 +735,22 @@ function pickAt(wx,wy){const r=Math.max(.5,22/(T*cam.z));let best=null,bd=r;
 function mark(x,y,c){marks.push({x,y,c,t:.6})}
 function handleTap(sx,sy){if(!G||G.over)return;const w=toWorld(sx,sy);
  if(placing){const s=BLDS[placing.type].s;placing.tx=Math.round(w.x-s/2);placing.ty=Math.round(w.y-s/2);lastSig='';return}
- const hit=pickAt(w.x,w.y);const selU=selEnts().filter(e=>e.kind==='u'&&e.o===0);const vils=selU.filter(u=>u.def.vil);const now=performance.now();
- if(hit&&hit.kind==='u'&&hit.o===0){
-  if(lastTap.id===hit.id&&now-lastTap.t<380){const a=toWorld(0,0),b=toWorld(VW,VH);selIds=units.filter(u=>u.o===0&&u.type===hit.type&&u.x>=a.x&&u.x<=b.x&&u.y>=a.y&&u.y<=b.y).map(u=>u.id)}
+ const hit=pickAt(w.x,w.y);const selU=selEnts().filter(e=>e.kind==='u'&&e.o===ME);const vils=selU.filter(u=>u.def.vil);const now=performance.now();
+ if(hit&&hit.kind==='u'&&hit.o===ME){
+  if(lastTap.id===hit.id&&now-lastTap.t<380){const a=toWorld(0,0),b=toWorld(VW,VH);selIds=units.filter(u=>u.o===ME&&u.type===hit.type&&u.x>=a.x&&u.x<=b.x&&u.y>=a.y&&u.y<=b.y).map(u=>u.id)}
   else{selIds=[hit.id];sayUnit(hit,'sel')}lastTap={t:now,id:hit.id};lastSig='';return}
- if(hit&&hit.kind==='b'&&hit.o===0){
+ if(hit&&hit.kind==='b'&&hit.o===ME){
   if(vils.length&&hit.def.farm){cmdFarm(vils,hit);sayUnit(vils[0],'farm');mark(hit.x,hit.y,'#ffd27a');return}
   selIds=[hit.id];lastSig='';return}
- if(hit&&(hit.kind==='u'||hit.kind==='b')&&hit.o===1){if(selU.length){cmdAttack(selU,hit);sayUnit(selU[0],'attack');mark(hit.x,hit.y,'#ff5050');return}selIds=[hit.id];lastSig='';return}
+ if(hit&&(hit.kind==='u'||hit.kind==='b')&&hit.o!==ME&&!isEnemy(ME,hit.o)){selIds=[hit.id];lastSig='';return}
+ if(hit&&(hit.kind==='u'||hit.kind==='b')&&isEnemy(ME,hit.o)){if(selU.length){cmdAttack(selU,hit);sayUnit(selU[0],'attack');mark(hit.x,hit.y,'#ff5050');return}selIds=[hit.id];lastSig='';return}
  if(hit&&hit.kind==='r'){
   if(vils.length){cmdGather(vils,hit.i);sayUnit(vils[0],['','wood','food','gold','stone'][resType[hit.i]]);const mil=selU.filter(u=>!u.def.vil);if(mil.length)cmdMove(mil,w.x,w.y);mark((hit.i%W)+.5,((hit.i/W)|0)+.5,'#ffd27a');return}
   if(selU.length){cmdMove(selU,w.x,w.y);mark(w.x,w.y,'#7fd27f');return}
-  const sb=selEnts()[0];if(sb&&sb.kind==='b'&&sb.o===0&&sb.def.train){sb.rally={x:w.x,y:w.y,res:hit.i};toast('🚩 集結點：新村民會自動去採集');return}
+  const sb=selEnts()[0];if(sb&&sb.kind==='b'&&sb.o===ME&&sb.def.train){sb.rally={x:w.x,y:w.y,res:hit.i};toast('🚩 集結點：新村民會自動去採集');return}
   selIds=[];G.selRes=hit.i;lastSig='';return}
- if(selU.length){cmdMove(selU,w.x,w.y);sayUnit(selU[0],'move');mark(w.x,w.y,'#7fd27f');return}
- const sb=selEnts()[0];if(sb&&sb.kind==='b'&&sb.o===0&&sb.def.train){sb.rally={x:w.x,y:w.y,res:-1};mark(w.x,w.y,'#ffd27a');toast('🚩 集結點已設定');return}
+ if(selU.length){const am=G.amove&&selU.some(u=>!u.def.vil);cmdMove(selU,w.x,w.y,0,am);sayUnit(selU[0],am?'attack':'move');mark(w.x,w.y,am?'#ff7050':'#7fd27f');return}
+ const sb=selEnts()[0];if(sb&&sb.kind==='b'&&sb.o===ME&&sb.def.train){sb.rally={x:w.x,y:w.y,res:-1};mark(w.x,w.y,'#ffd27a');toast('🚩 集結點已設定');return}
  selIds=[];G.selRes=-1;lastSig=''}
 
 // minimap
@@ -739,8 +763,8 @@ function drawMinimap(){if(!mmBase)return;if(!mmImg)mmImg=mctx.createImageData(W,
   d[i*4]=r;d[i*4+1]=g;d[i*4+2]=b;d[i*4+3]=255}
  const tmp=drawMinimap.c||(drawMinimap.c=Object.assign(document.createElement('canvas'),{width:W,height:H}));tmp.getContext('2d').putImageData(mmImg,0,0);
  mctx.imageSmoothingEnabled=false;mctx.drawImage(tmp,0,0,mm.width,mm.height);const k=mm.width/W;
- for(const b of blds){if(b.o===1&&!explored[idx(b.tx,b.ty)])continue;mctx.fillStyle=TEAM[b.o];mctx.fillRect(b.tx*k,b.ty*k,b.s*k,b.s*k)}
- for(const u of units){if(u.o===1&&!vis[idx(Math.floor(u.x),Math.floor(u.y))])continue;mctx.fillStyle=u.o?'#ff9090':'#a0c8ff';mctx.fillRect(u.x*k-1.5,u.y*k-1.5,3,3)}
+ for(const b of blds){if(!isAlly(b.o)&&!explored[idx(b.tx,b.ty)])continue;mctx.fillStyle=TEAM[b.o];mctx.fillRect(b.tx*k,b.ty*k,b.s*k,b.s*k)}
+ for(const u of units){if(!isAlly(u.o)&&!vis[idx(Math.floor(u.x),Math.floor(u.y))])continue;mctx.fillStyle=TEAML[u.o];mctx.fillRect(u.x*k-1.5,u.y*k-1.5,3,3)}
  for(const p of pings){mctx.strokeStyle=`rgba(255,60,60,${Math.min(1,p.t)})`;mctx.lineWidth=2;mctx.beginPath();mctx.arc(p.x*k,p.y*k,6+(3-p.t)*4,0,7);mctx.stroke()}
  mctx.strokeStyle='#fff';mctx.lineWidth=1.5;mctx.strokeRect(cam.x/T*k,cam.y/T*k,VW/cam.z/T*k,VH/cam.z/T*k)}
 
@@ -778,12 +802,12 @@ function drawBld(b,sel){const x=b.tx*T,y=b.ty*T,s=b.s*T;const age=gt-b.born;cons
   ctx.lineWidth=2.5;ctx.strokeStyle=TEAMD[b.o];rrect(3,3,s-6,s-6,6);ctx.stroke();
   ctx.fillStyle='rgba(255,255,255,.12)';for(let k=0;k<b.s*2;k++)ctx.fillRect(6+k*(s-12)/(b.s*2),s*.55,2,s*.35);
   drawIcon(b.type,s/2,s*.55,b.s===1?s*.78:s*.55)}
- if(b.queue.length){const q=b.queue[0];ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(4,s-9,s-8,5);ctx.fillStyle='#ffd27a';ctx.fillRect(4,s-9,(s-8)*Math.min(1,q.p/q.t),5);if(b.o===0||vis[idx(b.tx,b.ty)]){const sm=Math.sin(gt*6)*1.5;ctx.globalAlpha=.6;ctx.fillStyle='#ddd';ctx.beginPath();ctx.arc(s*.8,-2+sm,4,0,7);ctx.arc(s*.85,-8+sm,3,0,7);ctx.fill();ctx.globalAlpha=1}}
+ if(b.queue.length){const q=b.queue[0];ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(4,s-9,s-8,5);ctx.fillStyle='#ffd27a';ctx.fillRect(4,s-9,(s-8)*Math.min(1,q.p/q.t),5);if(b.o===ME||vis[idx(b.tx,b.ty)]){const sm=Math.sin(gt*6)*1.5;ctx.globalAlpha=.6;ctx.fillStyle='#ddd';ctx.beginPath();ctx.arc(s*.8,-2+sm,4,0,7);ctx.arc(s*.85,-8+sm,3,0,7);ctx.fill();ctx.globalAlpha=1}}
  ctx.restore();
  if(sel){ctx.setLineDash([6,4]);ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.strokeRect(x,y,s,s);ctx.setLineDash([])}
  if(sel||b.hp<b.maxhp)hpBar(x+4,y-6,s-8,b.hp/b.maxhp);
- if(sel&&b.rally&&b.o===0){ctx.strokeStyle='rgba(255,255,255,.5)';ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(b.x*T,b.y*T);ctx.lineTo(b.rally.x*T,b.rally.y*T);ctx.stroke();ctx.setLineDash([]);drawIcon('flag',b.rally.x*T+5,b.rally.y*T-8,20)}}
-function unitImg(u){let k=u.type;if(k==='villager'&&u.fem&&IMG.villager_f)k='villager_f';if(k==='militia'&&players[u.o].age>=2&&IMG.militia2)k='militia2';const im=IMG[k];if(!im)return null;return u.o===1?(IMG[k+'_1']||im):im}
+ if(sel&&b.rally&&b.o===ME){ctx.strokeStyle='rgba(255,255,255,.5)';ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(b.x*T,b.y*T);ctx.lineTo(b.rally.x*T,b.rally.y*T);ctx.stroke();ctx.setLineDash([]);drawIcon('flag',b.rally.x*T+5,b.rally.y*T-8,20)}}
+function unitImg(u){let k=u.type;if(k==='villager'&&u.fem&&IMG.villager_f)k='villager_f';if(k==='militia'&&players[u.o].age>=2&&IMG.militia2)k='militia2';const im=IMG[k];if(!im)return null;return u.o?(IMG[k+'_'+u.o]||im):im}
 function drawUnit(u,sel){
  const x=u.x*T,y=u.y*T;const walk=u.moving?Math.abs(Math.sin(u.anim*10))*3:0;
  let lx=0,ly=0;if(u.atkT>0&&u.task&&u.task.k==='attack'){const e=ents.get(u.task.t);if(e){const k=Math.sin((1-u.atkT/.35)*Math.PI)*(u.def.rng?1.5:6);const dx=e.x-u.x,dy=e.y-u.y,d=Math.hypot(dx,dy)||1;lx=dx/d*k;ly=dy/d*k}}
@@ -815,18 +839,18 @@ function render(){
  const x0=Math.max(0,Math.floor(cam.x/T)-1),y0=Math.max(0,Math.floor(cam.y/T)-1),x1=Math.min(W-1,Math.ceil((cam.x+VW/cam.z)/T)+1),y1=Math.min(H-1,Math.ceil((cam.y+VH/cam.z)/T)+1);
  const inView=(x,y,s)=>x+s>=x0&&x<=x1&&y+s>=y0&&y<=y1;
  const sel=new Set(selIds);
- for(const b of blds)if(b.def.farm&&inView(b.tx,b.ty,b.s)&&(b.o===0||explored[idx(b.tx,b.ty)]))drawFarm(b);
+ for(const b of blds)if(b.def.farm&&inView(b.tx,b.ty,b.s)&&(isAlly(b.o)||explored[idx(b.tx,b.ty)]))drawFarm(b);
  // territory hint while placing
- if(placing){ctx.fillStyle='rgba(255,255,255,.07)';ctx.strokeStyle='rgba(255,255,255,.35)';ctx.setLineDash([6,6]);ctx.lineWidth=1.5;for(const b of blds)if(b.o===0){ctx.beginPath();ctx.arc(b.x*T,b.y*T,(TER+b.s/2)*T,0,7);ctx.fill();ctx.stroke()}ctx.setLineDash([])}
+ if(placing){ctx.fillStyle='rgba(255,255,255,.07)';ctx.strokeStyle='rgba(255,255,255,.35)';ctx.setLineDash([6,6]);ctx.lineWidth=1.5;for(const b of blds)if(b.o===ME){ctx.beginPath();ctx.arc(b.x*T,b.y*T,(TER+b.s/2)*T,0,7);ctx.fill();ctx.stroke()}ctx.setLineDash([])}
  // plans
- for(const p of plans)if(p.o===0){const s=BLDS[p.type].s;ctx.setLineDash([5,4]);ctx.strokeStyle='#ffd27a';ctx.lineWidth=2;ctx.strokeRect(p.tx*T+2,p.ty*T+2,s*T-4,s*T-4);ctx.setLineDash([]);ctx.globalAlpha=.55;drawIcon(p.type,(p.tx+s/2)*T,(p.ty+s/2)*T,s*T*.45);ctx.globalAlpha=1}
+ for(const p of plans)if(p.o===ME){const s=BLDS[p.type].s;ctx.setLineDash([5,4]);ctx.strokeStyle='#ffd27a';ctx.lineWidth=2;ctx.strokeRect(p.tx*T+2,p.ty*T+2,s*T-4,s*T-4);ctx.setLineDash([]);ctx.globalAlpha=.55;drawIcon(p.type,(p.tx+s/2)*T,(p.ty+s/2)*T,s*T*.45);ctx.globalAlpha=1}
  // corpses
  for(const f of fx)if(f.k==='corpse'){ctx.globalAlpha=Math.max(0,1-f.t/f.life)*.8;ctx.save();ctx.translate(f.x*T,f.y*T);ctx.rotate(Math.PI/2*Math.min(1,f.t*4)*(f.face||1));ctx.fillStyle=TEAMD[f.o];ctx.beginPath();ctx.arc(0,0,T*.28,0,7);ctx.fill();drawIcon(f.type,0,0,T*.45);ctx.restore();ctx.globalAlpha=1}
  // depth-sorted: resources, buildings, units
  const list=[];
  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const i=idx(x,y);if(resType[i]&&explored[i])list.push({k:0,y:y+.9,x,ty:y,i})}
- for(const b of blds)if(!b.def.farm&&inView(b.tx,b.ty,b.s)&&(b.o===0||explored[idx(b.tx,b.ty)]))list.push({k:1,y:b.ty+b.s,b});
- for(const u of units)if(inView(u.x-1,u.y-1,2)&&(u.o===0||vis[idx(Math.floor(u.x),Math.floor(u.y))]))list.push({k:2,y:u.y+.2,u});
+ for(const b of blds)if(!b.def.farm&&inView(b.tx,b.ty,b.s)&&(isAlly(b.o)||explored[idx(b.tx,b.ty)]))list.push({k:1,y:b.ty+b.s,b});
+ for(const u of units)if(inView(u.x-1,u.y-1,2)&&(isAlly(u.o)||vis[idx(Math.floor(u.x),Math.floor(u.y))]))list.push({k:2,y:u.y+.2,u});
  list.sort((a,b)=>a.y-b.y);
  for(const it of list){if(it.k===0)drawRes(resType[it.i],it.x,it.ty,it.i);else if(it.k===1)drawBld(it.b,sel.has(it.b.id));else drawUnit(it.u,sel.has(it.u.id))}
  // effects
@@ -843,7 +867,7 @@ function render(){
  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const i=idx(x,y);if(!explored[i])unseen.rect(x*T,y*T,T+.5,T+.5);else if(!vis[i])dim.rect(x*T,y*T,T+.5,T+.5)}
  ctx.fillStyle='rgba(0,0,0,.42)';ctx.fill(dim);ctx.fillStyle='#000';ctx.fill(unseen);
  // ghost
- if(placing&&placing.tx!=null){const s=BLDS[placing.type].s;const ok=canPlace(0,placing.type,placing.tx,placing.ty);ctx.fillStyle=ok?'rgba(80,220,80,.35)':'rgba(230,60,60,.4)';ctx.fillRect(placing.tx*T,placing.ty*T,s*T,s*T);ctx.strokeStyle=ok?'#7fd27f':'#ff6b6b';ctx.lineWidth=2;ctx.strokeRect(placing.tx*T,placing.ty*T,s*T,s*T);drawIcon(placing.type,(placing.tx+s/2)*T,(placing.ty+s/2)*T,s*T*.5)}
+ if(placing&&placing.tx!=null){const s=BLDS[placing.type].s;const ok=canPlace(ME,placing.type,placing.tx,placing.ty);ctx.fillStyle=ok?'rgba(80,220,80,.35)':'rgba(230,60,60,.4)';ctx.fillRect(placing.tx*T,placing.ty*T,s*T,s*T);ctx.strokeStyle=ok?'#7fd27f':'#ff6b6b';ctx.lineWidth=2;ctx.strokeRect(placing.tx*T,placing.ty*T,s*T,s*T);drawIcon(placing.type,(placing.tx+s/2)*T,(placing.ty+s/2)*T,s*T*.5)}
  // box + long-press hint ring
  ctx.setTransform(DPR,0,0,DPR,0,0);
  if(gest&&gest.k==='tap'&&!placing&&ptrs.size===1){const el=performance.now()-gest.t;if(el>90){const pr=Math.min(1,(el-90)/(LP_MS-90));ctx.strokeStyle='rgba(255,255,255,.85)';ctx.lineWidth=3;ctx.beginPath();ctx.arc(gest.sx,gest.sy,30,-Math.PI/2,-Math.PI/2+pr*Math.PI*2);ctx.stroke()}}
@@ -856,69 +880,77 @@ let selIds=[],placing=null,buildTab=0,lastSig='';
 function selEnts(){const a=[];for(const id of selIds){const e=ents.get(id);if(e&&!e.dead)a.push(e)}return a}
 function btn(a,ic,l,c,cls){return`<button class="b ${cls||''}" data-a="${a}"><span class="i">${ic}</span><span>${l}</span>${c?`<span class="c">${c}</span>`:''}</button>`}
 function vilState(u){const t=u.task;if(!t)return'閒置';if(t.k==='gather')return t.ph==='drop'?'運送資源中':'採集'+(RNAME[t.rt]||'')+'中';if(t.k==='farm')return'耕種中';if(t.k==='build')return'前往建造'+BLDS[t.p.type].n;if(t.k==='move')return'移動中';if(t.k==='attack')return'攻擊中';return''}
-function renderPanel(force){if(!G)return;const es=selEnts();selIds=es.map(e=>e.id);const P=players[0];let info='',acts='';
- if(placing){const d=BLDS[placing.type];const ok=placing.tx!=null&&canPlace(0,placing.type,placing.tx,placing.ty);
+function renderPanel(force){if(!G)return;const es=selEnts();selIds=es.map(e=>e.id);const P=players[ME];let info='',acts='';
+ if(placing){const d=BLDS[placing.type];const ok=placing.tx!=null&&canPlace(ME,placing.type,placing.tx,placing.ty);
   info=`<div class="big">${ico(placing.type)}</div><div class="nm">${d.n}</div><div>${costTxt(d.cost)}</div>`;
   acts=`<span class="hint">點地圖放置，可拖曳調整<br>${placing.tx==null?'':ok?'✅ 可以蓋':'❌ 這裡不能蓋'}</span>`+btn('pok',ico('ok'),'確定','',ok?'ok':'na')+btn('pno',ico('no'),'取消','','no')}
  else if(!es.length){if(G.selRes>=0&&resType[G.selRes]){info=`<div class="big">${ico(['','tree','berry','gold','stone'][resType[G.selRes]])}</div><div class="nm">${RNAME[resType[G.selRes]]}</div><div>剩餘 ${Math.ceil(resAmt[G.selRes])}</div>`}
   else info=`<div class="nm">${AGES[P.age]}</div><div style="opacity:.75">點選單位或建築</div>`;
   acts=`<span class="hint">提示：點村民→再點樹木/金礦就會採集。<br>左側${ico('villager','s')}可找閒置村民。</span>`}
  else{const e=es[0];
-  if(e.kind==='u'&&e.o===0){const vils=es.filter(u=>u.def.vil);
-   if(es.length===1){info=`<div class="big">${ico(e.type)}</div><div class="nm">${uname(0,e.type)}</div><div class="hp"><div style="width:${e.hp/e.maxhp*100}%"></div></div><div>❤️${Math.ceil(e.hp)}/${e.maxhp} ⚔️${stat(0,e.type,'atk')} 🛡️${stat(0,e.type,'arm')}${e.def.rng?' 🎯'+stat(0,e.type,'rng'):''}</div>`+(e.def.vil?`<div>${vilState(e)}${e.carry>0?' '+ico(e.ctype,'s')+Math.floor(e.carry):''}</div>`:'')}
+  if(e.kind==='u'&&e.o===ME){const vils=es.filter(u=>u.def.vil);
+   if(es.length===1){info=`<div class="big">${ico(e.type)}</div><div class="nm">${uname(ME,e.type)}</div><div class="hp"><div style="width:${e.hp/e.maxhp*100}%"></div></div><div>❤️${Math.ceil(e.hp)}/${e.maxhp} ⚔️${stat(ME,e.type,'atk')} 🛡️${stat(ME,e.type,'arm')}${e.def.rng?' 🎯'+stat(ME,e.type,'rng'):''}</div>`+(e.def.vil?`<div>${vilState(e)}${e.carry>0?' '+ico(e.ctype,'s')+Math.floor(e.carry):''}</div>`:'')}
    else{const c={};es.forEach(u=>c[u.type]=(c[u.type]||0)+1);info=`<div class="nm">已選 ${es.length} 個</div><div>${Object.keys(c).map(k=>ico(k)+c[k]).join(' ')}</div>`}
    if(vils.length){const list=buildTab?MIL:ECO;acts+=btn('tab',ico(buildTab?'house':'armor'),buildTab?'經濟建築':'軍事建築','','tb');
-    for(const t of list){const d=BLDS[t];const lr=lockReason(0,t);acts+=btn('build:'+t,ico(t),d.n,lr?'🔒'+(players[0].age<d.age?AGES[d.age].slice(0,2):BLDS[d.req].n):costTxt(d.cost),lr||!afford(0,d.cost)?'na':'')}}
+    for(const t of list){const d=BLDS[t];const lr=lockReason(ME,t);acts+=btn('build:'+t,ico(t),d.n,lr?'🔒'+(players[ME].age<d.age?AGES[d.age].slice(0,2):BLDS[d.req].n):costTxt(d.cost),lr||!afford(ME,d.cost)?'na':'')}}
+   if(es.some(u=>!u.def.vil))acts+=btn('amove',ico('barracks'),'攻擊移動',G.amove?'開':'關',G.amove?'ok':'');
    acts+=btn('stop',ico('stop'),'停止','');acts+=btn('desel',ico('back'),'取消選取','')}
-  else if(e.kind==='b'&&e.o===0){const d=e.def;info=`<div class="big">${ico(e.type)}</div><div class="nm">${d.n}</div><div class="hp"><div style="width:${e.hp/e.maxhp*100}%"></div></div><div>❤️${Math.ceil(e.hp)}/${e.maxhp}</div>`;
+  else if(e.kind==='b'&&e.o===ME){const d=e.def;info=`<div class="big">${ico(e.type)}</div><div class="nm">${d.n}</div><div class="hp"><div style="width:${e.hp/e.maxhp*100}%"></div></div><div>❤️${Math.ceil(e.hp)}/${e.maxhp}</div>`;
    if(e.queue.length){info+='<div>'+e.queue.map((q,k)=>`<span class="q" data-a="q:${k}">${q.k==='age'?ico('age'):ico(q.type)}</span>`).join('')+'</div><div id="qbar"><div></div></div>'}
-   if(d.train)for(const t of d.train){const ud=UNITS[t];const lk=P.age<ud.age;acts+=btn('train:'+t,ico(t),uname(0,t),lk?'🔒'+AGES[ud.age]:costTxt(ud.cost),lk||!afford(0,ud.cost)?'na':'')}
-   if(e.type==='tc'&&P.age<3)acts+=btn('age',ico('age'),'升'+AGES[P.age+1].slice(0,2),P.aging?'升級中':costTxt(AGE_COST[P.age+1]),P.aging||!afford(0,AGE_COST[P.age+1])?'na':'');
-   if(d.tech)for(const k of d.tech){if(P.tech[k]||e.queue.some(q=>q.type===k))continue;acts+=btn('tech:'+k,ico(k),TECHS[k].n,costTxt(TECHS[k].cost),afford(0,TECHS[k].cost)?'':'na')}
+   if(d.train)for(const t of d.train){const ud=UNITS[t];const lk=P.age<ud.age;acts+=btn('train:'+t,ico(t),uname(ME,t),lk?'🔒'+AGES[ud.age]:costTxt(ud.cost),lk||!afford(ME,ud.cost)?'na':'')}
+   if(e.type==='tc'&&P.age<3)acts+=btn('age',ico('age'),'升'+AGES[P.age+1].slice(0,2),P.aging?'升級中':costTxt(AGE_COST[P.age+1]),P.aging||!afford(ME,AGE_COST[P.age+1])?'na':'');
+   if(d.tech)for(const k of d.tech){if(P.tech[k]||e.queue.some(q=>q.type===k))continue;acts+=btn('tech:'+k,ico(k),TECHS[k].n,costTxt(TECHS[k].cost),afford(ME,TECHS[k].cost)?'':'na')}
    if(d.train)acts+=`<span class="hint">點地圖設定集結點${ico('flag','s')}<br>點佇列圖示可取消</span>`;
    if(!d.train&&!d.tech)acts+=`<span class="hint">${d.pop?'人口上限 +'+d.pop:d.drop?'可存放：'+d.drop.map(k=>ico(k,'s')).join(''):d.farm?'點村民再點農田即可耕種':d.atk?'會自動射擊附近敵人':''}</span>`;
    acts+=btn('desel',ico('back'),'取消選取','')}
-  else{info=`<div class="big">${ico(e.type)}</div><div class="nm" style="color:#ff9090">敵方${e.kind==='u'?uname(1,e.type):e.def.n}</div><div class="hp"><div style="width:${e.hp/e.maxhp*100}%;background:#ef4444"></div></div><div>❤️${Math.ceil(e.hp)}/${e.maxhp}</div>`;acts=btn('desel',ico('back'),'取消選取','')}}
+  else{info=`<div class="big">${ico(e.type)}</div><div class="nm" style="color:#ff9090">${isEnemy(ME,e.o)?'敵方':'盟友'}${PNAME[e.o]}・${e.kind==='u'?uname(e.o,e.type):e.def.n}</div><div class="hp"><div style="width:${e.hp/e.maxhp*100}%;background:#ef4444"></div></div><div>❤️${Math.ceil(e.hp)}/${e.maxhp}</div>`;acts=btn('desel',ico('back'),'取消選取','')}}
  const sig=info+'|'+acts;if(!force&&sig===lastSig)return;lastSig=sig;$('info').innerHTML=info;$('acts').innerHTML=acts;layout()}
-function onAct(a){const P=players[0];const es=selEnts();
+function onAct(a){const P=players[ME];const es=selEnts();
  if(a==='tab'){buildTab^=1}
- else if(a.startsWith('build:')){const t=a.slice(6);const lr=lockReason(0,t);if(lr){toast(lr);return}if(!afford(0,BLDS[t].cost)){toast('資源不足：缺 '+lackTxt(0,BLDS[t].cost));return}
+ else if(a==='amove'){G.amove=G.amove?0:1;toast(G.amove?'攻擊移動：開（行軍途中遇敵就開打）':'攻擊移動：關（只走路，不理敵人）')}
+ else if(a.startsWith('build:')){const t=a.slice(6);const lr=lockReason(ME,t);if(lr){toast(lr);return}if(!afford(ME,BLDS[t].cost)){toast('資源不足：缺 '+lackTxt(ME,BLDS[t].cost));return}
   const s=BLDS[t].s;const w=toWorld(VW/2,VH/2);const v=es.find(u=>u.kind==='u');let sp=null;
-  if(v){const near=aiFindSpot(0,t,v.x,v.y,10);if(near)sp=near}
+  if(v){const near=aiFindSpot(ME,t,v.x,v.y,10);if(near)sp=near}
   placing={type:t,tx:sp?sp.tx:Math.round(w.x-s/2),ty:sp?sp.ty:Math.round(w.y-s/2)};if(sp){const sx=(sp.tx+s/2)*T,sy=(sp.ty+s/2)*T;const px=(sx-cam.x)*cam.z,py=(sy-cam.y)*cam.z;if(px<40||px>VW-40||py<80||py>VH-140)centerOn(sp.tx+s/2,sp.ty+s/2)}}
- else if(a==='pok'){if(!placing)return;const vils=es.filter(u=>u.kind==='u'&&u.def.vil);if(!vils.length){placing=null;return}if(cmdBuild(0,vils,placing.type,placing.tx,placing.ty)){sayUnit(vils[0],'build');mark(placing.tx+BLDS[placing.type].s/2,placing.ty+BLDS[placing.type].s/2,'#ffd27a');placing=null}}
+ else if(a==='pok'){if(!placing)return;const vils=es.filter(u=>u.kind==='u'&&u.def.vil);if(!vils.length){placing=null;return}if(cmdBuild(ME,vils,placing.type,placing.tx,placing.ty)){sayUnit(vils[0],'build');mark(placing.tx+BLDS[placing.type].s/2,placing.ty+BLDS[placing.type].s/2,'#ffd27a');placing=null}}
  else if(a==='pno'){placing=null}
  else if(a==='stop'){es.forEach(u=>{if(u.kind==='u'){u.task=null;u.path.length=0}})}
  else if(a==='desel'){selIds=[];placing=null}
- else if(a.startsWith('train:')){const t=a.slice(6),b=es[0];if(P.age<UNITS[t].age){toast('需要'+AGES[UNITS[t].age]);return}enqueue(0,b,{k:'u',type:t,t:UNITS[t].t,p:0,cost:UNITS[t].cost})}
- else if(a==='age'){const b=es[0];if(P.aging){toast('正在升級中');return}if(enqueue(0,b,{k:'age',t:AGE_T[P.age+1],p:0,cost:AGE_COST[P.age+1]}))P.aging=true}
- else if(a.startsWith('tech:')){const k=a.slice(5);enqueue(0,es[0],{k:'tech',type:k,t:TECHS[k].t,p:0,cost:TECHS[k].cost})}
- else if(a.startsWith('q:')){const b=es[0];const k=+a.slice(2);const q=b&&b.queue[k];if(q){b.queue.splice(k,1);refund(0,q.cost);if(q.k==='age')P.aging=false;toast('已取消，資源退還')}}
+ else if(a.startsWith('train:')){const t=a.slice(6),b=es[0];if(P.age<UNITS[t].age){toast('需要'+AGES[UNITS[t].age]);return}enqueue(ME,b,{k:'u',type:t,t:UNITS[t].t,p:0,cost:UNITS[t].cost})}
+ else if(a==='age'){const b=es[0];if(P.aging){toast('正在升級中');return}if(enqueue(ME,b,{k:'age',t:AGE_T[P.age+1],p:0,cost:AGE_COST[P.age+1]}))P.aging=true}
+ else if(a.startsWith('tech:')){const k=a.slice(5);enqueue(ME,es[0],{k:'tech',type:k,t:TECHS[k].t,p:0,cost:TECHS[k].cost})}
+ else if(a.startsWith('q:')){const b=es[0];const k=+a.slice(2);const q=b&&b.queue[k];if(q){b.queue.splice(k,1);refund(ME,q.cost);if(q.k==='age')P.aging=false;toast('已取消，資源退還')}}
  lastSig='';renderPanel(true)}
 document.getElementById('bottom').addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(b){sfx('click');onAct(b.dataset.a)}});
 let toastT=0;function toast(s){const t=$('toast');t.textContent=s;t.style.opacity=1;clearTimeout(toastT);toastT=setTimeout(()=>t.style.opacity=0,2200)}
 let idleIdx=0;
-$('bidle').onclick=()=>{const idle=units.filter(u=>u.o===0&&u.def.vil&&!u.task);if(!idle.length){toast('沒有閒置村民');return}const u=idle[idleIdx++%idle.length];selIds=[u.id];placing=null;centerOn(u.x,u.y);lastSig=''};
-$('barmy').onclick=()=>{const a=units.filter(u=>u.o===0&&!u.def.vil);if(!a.length){toast('還沒有軍隊');return}const same=a.length===selIds.length&&a.every(u=>selIds.includes(u.id));selIds=a.map(u=>u.id);placing=null;sayUnit(a[0],'sel');if(same){let x=0,y=0;a.forEach(u=>{x+=u.x;y+=u.y});centerOn(x/a.length,y/a.length)}lastSig=''};
-$('bhome').onclick=()=>{const tc=blds.find(b=>b.o===0&&b.type==='tc');if(tc){centerOn(tc.x,tc.y);selIds=[tc.id];lastSig=''}};
+$('bidle').onclick=()=>{const idle=units.filter(u=>u.o===ME&&u.def.vil&&!u.task);if(!idle.length){toast('沒有閒置村民');return}const u=idle[idleIdx++%idle.length];selIds=[u.id];placing=null;centerOn(u.x,u.y);lastSig=''};
+$('barmy').onclick=()=>{const a=units.filter(u=>u.o===ME&&!u.def.vil);if(!a.length){toast('還沒有軍隊');return}const same=a.length===selIds.length&&a.every(u=>selIds.includes(u.id));selIds=a.map(u=>u.id);placing=null;sayUnit(a[0],'sel');if(same){let x=0,y=0;a.forEach(u=>{x+=u.x;y+=u.y});centerOn(x/a.length,y/a.length)}lastSig=''};
+$('bhome').onclick=()=>{const tc=blds.find(b=>b.o===ME&&b.type==='tc');if(tc){centerOn(tc.x,tc.y);selIds=[tc.id];lastSig=''}};
 $('bspeed').onclick=()=>{G.speed=G.speed===1?1.5:G.speed===1.5?2:1;$('bspeed').textContent='速度 '+G.speed+'x'};
 $('bmenu').onclick=()=>{paused=true;$('menuInfo').textContent=G?'遊戲時間 '+fmtT(gt)+'・'+DIFF[G.diff].n:'';$('ovMenu').classList.add('show')};
 $('bsnd').onclick=()=>{audioInit();SND.mode=(SND.mode+2)%3;try{localStorage.setItem('ke_snd',SND.mode)}catch(e){}updSndBtn();if(SND.mode<2)try{speechSynthesis.cancel()}catch(e){}toast('聲音：'+['靜音','只有音效','音效＋語音'][SND.mode]);if(SND.mode===2)say('遵命，陛下！',1,true)};
 $('upd').onclick=doUpdate;
 $('bresume').onclick=()=>{paused=false;$('ovMenu').classList.remove('show')};
 $('brestart').onclick=()=>{saveGame();$('ovMenu').classList.remove('show');$('ovStart').classList.add('show');running=false;paused=false;refreshContinue()};
-let diffSel='normal';
+let diffSel='normal',npSel=4,modeSel='ffa';
+function updSetup(){document.querySelectorAll('#npRow button').forEach(x=>x.classList.toggle('sel',+x.dataset.n===npSel));if(npSel!==4)modeSel='ffa';
+ document.querySelectorAll('#modeRow button').forEach(x=>{x.classList.toggle('sel',x.dataset.m===modeSel);x.disabled=x.dataset.m==='2v2'&&npSel!==4;x.style.opacity=x.disabled?.4:1});
+ $('setupNote').textContent='你是藍方（左下角），其他'+(npSel-1)+'方由電腦控制'+(modeSel==='2v2'?'；你和綠方（左上）同隊':'')+'。'}
+document.querySelectorAll('#npRow button').forEach(b=>b.onclick=()=>{npSel=+b.dataset.n;updSetup()});
+document.querySelectorAll('#modeRow button').forEach(b=>b.onclick=()=>{if(b.disabled)return;modeSel=b.dataset.m;updSetup()});
+updSetup();
 document.querySelectorAll('#diffRow button').forEach(b=>b.onclick=()=>{diffSel=b.dataset.d;document.querySelectorAll('#diffRow button').forEach(x=>x.classList.toggle('sel',x===b))});
 $('bcont').onclick=()=>{const d=loadSave();if(!d)return;audioInit();$('ovStart').classList.remove('show');resumeGame(d);running=true;paused=false;toast('已載入上一局')};
-$('bstart').onclick=()=>{audioInit();clearSave();$('ovStart').classList.remove('show');newGame(diffSel);running=true;paused=false;try{document.documentElement.requestFullscreen&&Math.min(innerWidth,innerHeight)<500&&document.documentElement.requestFullscreen().catch(()=>{})}catch(e){}};
+$('bstart').onclick=()=>{audioInit();clearSave();$('ovStart').classList.remove('show');newGame(diffSel,0,npSel,modeSel);running=true;paused=false;try{document.documentElement.requestFullscreen&&Math.min(innerWidth,innerHeight)<500&&document.documentElement.requestFullscreen().catch(()=>{})}catch(e){}};
 $('bagain').onclick=()=>{$('ovEnd').classList.remove('show');$('ovStart').classList.add('show');running=false;refreshContinue()};
 $('ver').textContent='版本 '+VERSION;
 function fmtT(s){s=Math.floor(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
-function showEnd(){running=false;clearSave();sfx(G.win?'win':'lose');say(G.win?'勝利！王國萬歲！':'我們戰敗了',1,true);$('endT').textContent=G.win?'🏆 勝利！':'💀 戰敗';$('endT').style.color=G.win?'#ffd27a':'#ff8080';const P=players[0];
+function showEnd(){running=false;clearSave();sfx(G.win?'win':'lose');say(G.win?'勝利！王國萬歲！':'我們戰敗了',1,true);$('endT').textContent=G.win?'🏆 勝利！':'💀 戰敗';$('endT').style.color=G.win?'#ffd27a':'#ff8080';const P=players[ME];
  $('endS').innerHTML=`時間 ${fmtT(gt)}・難度 ${DIFF[G.diff].n}<br>到達 ${AGES[P.age]}・訓練 ${P.trained} 個單位・擊殺 ${P.kills}`;$('ovEnd').classList.add('show')}
-function updTop(){const P=players[0];$('rf').textContent=Math.floor(P.res.food);$('rw').textContent=Math.floor(P.res.wood);$('rg').textContent=Math.floor(P.res.gold);$('rs').textContent=Math.floor(P.res.stone);
- const pu=popUsed(0);$('rp').textContent=pu+'/'+P.cap;$('rp').style.color=pu>=P.cap?'#ff8080':'';$('age').textContent=(VW<500?AGES[P.age].slice(0,2):AGES[P.age])+(P.aging?'↑':'');$('clock').textContent=fmtT(gt);
- $('nidle').textContent=units.filter(u=>u.o===0&&u.def.vil&&!u.task).length;$('narmy').textContent=units.filter(u=>u.o===0&&!u.def.vil).length;
+function updTop(){const P=players[ME];$('rf').textContent=Math.floor(P.res.food);$('rw').textContent=Math.floor(P.res.wood);$('rg').textContent=Math.floor(P.res.gold);$('rs').textContent=Math.floor(P.res.stone);
+ const pu=popUsed(ME);$('rp').textContent=pu+'/'+P.cap;$('rp').style.color=pu>=P.cap?'#ff8080':'';$('age').textContent=(VW<500?AGES[P.age].slice(0,2):AGES[P.age])+(P.aging?'↑':'');$('clock').textContent=fmtT(gt);
+ $('nidle').textContent=units.filter(u=>u.o===ME&&u.def.vil&&!u.task).length;$('narmy').textContent=units.filter(u=>u.o===ME&&!u.def.vil).length;
  const es=selEnts();const b=es[0];const qb=document.querySelector('#qbar>div');if(qb&&b&&b.queue&&b.queue[0])qb.style.width=Math.min(100,b.queue[0].p/b.queue[0].t*100)+'%'}
 
 
@@ -974,16 +1006,16 @@ const SAVE_KEY='ke_save';
 function b64(a){let s='';const b=new Uint8Array(a.buffer);for(let i=0;i<b.length;i+=8192)s+=String.fromCharCode.apply(null,b.subarray(i,i+8192));return btoa(s)}
 function unb64(str,a){const bin=atob(str);const b=new Uint8Array(a.buffer);for(let i=0;i<b.length&&i<bin.length;i++)b[i]=bin.charCodeAt(i)}
 function saveGame(){if(!G||G.over||!running)return;try{
- const data={v:1,ver:VERSION,seed:G.seed,diff:G.diff,gt,nid,speed:G.speed,players,AIS,cam:{x:cam.x,y:cam.y,z:cam.z},rt:b64(resType),ra:b64(resAmt),ex:b64(explored),
+ const data={v:2,np:NP,teams:TEAMS,mode:G.mode,amove:G.amove,ver:VERSION,seed:G.seed,diff:G.diff,gt,nid,speed:G.speed,players,AIS,cam:{x:cam.x,y:cam.y,z:cam.z},rt:b64(resType),ra:b64(resAmt),ex:b64(explored),
   plans:plans.map(p=>({o:p.o,type:p.type,tx:p.tx,ty:p.ty})),
   blds:blds.filter(b=>!b.dead).map(b=>({id:b.id,o:b.o,type:b.type,tx:b.tx,ty:b.ty,hp:b.hp,maxhp:b.maxhp,queue:b.queue,rally:b.rally,farmer:b.farmer})),
   units:units.filter(u=>!u.dead).map(u=>{let t=u.task;if(t&&t.k==='build'){const pi=plans.indexOf(t.p);t=pi>=0?{k:'build',pi,prev:t.prev||null}:(t.prev||null)}else if(t&&t.k==='move')t=null;
    return{id:u.id,o:u.o,type:u.type,x:u.x,y:u.y,hp:u.hp,maxhp:u.maxhp,task:t,carry:u.carry,ctype:u.ctype,face:u.face,fem:u.fem}})};
  localStorage.setItem(SAVE_KEY,JSON.stringify(data))}catch(e){}}
-function loadSave(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');return d&&d.v===1&&d.units?d:null}catch(e){return null}}
+function loadSave(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');return d&&d.v===2&&d.units?d:null}catch(e){return null}}
 function clearSave(){try{localStorage.removeItem(SAVE_KEY)}catch(e){}}
 function resumeGame(d){
- G={diff:d.diff,over:false,win:false,shade:null,speed:d.speed||1,auto0:false,seed:d.seed};
+ G={diff:d.diff,over:false,win:false,shade:null,speed:d.speed||1,auto0:false,seed:d.seed,np:d.np,mode:d.mode,amove:d.amove??1};NP=d.np;TEAMS=d.teams;ME=0;
  units=[];blds=[];plans=[];ents=new Map();fx=[];marks=[];pings=[];gt=d.gt;nid=d.nid;players=d.players;
  genMap(d.seed);unb64(d.rt,resType);unb64(d.ra,resAmt);unb64(d.ex,explored);bldAt.fill(-1);
  for(const sb of d.blds){const def=BLDS[sb.type];const b=Object.assign({kind:'b',def,s:def.s,x:sb.tx+def.s/2,y:sb.ty+def.s/2,cd:0,born:-9,flash:0,hitT:0},sb);ents.set(b.id,b);blds.push(b);
@@ -992,9 +1024,9 @@ function resumeGame(d){
  plans=d.plans.map(p=>Object.assign({},p));
  for(const su of d.units){const u=Object.assign({kind:'u',def:UNITS[su.type],path:[],cd:0,repath:0,acq:Math.random()*.5,anim:0,atkT:0,hitT:0,moving:0,stuck:0},su);
   if(u.task&&u.task.k==='build'){u.task.p=plans[u.task.pi];if(!u.task.p)u.task=u.task.prev||null}if(u.task)u.task.ph=u.task.ph==='work'?'go':u.task.ph;ents.set(u.id,u);units.push(u)}
- AIS=d.AIS||[null,aiInit(1)];cam.x=d.cam.x;cam.y=d.cam.y;cam.z=d.cam.z;clampCam();
+ AIS=d.AIS||players.map((p,o)=>o===ME||p.out?null:aiInit(o));cam.x=d.cam.x;cam.y=d.cam.y;cam.z=d.cam.z;clampCam();
  updFog();selIds=[];placing=null;buildTab=0;lastSig='';renderPanel(true);$('bspeed').textContent='速度 '+G.speed+'x'}
-function refreshContinue(){const d=loadSave();const b=$('bcont');if(d){b.style.display='';b.innerHTML='繼續上一局<br><small>'+fmtT(d.gt)+'・'+DIFF[d.diff].n+'・'+AGES[d.players[0].age]+'</small>'}else b.style.display='none'}
+function refreshContinue(){const d=loadSave();const b=$('bcont');if(d){b.style.display='';b.innerHTML='繼續上一局<br><small>'+d.np+'人'+(d.mode==='2v2'?'（2對2）':'')+'・'+fmtT(d.gt)+'・'+DIFF[d.diff].n+'・'+AGES[d.players[ME].age]+'</small>'}else b.style.display='none'}
 
 // ================= auto update =================
 let newVer=null;
@@ -1097,7 +1129,7 @@ try{if(sessionStorage.getItem('ke_resume')){sessionStorage.removeItem('ke_resume
 checkUpdate();setInterval(checkUpdate,60000);
 requestAnimationFrame(frame);
 // test hook
-window.__KE={save:()=>saveGame(),newGame:(d,s)=>{newGame(d,s);running=true},autoBoth:()=>{AIS[0]=aiInit(0);G.auto0=true},step:n=>{for(let i=0;i<n&&!G.over;i++)tick(STEP)},get G(){return G},get players(){return players},get units(){return units},get blds(){return blds},get gt(){return gt},cam,centerOn,renderPanel,selectIds:a=>{selIds=a;lastSig=''},onAct,handleTap,toScreen:(x,y)=>({x:(x*T-cam.x)*cam.z,y:(y*T-cam.y)*cam.z})};
+window.__KE={save:()=>saveGame(),newGame:(d,s,n,m)=>{newGame(d,s,n,m);running=true},autoBoth:()=>{AIS[0]=aiInit(0);G.auto0=true},step:n=>{for(let i=0;i<n&&!G.over;i++)tick(STEP)},get G(){return G},get players(){return players},get units(){return units},get blds(){return blds},get gt(){return gt},cam,centerOn,renderPanel,selectIds:a=>{selIds=a;lastSig=''},onAct,handleTap,toScreen:(x,y)=>({x:(x*T-cam.x)*cam.z,y:(y*T-cam.y)*cam.z})};
 </script>
 </body>
 </html>
