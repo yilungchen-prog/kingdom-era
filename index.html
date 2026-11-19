@@ -150,7 +150,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 
 <script>
 'use strict';
-const VERSION='2026-11-20e';
+const VERSION='2026-11-20f';
 // ================= constants =================
 const W=80,H=80,T=32,NN=W*H,STEP=0.05,CAP=10,MAXPOP=100,TER=9;
 const TEAM=['#3b82f6','#ef4444'],TEAMD=['#1e3a8a','#7f1d1d'];
@@ -381,7 +381,10 @@ function pathRect(u,x0,y0,x1,y1,final){const r=astar(Math.floor(u.x),Math.floor(
 function approach(u,dt,x0,y0,x1,y1,reach){
  const d=distRect(u.x,u.y,x0,y0,x1+1,y1+1);
  if(d<=reach){u.path.length=0;u.stuck=0;return true}
- if(!u.path.length&&u.repath<=0){u.repath=.7;const e=reach>=.5?1:0;const ok=pathRect(u,x0-e,y0-e,x1+e,y1+e);if(!ok||!u.path.length)u.stuck++}
+ if(!u.path.length&&u.repath<=0){u.repath=.7;const e=reach>=.5?1:0;const ok=pathRect(u,x0-e,y0-e,x1+e,y1+e);
+  if(ok&&!u.path.length){// already beside the target but a hair too far (e.g. pushed to a corner): step straight to its edge
+   const px=clamp(u.x,x0,x1+1),py=clamp(u.y,y0,y1+1);let dx=u.x-px,dy=u.y-py;const dd=Math.hypot(dx,dy)||1;u.path=[{x:px+dx/dd*Math.min(.3,reach*.5),y:py+dy/dd*Math.min(.3,reach*.5)}]}
+  else if(!ok||!u.path.length)u.stuck++}
  moveAlong(u,dt);return false}
 
 // ================= unit update =================
@@ -452,7 +455,7 @@ function gatherMult(o){return o===1?DIFF[G.diff].mult:(G.auto0?DIFF[G.diff].mult
 function doDrop(u,t,dt,after){
  let b=t.drop?ents.get(t.drop):null;if(!b||b.dead){b=findDrop(u.o,u.ctype,u.x,u.y);t.drop=b?b.id:0}
  if(!b){if(u.o===0&&gt-(G.lastDropMsg||-99)>8){G.lastDropMsg=gt;toast('附近沒有可存放資源的建築')}u.task=null;return}
- if(approach(u,dt,b.tx,b.ty,b.tx+b.s-1,b.ty+b.s-1,.9)){players[u.o].res[u.ctype]+=Math.round(u.carry*10)/10;players[u.o].gathered+=u.carry;u.carry=0;t.ph='go';t.drop=0;after&&after()}}
+ if(approach(u,dt,b.tx,b.ty,b.tx+b.s-1,b.ty+b.s-1,1.05)){players[u.o].res[u.ctype]+=Math.round(u.carry*10)/10;players[u.o].gathered+=u.carry;u.carry=0;t.ph='go';t.drop=0;after&&after()}}
 function doGather(u,t,dt){
  const i=t.i,rx=i%W,ry=(i/W)|0;
  if(t.ph==='drop'){doDrop(u,t,dt);return}
@@ -715,7 +718,6 @@ function handleTap(sx,sy){if(!G||G.over)return;const w=toWorld(sx,sy);
   else{selIds=[hit.id];sayUnit(hit,'sel')}lastTap={t:now,id:hit.id};lastSig='';return}
  if(hit&&hit.kind==='b'&&hit.o===0){
   if(vils.length&&hit.def.farm){cmdFarm(vils,hit);sayUnit(vils[0],'farm');mark(hit.x,hit.y,'#ffd27a');return}
-  if(vils.length&&selU.length===vils.length&&hit.def.drop&&vils.some(v=>v.carry>0)){vils.forEach(v=>{if(v.carry>0){const prev=v.task&&v.task.k==='gather'?v.task:null;v.task=prev||{k:'gather',i:-1,rt:0,ph:'drop'};v.task.ph='drop';v.task.drop=hit.id}});mark(hit.x,hit.y,'#ffd27a');return}
   selIds=[hit.id];lastSig='';return}
  if(hit&&(hit.kind==='u'||hit.kind==='b')&&hit.o===1){if(selU.length){cmdAttack(selU,hit);sayUnit(selU[0],'attack');mark(hit.x,hit.y,'#ff5050');return}selIds=[hit.id];lastSig='';return}
  if(hit&&hit.kind==='r'){
