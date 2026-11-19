@@ -61,6 +61,22 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 .ov button.go small{font-size:12px;opacity:.85}
 .ov button.go{background:#2f6b2f;border-color:#7fd27f;font-size:20px;padding:12px 34px;margin-top:10px}
 .ov .help{max-width:520px;text-align:left;font-size:13px;line-height:1.6;background:#0006;border-radius:10px;padding:10px 14px;margin-top:14px}
+.artbtn{margin-top:10px;background:#5a3a7a!important;border-color:#c9a0ff!important;font-size:17px!important;padding:10px 26px!important}
+#artPrev{z-index:22;background:#120c06f2}
+#ovArt{justify-content:flex-start;padding:calc(env(safe-area-inset-top) + 10px) 10px 20px}
+#ovArt>*:first-child{margin-top:0}#ovArt>*:last-child{margin-bottom:0}
+.arthead{display:flex;width:100%;max-width:900px;justify-content:space-between;align-items:center;font-size:20px;margin-bottom:6px}
+.artnote{font-size:13px;opacity:.85;margin-bottom:10px;max-width:900px}
+#artGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;width:100%;max-width:900px}
+.ac{background:#0006;border:1px solid #8a6a3a;border-radius:10px;padding:6px;display:flex;flex-direction:column;align-items:center;gap:3px}
+.at{width:88px;height:88px;display:flex;align-items:center;justify-content:center;background:repeating-conic-gradient(#3a3a3a 0 25%,#555 0 50%) 0 0/16px 16px;border-radius:6px;overflow:hidden}
+.at img{max-width:100%;max-height:100%}.at .ico{width:48px;height:48px}
+.an{font-size:13px;font-weight:700}.as{font-size:11px;opacity:.7}
+.ac button{padding:5px 10px!important;font-size:13px!important;min-width:0!important;width:100%}
+.ac .go2{background:#2f6b2f;border-color:#7fd27f}
+.artcmp{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;font-size:13px}
+.chk{width:150px;height:150px;display:flex;align-items:center;justify-content:center;background:repeating-conic-gradient(#ff00ff55 0 25%,#ffffff22 0 50%) 0 0/20px 20px;border-radius:8px;margin-top:4px}
+.chk img,.chk canvas{max-width:100%;max-height:100%}
 .ov .ver{font-size:11px;opacity:.5;margin-top:10px}
 </style>
 </head>
@@ -89,6 +105,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
  <div class="row" id="diffRow"><button data-d="easy">簡單</button><button data-d="normal" class="sel">普通</button><button data-d="hard">困難</button></div>
  <button class="go" id="bcont" style="display:none"></button>
  <button class="go" id="bstart">開始新遊戲</button>
+ <button id="bart" class="artbtn">🎨 上傳美術圖</button>
  <div class="help">
  <b>目標：</b>摧毀敵方的城鎮中心<span data-ic="tc"></span>。<br>
  <b>點一下</b>單位＝選取；<b>連點兩下</b>＝選取畫面上同類單位。<br>
@@ -103,6 +120,19 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
  </div>
  <div class="ver" id="ver"></div>
 </div>
+<div class="ov" id="ovArt">
+ <div class="arthead"><b>🎨 美術圖上傳</b><button id="artClose">關閉</button></div>
+ <div id="artNote" class="artnote">連線中…</div>
+ <div id="artGrid"></div>
+</div>
+<div class="ov" id="artPrev">
+ <h2 id="artTitle" style="font-size:18px;margin:0 0 8px">上傳</h2>
+ <div class="artcmp"><div><div>原圖</div><div id="artBefore" class="chk"></div></div><div><div>處理後（遊戲裡的樣子）</div><div id="artAfter" class="chk"></div></div></div>
+ <label style="margin:10px 0;font-size:15px"><input type="checkbox" id="artCut" checked> 自動去背（去掉棋盤格或單色背景）</label>
+ <div id="artMsg" style="min-height:20px;font-size:13px;color:#ffd27a"></div>
+ <div class="row"><button class="go" id="artOk">上傳</button><button id="artNo">取消</button></div>
+</div>
+<input type="file" id="artFile" accept="image/*" style="display:none">
 <div class="ov" id="ovMenu">
  <h1>暫停</h1>
  <div class="row"><button id="bresume" class="go">繼續</button></div>
@@ -116,7 +146,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 
 <script>
 'use strict';
-const VERSION='2026-11-20b';
+const VERSION='2026-11-20c';
 // ================= constants =================
 const W=80,H=80,T=32,NN=W*H,STEP=0.05,CAP=10,MAXPOP=100,TER=9;
 const TEAM=['#3b82f6','#ef4444'],TEAMD=['#1e3a8a','#7f1d1d'];
@@ -156,8 +186,18 @@ const TECHS={forge:{n:'鍛造',ic:'🔥',cost:{food:150,gold:50},t:30,d:'軍隊�
 // optional image assets: put PNG files in img/ with these names; missing ones fall back to built-in drawing
 const ASSET_KEYS=['villager','villager_f','militia2','militia','spear','archer','scout','knight','tc','house','lumber','mill','mine','farm','barracks','archery','stable','smith','tower','tree','berry','gold','stone','grass'];
 const IMG={};
-// img/list.json = ["villager","tc",...] — only listed files are loaded
-fetch('img/list.json?v='+VERSION,{cache:'no-store'}).then(r=>r.ok?r.json():[]).then(list=>{(list||[]).filter(k=>ASSET_KEYS.includes(k)).forEach(k=>{const im=new Image();im.onload=()=>{IMG[k]=im;if(UNITS[k]||k==='villager_f'||k==='militia2')IMG[k+'_1']=redVariant(im);if(k==='grass'&&G)drawTerrain()};im.src='img/'+k+'.png?v='+VERSION})}).catch(()=>{});
+// image sources: built-in drawing < GitHub img/ (list.json) < Supabase (uploaded art)
+const SB_URL='https://bspbwzjcxduloneserea.supabase.co',SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzcGJ3empjeGR1bG9uZXNlcmVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxNzYyNjQsImV4cCI6MjEwODc1MjI2NH0.hPRln_BSwzxxEfKX104LCLOOk_6jUFYBv9YU7LxKnrA';
+const SBH={apikey:SB_KEY,Authorization:'Bearer '+SB_KEY};
+const ART_SRC={},ART_PRI={},ART_ROWS={};let artRefresh=null;
+const pubUrl=path=>SB_URL+'/storage/v1/object/public/kingdom-era/'+path;
+const TEAMED=k=>!!UNITS[k]||k==='villager_f'||k==='militia2';
+function loadImg(k,src,pri,cors){const im=new Image();if(cors)im.crossOrigin='anonymous';im.onload=()=>{if((ART_PRI[k]||0)>pri)return;ART_PRI[k]=pri;IMG[k]=im;ART_SRC[k]=src;if(TEAMED(k))IMG[k+'_1']=redVariant(im);if(k==='grass'&&G)drawTerrain();artRefresh&&artRefresh()};im.src=src}
+function unloadImg(k){delete IMG[k];delete IMG[k+'_1'];delete ART_SRC[k];ART_PRI[k]=0;if(GH_LIST.includes(k))loadImg(k,'img/'+k+'.png?v='+VERSION,1);else if(k==='grass'&&G)drawTerrain();artRefresh&&artRefresh()}
+let GH_LIST=[];
+fetch('img/list.json?v='+VERSION,{cache:'no-store'}).then(r=>r.ok?r.json():[]).then(list=>{GH_LIST=(list||[]).filter(k=>ASSET_KEYS.includes(k));GH_LIST.forEach(k=>loadImg(k,'img/'+k+'.png?v='+VERSION,1))}).catch(()=>{});
+function loadCloudArt(){return fetch(SB_URL+'/rest/v1/ke_art?select=slot,path,prev_path,updated_at',{headers:SBH,cache:'no-store'}).then(r=>r.ok?r.json():[]).then(rows=>{(rows||[]).forEach(r=>{ART_ROWS[r.slot]=r;if(ASSET_KEYS.includes(r.slot))loadImg(r.slot,pubUrl(r.path),2,true)});return true}).catch(()=>false)}
+loadCloudArt();
 // enemy version: shift blue hues to red
 function redVariant(im){try{const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;const g=c.getContext('2d');g.drawImage(im,0,0);const d=g.getImageData(0,0,c.width,c.height),a=d.data;
  for(let i=0;i<a.length;i+=4){if(a[i+3]<10)continue;const r=a[i]/255,gg=a[i+1]/255,b=a[i+2]/255;const mx=Math.max(r,gg,b),mn=Math.min(r,gg,b),dl=mx-mn;if(dl<.12)continue;
@@ -956,6 +996,83 @@ function checkUpdate(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).th
  if(!running&&tried!==newVer)doUpdate();else $('upd').classList.add('show')}).catch(()=>{})}
 function doUpdate(){if(running&&G&&!G.over){saveGame();try{sessionStorage.setItem('ke_resume','1')}catch(e){}}
  try{sessionStorage.setItem('ke_upd_try',newVer||'')}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(newVer||Date.now()))}
+
+
+// ================= art upload (美術圖上傳) =================
+const ART_SLOTS=[['villager','村民（男）'],['villager_f','村民（女）'],['militia','民兵'],['militia2','長劍士（城堡時代的民兵）'],['spear','長槍兵'],['archer','弓箭手'],['scout','斥候騎兵'],['knight','騎士'],
+ ['tc','城鎮中心'],['house','房屋'],['lumber','伐木場'],['mill','磨坊'],['mine','採礦場'],['farm','農田',1],['barracks','兵營'],['archery','射箭場'],['stable','馬廄'],['smith','鐵匠鋪'],['tower','箭塔'],
+ ['tree','樹木'],['berry','漿果叢'],['gold','金礦'],['stone','石礦'],['grass','草地圖磚',1]];
+// remove baked checkerboard / plain background, trim, square (feet at bottom), resize
+function processArt(img,doCut,flat){
+ let w=img.naturalWidth,h=img.naturalHeight;const sc=Math.min(1,1024/Math.max(w,h));w=Math.round(w*sc);h=Math.round(h*sc);
+ const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d',{willReadFrequently:true});g.drawImage(img,0,0,w,h);
+ const outSize=flat&&ART_CUR==='grass'?128:256;
+ if(flat){const s=Math.min(w,h);const o=document.createElement('canvas');o.width=o.height=outSize;const og=o.getContext('2d');og.imageSmoothingQuality='high';og.drawImage(c,(w-s)/2,(h-s)/2,s,s,0,0,outSize,outSize);return o}
+ const d=g.getImageData(0,0,w,h),a=d.data,N=w*h;const L=new Float32Array(N),sat=new Uint8Array(N);let hasAlpha=false;
+ for(let i=0;i<N;i++){const r=a[i*4],gg=a[i*4+1],b=a[i*4+2];L[i]=(r+gg+b)/3;sat[i]=Math.max(r,gg,b)-Math.min(r,gg,b);if(a[i*4+3]<240)hasAlpha=true}
+ let fg=new Uint8Array(N);
+ if(hasAlpha||!doCut){for(let i=0;i<N;i++)fg[i]=a[i*4+3]>20?1:0}
+ else{
+  const cand=new Uint8Array(N),bg=new Uint8Array(N);
+  const y0=2,t=[];let gs=0,gn=0;for(let x=1;x<w;x++){if((L[y0*w+x]>85)!==(L[y0*w+x-1]>85))t.push(x);if(L[y0*w+x]>85){gs+=L[y0*w+x];gn++}}
+  let cell=0;
+  if(t.length>6){cell=(t[t.length-1]-t[0])/(t.length-1);const offs=t.map((tt,i)=>tt-i*cell).sort((p,q)=>p-q);const ph=offs[offs.length>>1]-cell;const grayLvl=gn?gs/gn:171;
+   const md=(v,m)=>((v%m)+m)%m;const dark0=L[y0*w+Math.floor(md(ph+cell/2,w))]<85;
+   for(let y=0;y<h;y++)for(let x=0;x<w;x++){const i=y*w+x;if(sat[i]>12)continue;const cx=Math.floor((x-ph)/cell),cy=Math.floor((y-ph)/cell);const par=md(cx+cy,2)===0;const expD=dark0?par:!par;
+    const fx=md((x-ph)/cell,1),fy=md((y-ph)/cell,1);const edge=Math.min(fx,1-fx)*cell<2.2||Math.min(fy,1-fy)*cell<2.2;
+    if((expD&&L[i]<45)||(!expD&&Math.abs(L[i]-grayLvl)<28)||(edge&&L[i]<200))cand[i]=1}}
+  else{const cr=a[0],cg=a[1],cb=a[2];for(let i=0;i<N;i++){const dr=a[i*4]-cr,dg=a[i*4+1]-cg,db=a[i*4+2]-cb;if(dr*dr+dg*dg+db*db<1600)cand[i]=1}}
+  const q=new Int32Array(N);let qh=0,qt=0;const push=i=>{if(cand[i]&&!bg[i]){bg[i]=1;q[qt++]=i}};
+  for(let x=0;x<w;x++){push(x);push((h-1)*w+x)}for(let y=0;y<h;y++){push(y*w);push(y*w+w-1)}
+  while(qh<qt){const i=q[qh++],x=i%w;if(x>0)push(i-1);if(x<w-1)push(i+1);if(i>=w)push(i-w);if(i<N-w)push(i+w)}
+  if(cell>0){const seen=new Uint8Array(N);const comp=new Int32Array(N);
+   for(let s0=0;s0<N;s0++){if(!cand[s0]||bg[s0]||seen[s0])continue;let n=0;qh=0;qt=0;q[qt++]=s0;seen[s0]=1;
+    while(qh<qt){const i=q[qh++];comp[n++]=i;const x=i%w;for(const j of [x>0?i-1:-1,x<w-1?i+1:-1,i-w,i+w]){if(j<0||j>=N||seen[j]||!cand[j]||bg[j])continue;seen[j]=1;q[qt++]=j}}
+    if(n<60)continue;const cnt=new Map();for(let k=0;k<n;k++){const i=comp[k];const key=Math.floor((Math.floor(i/w)+cell*2)/cell)*100000+Math.floor((i%w+cell*2)/cell);cnt.set(key,(cnt.get(key)||0)+1)}
+    let full=0;for(const v of cnt.values())if(v>=.55*cell*cell)full+=v;if(full>=.6*n)for(let k=0;k<n;k++)bg[comp[k]]=1}}
+  for(let i=0;i<N;i++)fg[i]=bg[i]?0:1;
+  // keep largest component
+  const lab=new Int32Array(N);let best=0,bestN=0,id=0;
+  for(let s0=0;s0<N;s0++){if(!fg[s0]||lab[s0])continue;id++;let n=0;qh=0;qt=0;q[qt++]=s0;lab[s0]=id;while(qh<qt){const i=q[qh++];n++;const x=i%w;for(const j of [x>0?i-1:-1,x<w-1?i+1:-1,i-w,i+w]){if(j<0||j>=N||lab[j]||!fg[j])continue;lab[j]=id;q[qt++]=j}}if(n>bestN){bestN=n;best=id}}
+  for(let i=0;i<N;i++)fg[i]=lab[i]===best?1:0;
+  // opening (remove 1px specks)
+  const er=new Uint8Array(N);for(let i=w;i<N-w;i++){const x=i%w;if(x>0&&x<w-1)er[i]=fg[i]&fg[i-1]&fg[i+1]&fg[i-w]&fg[i+w]}
+  for(let i=w;i<N-w;i++){const x=i%w;if(x>0&&x<w-1)fg[i]=er[i]|er[i-1]|er[i+1]|er[i-w]|er[i+w];else fg[i]=0}
+  for(let i=0;i<N;i++){if(!fg[i])a[i*4+3]=0;else{const x=i%w;const edgeP=x===0||x===w-1||i<w||i>=N-w||!fg[i-1]||!fg[i+1]||!fg[i-w]||!fg[i+w];if(edgeP)a[i*4+3]=170}}
+  g.putImageData(d,0,0)}
+ let x0=w,y0b=h,x1=0,y1=0;for(let i=0;i<N;i++)if(fg[i]){const x=i%w,y=(i/w)|0;if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0b)y0b=y;if(y>y1)y1=y}
+ if(x1<x0){x0=0;y0b=0;x1=w-1;y1=h-1}
+ const bw=x1-x0+1,bh=y1-y0b+1,S=Math.max(bw,bh);const o=document.createElement('canvas');o.width=o.height=outSize;const og=o.getContext('2d');og.imageSmoothingQuality='high';
+ const k=outSize/S;og.drawImage(c,x0,y0b,bw,bh,(S-bw)/2*k,(S-bh)*k,bw*k,bh*k);return o}
+let ART_CUR=null,ART_FILEIMG=null,ART_OUT=null;
+function artOpen(){$('ovArt').classList.add('show');artRender();loadCloudArt().then(ok=>{$('artNote').textContent=ok?'已連上雲端。上傳後就是遊戲的預設圖，所有人下次打開遊戲都會看到。':'⚠️ 連不上雲端：請用 GitHub 網址（yilungchen-prog.github.io/kingdom-era）開啟才能上傳。';artRender()})}
+function artRender(){const box=$('artGrid');if(!box||!$('ovArt').classList.contains('show'))return;
+ box.innerHTML=ART_SLOTS.map(([k,n])=>{const src=ART_SRC[k];const pri=ART_PRI[k]||0;const row=ART_ROWS[k];
+  return `<div class="ac"><div class="at">${src?`<img src="${src}">`:ico(k)}</div><div class="an">${n}</div><div class="as">${pri===2?'雲端上傳':pri===1?'內建圖':'尚未有圖'}</div>
+  <button class="go2" data-up="${k}">上傳</button>${row?`<button data-rv="${k}">${row.prev_path?'還原上一張':'改回內建'}</button>`:''}</div>`}).join('')}
+artRefresh=artRender;
+function artPick(k){ART_CUR=k;const f=$('artFile');f.value='';f.click()}
+function artPreview(){const flat=!!(ART_SLOTS.find(s=>s[0]===ART_CUR)||[])[2];const doCut=$('artCut').checked;
+ try{ART_OUT=processArt(ART_FILEIMG,doCut,flat);$('artAfter').innerHTML='';$('artAfter').appendChild(ART_OUT);$('artMsg').textContent=''}catch(e){$('artMsg').textContent='處理失敗：'+e.message}}
+async function artDoUpload(){if(!ART_OUT||!ART_CUR)return;const btn=$('artOk');btn.disabled=true;$('artMsg').textContent='上傳中…';
+ try{const blob=await new Promise(r=>ART_OUT.toBlob(r,'image/png'));const path=ART_CUR+'/'+Date.now()+'.png';
+  let r=await fetch(SB_URL+'/storage/v1/object/kingdom-era/'+path,{method:'POST',headers:Object.assign({'Content-Type':'image/png'},SBH),body:blob});
+  if(!r.ok)throw new Error('圖片上傳失敗（'+r.status+'）');
+  const prev=ART_ROWS[ART_CUR]?ART_ROWS[ART_CUR].path:null;
+  r=await fetch(SB_URL+'/rest/v1/ke_art?on_conflict=slot',{method:'POST',headers:Object.assign({'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=representation'},SBH),body:JSON.stringify({slot:ART_CUR,path,prev_path:prev,updated_at:new Date().toISOString()})});
+  if(!r.ok)throw new Error('資料儲存失敗（'+r.status+'）');const row=(await r.json())[0];ART_ROWS[ART_CUR]=row;ART_PRI[ART_CUR]=0;loadImg(ART_CUR,pubUrl(path),2,true);
+  $('artPrev').classList.remove('show');toast('✅ 已上傳，成為新的預設圖')}
+ catch(e){const m=/fetch|network|load/i.test(e.message||'')?'連不上雲端':e.message;$('artMsg').textContent='❌ '+m+'。請用 GitHub 網址開啟遊戲再試一次。'}btn.disabled=false}
+async function artRevert(k){const row=ART_ROWS[k];if(!row)return;
+ try{if(row.prev_path){const r=await fetch(SB_URL+'/rest/v1/ke_art?slot=eq.'+k,{method:'PATCH',headers:Object.assign({'Content-Type':'application/json',Prefer:'return=representation'},SBH),body:JSON.stringify({path:row.prev_path,prev_path:row.path,updated_at:new Date().toISOString()})});if(!r.ok)throw 0;ART_ROWS[k]=(await r.json())[0];ART_PRI[k]=0;loadImg(k,pubUrl(ART_ROWS[k].path),2,true);toast('已還原上一張')}
+  else{const r=await fetch(SB_URL+'/rest/v1/ke_art?slot=eq.'+k,{method:'DELETE',headers:SBH});if(!r.ok)throw 0;delete ART_ROWS[k];unloadImg(k);toast('已改回內建圖')}}
+ catch(e){toast('還原失敗，請稍後再試')}}
+$('bart').onclick=artOpen;$('artClose').onclick=()=>{$('ovArt').classList.remove('show')};
+$('artGrid').addEventListener('click',e=>{const u=e.target.closest('[data-up]');if(u){artPick(u.dataset.up);return}const v=e.target.closest('[data-rv]');if(v)artRevert(v.dataset.rv)});
+$('artFile').onchange=e=>{const f=e.target.files[0];if(!f)return;const im=new Image();im.onload=()=>{ART_FILEIMG=im;const flat=!!(ART_SLOTS.find(s=>s[0]===ART_CUR)||[])[2];
+ $('artCut').checked=!flat;$('artTitle').textContent='上傳：'+(ART_SLOTS.find(s=>s[0]===ART_CUR)||[0,''])[1];$('artBefore').innerHTML='';const bi=new Image();bi.src=im.src;$('artBefore').appendChild(bi);
+ $('artPrev').classList.add('show');setTimeout(artPreview,30)};im.onerror=()=>toast('讀不到這張圖');im.src=URL.createObjectURL(f)};
+$('artCut').onchange=artPreview;$('artOk').onclick=artDoUpload;$('artNo').onclick=()=>$('artPrev').classList.remove('show');
 
 // ================= loop =================
 let running=false,paused=false,last=performance.now(),acc=0,uiT=0,mmT=0,saveT=15;
