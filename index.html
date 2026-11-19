@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
 <title>王國紀元</title>
 <style>
 html,body{margin:0;height:100%;overflow:hidden;background:#111;color:#f3e9d2;font-family:-apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
@@ -16,6 +18,16 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 #top .sp{flex:1}
 #top button{background:#4a3520;border:1px solid #a7834a;border-radius:6px;padding:3px 9px;font-size:13px}
 #age{color:#ffd27a;font-weight:700}
+.ico{display:inline-block;width:1.25em;height:1.25em;vertical-align:-.28em;font-style:normal}.ico svg{width:100%;height:100%;display:block}
+.ico.s{width:1.05em;height:1.05em;vertical-align:-.2em}
+#top .ico{width:18px;height:18px}
+.b .i .ico{width:26px;height:26px;vertical-align:0}
+#info .big .ico{width:30px;height:30px}
+#info .q .ico{width:22px;height:22px;vertical-align:-5px}
+#side button .ico{width:28px;height:28px;vertical-align:0}
+#top button .ico{width:16px;height:16px;vertical-align:-3px}
+#upd{position:fixed;z-index:15;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top) + 44px);display:none;background:#2f6b2f;border:2px solid #7fd27f;border-radius:10px;padding:8px 14px;font-size:14px;color:#fff}
+#upd.show{display:block}
 #mm{position:fixed;z-index:4;right:calc(env(safe-area-inset-right) + 6px);width:110px;height:110px;border:2px solid #8a6a3a;border-radius:4px;background:#000}
 #side{position:fixed;z-index:4;left:calc(env(safe-area-inset-left) + 6px);display:flex;flex-direction:column;gap:6px}
 #side button{width:48px;height:48px;border-radius:10px;background:#3a2a18e8;border:1px solid #a7834a;font-size:20px;position:relative;padding:0}
@@ -40,11 +52,13 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 #toast{position:fixed;z-index:9;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top) + 46px);background:#000c;border:1px solid #a7834a;border-radius:8px;padding:6px 12px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
 .ov{position:fixed;inset:0;z-index:20;background:radial-gradient(#3a2a18f2,#120c06fa);display:none;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:20px;overflow:auto}
 .ov.show{display:flex}
+.ov{justify-content:flex-start}.ov>*:first-child{margin-top:auto}.ov>*:last-child{margin-bottom:auto}
 .ov h1{font-size:40px;margin:0 0 4px;color:#ffd27a;letter-spacing:6px;text-shadow:0 3px 0 #5a3a10}
 .ov h2{font-size:15px;margin:0 0 16px;font-weight:400;opacity:.85}
 .ov .row{display:flex;gap:8px;margin:6px 0;flex-wrap:wrap;justify-content:center}
 .ov button{background:#4a3520;border:2px solid #a7834a;border-radius:10px;padding:10px 18px;font-size:16px;min-width:90px}
 .ov button.sel{background:#7a5a20;border-color:#ffd27a}
+.ov button.go small{font-size:12px;opacity:.85}
 .ov button.go{background:#2f6b2f;border-color:#7fd27f;font-size:20px;padding:12px 34px;margin-top:10px}
 .ov .help{max-width:520px;text-align:left;font-size:13px;line-height:1.6;background:#0006;border-radius:10px;padding:10px 14px;margin-top:14px}
 .ov .ver{font-size:11px;opacity:.5;margin-top:10px}
@@ -53,34 +67,38 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 <body>
 <canvas id="c"></canvas>
 <div id="top">
- <span class="r">🍖<b id="rf">0</b></span><span class="r">🪵<b id="rw">0</b></span><span class="r">🪙<b id="rg">0</b></span><span class="r">🪨<b id="rs">0</b></span><span class="r">👥<b id="rp">0</b></span>
+ <span class="r" data-ic="food"></span><b id="rf">0</b><span class="r" data-ic="wood"></span><b id="rw">0</b><span class="r" data-ic="gold"></span><b id="rg">0</b><span class="r" data-ic="stone"></span><b id="rs">0</b><span class="r" data-ic="pop"></span><b id="rp">0</b>
  <span id="age"></span><span id="clock"></span><span class="sp"></span>
- <button id="bspeed">1x</button><button id="bmenu">⏸</button>
+ <button id="bsnd"></button><button id="bspeed">1x</button><button id="bmenu" data-ic="pause"></button>
 </div>
 <canvas id="mm" width="160" height="160"></canvas>
 <div id="side">
- <button id="bidle" title="閒置村民">🧑‍🌾<i id="nidle">0</i></button>
- <button id="barmy" title="全部軍隊">⚔️<i id="narmy">0</i></button>
- <button id="bbox" title="框選">⬚</button>
- <button id="bhome" title="回到城鎮中心">🏰</button>
+ <button id="bidle" title="閒置村民"><span data-ic="villager"></span><i id="nidle">0</i></button>
+ <button id="barmy" title="全部軍隊"><span data-ic="barracks"></span><i id="narmy">0</i></button>
+ <button id="bbox" title="框選"><span data-ic="box"></span></button>
+ <button id="bhome" title="回到城鎮中心"><span data-ic="tc"></span></button>
 </div>
 <div id="bottom"><div id="info"></div><div id="acts"></div></div>
 <div id="toast"></div>
+<button id="upd">🔄 有新版本，點這裡更新</button>
 
 <div class="ov show" id="ovStart">
  <h1>王國紀元</h1>
  <h2>中世紀即時戰略・手機版</h2>
  <div>難度</div>
  <div class="row" id="diffRow"><button data-d="easy">簡單</button><button data-d="normal" class="sel">普通</button><button data-d="hard">困難</button></div>
- <button class="go" id="bstart">開始遊戲</button>
+ <button class="go" id="bcont" style="display:none"></button>
+ <button class="go" id="bstart">開始新遊戲</button>
  <div class="help">
- <b>目標：</b>摧毀敵方的城鎮中心🏰。<br>
+ <b>目標：</b>摧毀敵方的城鎮中心<span data-ic="tc"></span>。<br>
  <b>點一下</b>單位＝選取；<b>連點兩下</b>＝選取畫面上同類單位。<br>
  選了單位後<b>點地面</b>＝移動、<b>點資源</b>＝採集、<b>點敵人</b>＝攻擊。<br>
- <b>單指拖曳</b>＝移動畫面；<b>雙指</b>＝縮放；<b>長按再拖</b>（或開⬚）＝框選。<br>
- 選了建築後點地面＝設定集結點🚩。點小地圖可快速跳轉。<br>
+ <b>單指拖曳</b>＝移動畫面；<b>雙指</b>＝縮放；<b>長按再拖</b>（或開<span data-ic="box"></span>）＝框選。<br>
+ 選了建築後點地面＝設定集結點<span data-ic="flag"></span>。點小地圖可快速跳轉。<br>
  建築：村民走到現場後<b>瞬間完成</b>，只能蓋在自己領地內。<br>
- 相剋：🔱長槍兵剋騎兵、🐎騎兵剋弓兵、🏹弓兵剋長槍兵。<br>
+ 相剋：<span data-ic="spear"></span>長槍兵剋騎兵、<span data-ic="scout"></span>騎兵剋弓兵、<span data-ic="archer"></span>弓兵剋長槍兵。<br>
+ 人口上限＝房屋數 × 5，人口滿了就要再蓋房屋。<br>
+ 右上角喇叭可切換：全開／只有音效／靜音。<br>
  建議把手機<b>橫放</b>遊玩。
  </div>
  <div class="ver" id="ver"></div>
@@ -98,7 +116,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 
 <script>
 'use strict';
-const VERSION='2026-11-20a';
+const VERSION='2026-11-20b';
 // ================= constants =================
 const W=80,H=80,T=32,NN=W*H,STEP=0.05,CAP=10,MAXPOP=100,TER=9;
 const TEAM=['#3b82f6','#ef4444'],TEAMD=['#1e3a8a','#7f1d1d'];
@@ -121,7 +139,7 @@ const UNITS={
 };
 const UPG={militia:[[2,'長劍士',{hp:15,atk:3}]],spear:[[2,'長矛兵',{hp:10,atk:2}]],archer:[[2,'弩手',{hp:5,atk:1,rng:.5}]],scout:[[2,'輕騎兵',{hp:20,atk:2}]],knight:[[3,'聖騎士',{hp:40,atk:3,arm:1}]]};
 const BLDS={
- tc:{n:'城鎮中心',ic:'🏰',s:4,hp:2400,cost:{wood:400,stone:200},age:2,pop:10,drop:['food','wood','gold','stone'],train:['villager'],atk:5,rng:6,los:8},
+ tc:{n:'城鎮中心',ic:'🏰',s:4,hp:2400,cost:{wood:400,stone:200},age:2,drop:['food','wood','gold','stone'],train:['villager'],atk:5,rng:6,los:8},
  house:{n:'房屋',ic:'🏠',s:2,hp:550,cost:{wood:40},age:0,pop:5,los:3},
  lumber:{n:'伐木場',ic:'🪓',s:2,hp:600,cost:{wood:120},age:0,drop:['wood'],los:4},
  mill:{n:'磨坊',ic:'🌾',s:2,hp:600,cost:{wood:120},age:0,drop:['food'],los:4},
@@ -136,17 +154,74 @@ const BLDS={
 const ECO=['house','lumber','mill','mine','farm','tc'],MIL=['barracks','archery','stable','smith','tower'];
 const TECHS={forge:{n:'鍛造',ic:'🔥',cost:{food:150,gold:50},t:30,d:'軍隊攻擊+1'},armor:{n:'鎖子甲',ic:'🛡️',cost:{food:150,gold:100},t:30,d:'軍隊防禦+1'}};
 // optional image assets: put PNG files in img/ with these names; missing ones fall back to built-in drawing
-const ASSET_KEYS=['villager','militia','spear','archer','scout','knight','tc','house','lumber','mill','mine','farm','barracks','archery','stable','smith','tower','tree','berry','gold','stone','grass'];
+const ASSET_KEYS=['villager','villager_f','militia2','militia','spear','archer','scout','knight','tc','house','lumber','mill','mine','farm','barracks','archery','stable','smith','tower','tree','berry','gold','stone','grass'];
 const IMG={};
 // img/list.json = ["villager","tc",...] — only listed files are loaded
-fetch('img/list.json').then(r=>r.ok?r.json():[]).then(list=>{(list||[]).filter(k=>ASSET_KEYS.includes(k)).forEach(k=>{const im=new Image();im.onload=()=>{IMG[k]=im;if(k==='grass'&&G)drawTerrain()};im.src='img/'+k+'.png'})}).catch(()=>{});
+fetch('img/list.json?v='+VERSION,{cache:'no-store'}).then(r=>r.ok?r.json():[]).then(list=>{(list||[]).filter(k=>ASSET_KEYS.includes(k)).forEach(k=>{const im=new Image();im.onload=()=>{IMG[k]=im;if(UNITS[k]||k==='villager_f'||k==='militia2')IMG[k+'_1']=redVariant(im);if(k==='grass'&&G)drawTerrain()};im.src='img/'+k+'.png?v='+VERSION})}).catch(()=>{});
+// enemy version: shift blue hues to red
+function redVariant(im){try{const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;const g=c.getContext('2d');g.drawImage(im,0,0);const d=g.getImageData(0,0,c.width,c.height),a=d.data;
+ for(let i=0;i<a.length;i+=4){if(a[i+3]<10)continue;const r=a[i]/255,gg=a[i+1]/255,b=a[i+2]/255;const mx=Math.max(r,gg,b),mn=Math.min(r,gg,b),dl=mx-mn;if(dl<.12)continue;
+  let h;if(mx===r)h=((gg-b)/dl)%6;else if(mx===gg)h=(b-r)/dl+2;else h=(r-gg)/dl+4;h*=60;if(h<0)h+=360;
+  if(h<185||h>255)continue;const s=Math.min(1,dl/mx*1.6+.15),v=Math.min(1,mx*1.12);const nh=356;const f=(n)=>{const k=(n+nh/60)%6;return v-v*s*Math.max(0,Math.min(k,4-k,1))};a[i]=f(5)*255;a[i+1]=f(3)*255;a[i+2]=f(1)*255}
+ g.putImageData(d,0,0);return c}catch(e){return im}}
+
+
+// ================= icons (SVG, 24x24) =================
+const IC={
+ food:'<ellipse cx="15" cy="9" rx="6" ry="5.4" fill="#c8553d"/><ellipse cx="13.6" cy="7.4" rx="2.2" ry="1.3" fill="#e88b6e" stroke="none"/><path d="M11.2 12.8 6.8 17.2" stroke-width="3.4"/><path d="M11.2 12.8 6.8 17.2" stroke="#f3ead8" stroke-width="1.6"/><circle cx="5.6" cy="16.6" r="1.8" fill="#f3ead8"/><circle cx="7.4" cy="18.6" r="1.8" fill="#f3ead8"/>',
+ wood:'<rect x="2.5" y="12.5" width="16" height="5.5" rx="2.7" fill="#a0682f"/><circle cx="18.5" cy="15.2" r="2.7" fill="#e0b77a"/><circle cx="18.5" cy="15.2" r=".9" fill="none" stroke-width=".8"/><rect x="5" y="6.5" width="15" height="5.5" rx="2.7" fill="#b87a3a"/><circle cx="20" cy="9.2" r="2.7" fill="#e0b77a"/><circle cx="20" cy="9.2" r=".9" fill="none" stroke-width=".8"/>',
+ gold:'<ellipse cx="12" cy="17.5" rx="7.5" ry="3" fill="#c9951a"/><ellipse cx="12" cy="13.8" rx="7.5" ry="3" fill="#e0ad25"/><ellipse cx="12" cy="10" rx="7.5" ry="3" fill="#f5cd3b"/><ellipse cx="12" cy="10" rx="3.5" ry="1.2" fill="none" stroke="#c9951a" stroke-width="1"/>',
+ stone:'<path d="M3.5 18.5 5.5 10l5.5-4.5 6.5 2 3.5 6.5-2 4.5z" fill="#a3a9b0"/><path d="M5.5 10l5.5 3.5 6.5-6M11 13.5l1 5" fill="none" stroke-width="1"/>',
+ pop:'<path d="M4.5 21c0-4.2 3.3-7.5 7.5-7.5s7.5 3.3 7.5 7.5z" fill="#4a7bd0"/><circle cx="12" cy="8" r="4" fill="#f1c27d"/>',
+ house:'<path d="M5 11h14v9.5H5z" fill="#ead6aa"/><path d="M2.5 12.2 12 3.8l9.5 8.4z" fill="#c0392b"/><rect x="10" y="14" width="4" height="6.5" fill="#7a4a24"/><rect x="15.5" y="13" width="2.4" height="2.4" fill="#7fb6e0" stroke-width="1"/>',
+ tc:'<path d="M3.5 21.5V9.5h3v-2h2.2v2h2.1v-2h2.4v2h2.1v-2h2.2v2h3v12z" fill="#c3c7cd"/><path d="M9.5 21.5v-5a2.5 2.5 0 0 1 5 0v5z" fill="#6b3f1f"/><path d="M12 7.5V2" fill="none"/><path d="M12 2.2l4.5 1.6L12 5.4z" fill="#d23a2a"/><path d="M5 13h1.5M17.5 13H19" stroke-width="1.2"/>',
+ lumber:'<path d="M4.5 20.5h13v-4.2h-13z" fill="#a0682f"/><ellipse cx="11" cy="16.3" rx="6.5" ry="1.9" fill="#e0b77a"/><path d="M12.5 16 17 5.5" stroke-width="2.6"/><path d="M12.5 16 17 5.5" stroke="#c48a45" stroke-width="1.1"/><path d="M15.2 4.6c3-1.4 5.8.3 5.8.3l-1.7 4.8s-2.9-1.1-5.2-.4z" fill="#d3d8de"/>',
+ mill:'<path d="M8.5 21.5 10.2 11h3.6l1.7 10.5z" fill="#ead6aa"/><path d="M12 9.5 5.5 3 4 4.5zM12 9.5 18.5 3 20 4.5zM12 9.5 5.5 16 4 14.5zM12 9.5 18.5 16 20 14.5z" fill="#f3ead8"/><circle cx="12" cy="9.5" r="1.6" fill="#7a4a24"/><rect x="11" y="17.5" width="2" height="4" fill="#7a4a24" stroke-width=".8"/>',
+ mine:'<path d="M5.5 20 15.5 7.5" stroke-width="2.8"/><path d="M5.5 20 15.5 7.5" stroke="#c48a45" stroke-width="1.2"/><path d="M6.5 6.5c4.5-3 10.5-2.5 14.5 2-3.6-1.6-8.4-2.2-12.2-1z" fill="#d3d8de"/>',
+ farm:'<path d="M12 22V5.5" fill="none" stroke-width="1.6"/><g fill="#e8b92a"><ellipse cx="9.6" cy="8.5" rx="1.6" ry="2.8" transform="rotate(-28 9.6 8.5)"/><ellipse cx="14.4" cy="8.5" rx="1.6" ry="2.8" transform="rotate(28 14.4 8.5)"/><ellipse cx="9.6" cy="12.5" rx="1.6" ry="2.8" transform="rotate(-28 9.6 12.5)"/><ellipse cx="14.4" cy="12.5" rx="1.6" ry="2.8" transform="rotate(28 14.4 12.5)"/><ellipse cx="9.6" cy="16.5" rx="1.6" ry="2.8" transform="rotate(-28 9.6 16.5)"/><ellipse cx="14.4" cy="16.5" rx="1.6" ry="2.8" transform="rotate(28 14.4 16.5)"/><ellipse cx="12" cy="4.6" rx="1.5" ry="2.6"/></g>',
+ barracks:'<path d="M4 4l10 10M20 4 10 14" stroke-width="3"/><path d="M4 4l10 10M20 4 10 14" stroke="#e6eaee" stroke-width="1.3"/><path d="M12.3 15.7l3.4-3.4M8.3 12.3l3.4 3.4" stroke-width="3"/><path d="M12.3 15.7l3.4-3.4M8.3 12.3l3.4 3.4" stroke="#e0ad25" stroke-width="1.4"/><path d="M14.5 14.5l3.5 3.5M9.5 14.5 6 18" stroke-width="2.8"/><path d="M14.5 14.5l3.5 3.5M9.5 14.5 6 18" stroke="#8a5a2c" stroke-width="1.3"/><circle cx="18.8" cy="18.8" r="1.4" fill="#e0ad25"/><circle cx="5.2" cy="18.8" r="1.4" fill="#e0ad25"/>',
+ archery:'<circle cx="11" cy="13" r="8.5" fill="#f3ead8"/><circle cx="11" cy="13" r="6" fill="#c0392b"/><circle cx="11" cy="13" r="3.6" fill="#f3ead8"/><circle cx="11" cy="13" r="1.5" fill="#c0392b"/><path d="M11 13 20 4" stroke-width="1.8"/><path d="M18.5 2.5l3 3M20.5 1.8l.8 2.9 2.9.8" fill="none" stroke-width="1.2"/>',
+ stable:'<path d="M5.5 20.5V11a6.5 6.5 0 0 1 13 0v9.5h-3.8V11a2.7 2.7 0 0 0-5.4 0v9.5z" fill="#a3a9b0"/><circle cx="7.4" cy="12" r=".7" fill="#2b1a0c"/><circle cx="16.6" cy="12" r=".7" fill="#2b1a0c"/><circle cx="7.4" cy="16" r=".7" fill="#2b1a0c"/><circle cx="16.6" cy="16" r=".7" fill="#2b1a0c"/>',
+ smith:'<path d="M3.5 9.5h13c.3 1.8 2.3 2.9 4.5 3-2 1.3-5 1.4-6.5 1.4l-.8 2.8h2v3.3H6.8v-3.3h2l-.8-2.8c-2.4-.2-4.5-1.6-4.5-4.4z" fill="#606a75"/><path d="M14.5 7.5 18 3.5" stroke-width="2.6"/><path d="M14.5 7.5 18 3.5" stroke="#c48a45" stroke-width="1.1"/><rect x="15.6" y="1" width="6.5" height="3.2" rx=".8" fill="#a3a9b0" transform="rotate(42 18.8 2.6)"/>',
+ tower:'<path d="M7.8 21.5 9 9.5h6l1.2 12z" fill="#c3c7cd"/><path d="M6.5 9.5V5h2.2v2h2.1V5h2.4v2h2.1V5h2.2v4.5z" fill="#c3c7cd"/><rect x="11" y="12.5" width="2" height="4" fill="#2b1a0c" stroke="none"/>',
+ villager:'<path d="M5.5 21.5c0-3.4 2.9-5.6 6.5-5.6s6.5 2.2 6.5 5.6z" fill="#6b8e3a"/><circle cx="12" cy="11.5" r="4.6" fill="#f1c27d"/><ellipse cx="12" cy="8.2" rx="8.2" ry="2.3" fill="#e8c66a"/><path d="M8 8.2c0-3.1 1.8-4.7 4-4.7s4 1.6 4 4.7z" fill="#e8c66a"/><path d="M8.3 7.2h7.4" stroke="#c0392b" stroke-width="1.2"/>',
+ militia:'<path d="M10.4 15.5V5.2L12 2.2l1.6 3v10.3z" fill="#e6eaee"/><path d="M12 5v9.5" stroke-width=".7" stroke="#9aa3ad"/><path d="M7.5 15.8h9" stroke-width="3"/><path d="M7.5 15.8h9" stroke="#e0ad25" stroke-width="1.4"/><path d="M12 16.5v3.6" stroke-width="2.8"/><path d="M12 16.5v3.6" stroke="#8a5a2c" stroke-width="1.2"/><circle cx="12" cy="21.3" r="1.4" fill="#e0ad25"/>',
+ spear:'<path d="M4.5 20.5 16 9" stroke-width="2.8"/><path d="M4.5 20.5 16 9" stroke="#c48a45" stroke-width="1.2"/><path d="M15 10l2.3-5.6L21.5 2.5 19.6 6.7 14 9z" fill="#e6eaee"/><path d="M14.4 9.6l-1.4 3.2 2.2-1.4z" fill="#c0392b"/>',
+ archer:'<path d="M7.5 2.5c8.5 3.2 8.5 15.8 0 19" fill="none" stroke-width="3"/><path d="M7.5 2.5c8.5 3.2 8.5 15.8 0 19" fill="none" stroke="#a0682f" stroke-width="1.5"/><path d="M7.5 2.5v19" stroke-width=".8"/><path d="M3.5 12h16" stroke-width="1.4"/><path d="M21.5 12l-3.4-2.2v4.4z" fill="#e6eaee"/><path d="M3.5 12 2 10.2M3.5 12 2 13.8M5 12 3.5 10.2M5 12l-1.5 1.8" stroke="#c0392b" stroke-width="1.2"/>',
+ scout:'<path d="M6.5 21.5c-.5-4 .7-7.4 3-9.4-2.2-1.1-3-3.4-2-5.4l3.2 1.2c2.3-2 5.5-2.6 8.3-.6l2.2 4.2-2 1.2-2.2-1-1 2.1c1 3.2.2 5.8-1 7.7z" fill="#a0682f"/><path d="M9.8 12.3c-1.4-2.4-1.3-4.6-.2-6" fill="none" stroke="#3b2414" stroke-width="2.4"/><circle cx="16" cy="9.4" r=".9" fill="#2b1a0c" stroke="none"/>',
+ knight:'<path d="M4.8 21V11.2a7.2 7.2 0 0 1 14.4 0V21z" fill="#c3c7cd"/><path d="M8 12.2h8M8 15h8" stroke-width="1.8"/><path d="M12 4c.6-2.6 4.6-3.3 6.4-1.3-2.2-.1-4.3.9-6.4 3.1z" fill="#c0392b"/><path d="M12 4v17" stroke-width=".8"/>',
+ forge:'<path d="M12 21.5c-4.2 0-6.5-3-6.5-6.3 0-4.3 3.3-5.4 3.3-9.6 2.2 1 3.3 3.2 3.3 5.4 1-1 2.1-2.2 2.1-4.3 3.3 2.1 4.3 5.4 4.3 8.5 0 3.3-2.3 6.3-6.5 6.3z" fill="#f08a24"/><path d="M12 21.5c-2 0-3.2-1.5-3.2-3.1 0-2.1 2.1-3.1 2.1-5.3 2.1 1 4.3 3.1 4.3 5.3 0 1.6-1.2 3.1-3.2 3.1z" fill="#f5cd3b"/>',
+ armor:'<path d="M12 2.5 19.5 5.8v6.5c0 5.2-3.2 8.3-7.5 9.4-4.3-1.1-7.5-4.2-7.5-9.4V5.8z" fill="#4a7bd0"/><path d="M12 5.2v14M7 11h10" stroke="#f3ead8" stroke-width="1.6"/>',
+ age:'<path d="M4 17.5 3 7l5.2 4.2L12 4.8l3.8 6.4L21 7l-1 10.5z" fill="#f5cd3b"/><path d="M4 20.5h16" stroke-width="3"/><path d="M4 20.5h16" stroke="#e0ad25" stroke-width="1.4"/><circle cx="12" cy="13" r="1.4" fill="#c0392b"/>',
+ stop:'<path d="M8 2.5h8L21.5 8v8L16 21.5H8L2.5 16V8z" fill="#c0392b"/><path d="M7.5 12h9" stroke="#fff" stroke-width="2.6"/>',
+ back:'<path d="M9 4.5 3.5 10 9 15.5M3.5 10H14a5 5 0 0 1 0 10h-3" fill="none" stroke-width="4"/><path d="M9 4.5 3.5 10 9 15.5M3.5 10H14a5 5 0 0 1 0 10h-3" fill="none" stroke="#f3ead8" stroke-width="2"/>',
+ ok:'<path d="M4 12.5l5 5L20.5 6" fill="none" stroke-width="5"/><path d="M4 12.5l5 5L20.5 6" fill="none" stroke="#7fd27f" stroke-width="2.6"/>',
+ no:'<path d="M5.5 5.5l13 13M18.5 5.5l-13 13" fill="none" stroke-width="5"/><path d="M5.5 5.5l13 13M18.5 5.5l-13 13" fill="none" stroke="#ff7b7b" stroke-width="2.6"/>',
+ box:'<rect x="4" y="4" width="16" height="16" fill="rgba(255,255,255,.12)" stroke="#f3ead8" stroke-dasharray="3.2 2.2" stroke-width="1.8"/>',
+ pause:'<rect x="6" y="4.5" width="4" height="15" rx="1" fill="#f3ead8"/><rect x="14" y="4.5" width="4" height="15" rx="1" fill="#f3ead8"/>',
+ snd2:'<path d="M3.5 9h4l5-4.2v14.4l-5-4.2h-4z" fill="#f3ead8"/><path d="M15.5 8.5c1.8 2 1.8 5 0 7M18 6c3.3 3.4 3.3 8.6 0 12" fill="none" stroke="#f3ead8" stroke-width="1.8"/>',
+ snd1:'<path d="M3.5 9h4l5-4.2v14.4l-5-4.2h-4z" fill="#f3ead8"/><path d="M15.5 8.5c1.8 2 1.8 5 0 7" fill="none" stroke="#f3ead8" stroke-width="1.8"/>',
+ snd0:'<path d="M3.5 9h4l5-4.2v14.4l-5-4.2h-4z" fill="#f3ead8"/><path d="M15.5 9l5 6M20.5 9l-5 6" fill="none" stroke="#ff7b7b" stroke-width="2"/>',
+ flag:'<path d="M6 21.5V3" stroke-width="2.2"/><path d="M6.5 3.5h12l-3 4 3 4h-12z" fill="#d23a2a"/>',
+ basket:'<path d="M4 10.5h16l-2.2 9.5H6.2z" fill="#c8a165"/><path d="M7.5 10.5c0-4.6 9-4.6 9 0" fill="none" stroke-width="1.8"/><circle cx="9.5" cy="10" r="1.6" fill="#c2185b"/><circle cx="12.5" cy="9.5" r="1.6" fill="#c2185b"/><circle cx="15" cy="10.2" r="1.4" fill="#c2185b"/><path d="M6.5 14h11M7.2 17h9.6" stroke-width=".8"/>',
+ axe:'<path d="M7 20.5 16 6" stroke-width="2.8"/><path d="M7 20.5 16 6" stroke="#c48a45" stroke-width="1.2"/><path d="M13.8 4.6c3.2-1.6 6.3.3 6.3.3l-1.8 5.2s-3.1-1.2-5.6-.5z" fill="#d3d8de"/>',
+ tree:'<path d="M12 2.5 19 13H5z" fill="#2e7a38"/><path d="M12 7 20 18H4z" fill="#246b2e"/><rect x="10.8" y="18" width="2.4" height="3.5" fill="#7a4a24"/>',
+ berry:'<circle cx="8" cy="14" r="5" fill="#3a7d33"/><circle cx="16" cy="14" r="5" fill="#3a7d33"/><circle cx="12" cy="9.5" r="5" fill="#3a7d33"/><g fill="#c2185b"><circle cx="9" cy="12" r="1.4"/><circle cx="14.5" cy="10" r="1.4"/><circle cx="15.5" cy="15" r="1.4"/><circle cx="10.5" cy="16" r="1.4"/></g>',
+};
+IC.goldore=IC.gold;
+function svgStr(k,px){return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"${px?` width="${px}" height="${px}"`:''}><g stroke="#2b1a0c" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round">${IC[k]||''}</g></svg>`}
+function ico(k,cls){return `<i class="ico ${cls||''}">${svgStr(k)}</i>`}
+const ICIMG={};
+for(const k in IC){const im=new Image();im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svgStr(k,128));ICIMG[k]=im}
+function drawIcon(k,x,y,px){const im=ICIMG[k];if(im&&im.complete&&im.naturalWidth)ctx.drawImage(im,x-px/2,y-px/2,px,px)}
+document.querySelectorAll('[data-ic]').forEach(el=>el.innerHTML=ico(el.dataset.ic));
 
 // ================= helpers =================
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 const idx=(x,y)=>y*W+x, inb=(x,y)=>x>=0&&y>=0&&x<W&&y<H;
 const clamp=(v,a,b)=>v<a?a:v>b?b:v;
 function distRect(px,py,x0,y0,x1,y1){const dx=Math.max(x0-px,0,px-x1),dy=Math.max(y0-py,0,py-y1);return Math.hypot(dx,dy)}
-function costTxt(c){return Object.keys(c).map(k=>RI[k]+c[k]).join(' ')}
+function costTxt(c){return Object.keys(c).map(k=>ico(k,'s')+c[k]).join(' ')}
 
 // ================= state =================
 const resType=new Uint8Array(NN),resAmt=new Float32Array(NN),bldAt=new Int32Array(NN),blk=new Uint8Array(NN),explored=new Uint8Array(NN),vis=new Uint8Array(NN);
@@ -204,11 +279,11 @@ function addBld(o,type,tx,ty){
  ents.set(b.id,b);blds.push(b);
  for(let y=ty;y<ty+d.s;y++)for(let x=tx;x<tx+d.s;x++){const i=idx(x,y);bldAt[i]=b.id;updBlk(i)}
  if(!d.farm)for(const u of units){if(u.x>=tx-.2&&u.x<=tx+d.s+.2&&u.y>=ty-.2&&u.y<=ty+d.s+.2){const p=nearestFree(u.x,u.y);u.x=p.x;u.y=p.y;u.path.length=0}}
- if(o===0)reveal(b.x,b.y,d.los+d.s/2);
+ if(o===0){reveal(b.x,b.y,d.los+d.s/2);if(gt>0)sfx('build')}
  return b}
 function addUnit(o,type,x,y){const d=UNITS[type];
  const u={id:++nid,kind:'u',o,type,def:d,x,y,hp:0,maxhp:0,task:null,path:[],carry:0,ctype:null,cd:0,face:1,repath:0,acq:Math.random()*.5,anim:0,atkT:0,hitT:0,lx:x,ly:y,moving:0,stuck:0};
- u.maxhp=stat(o,type,'hp');u.hp=u.maxhp;ents.set(u.id,u);units.push(u);players[o].trained++;return u}
+ u.fem=type==='villager'&&Math.random()<.5;u.maxhp=stat(o,type,'hp');u.hp=u.maxhp;ents.set(u.id,u);units.push(u);players[o].trained++;return u}
 function nearestFree(x,y){const cx=Math.floor(x),cy=Math.floor(y);
  for(let r=0;r<12;r++)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){if(Math.max(Math.abs(dx),Math.abs(dy))!==r)continue;const nx=cx+dx,ny=cy+dy;if(inb(nx,ny)&&!blk[idx(nx,ny)])return{x:nx+.5,y:ny+.5}}
  return{x,y}}
@@ -217,7 +292,7 @@ function popCap(o){let n=0;for(const b of blds)if(b.o===o&&b.def.pop)n+=b.def.po
 function afford(o,c){const r=players[o].res;for(const k in c)if(r[k]<c[k])return false;return true}
 function pay(o,c){for(const k in c)players[o].res[k]-=c[k]}
 function refund(o,c){for(const k in c)players[o].res[k]+=c[k]}
-function lackTxt(o,c){const r=players[o].res;return Object.keys(c).filter(k=>r[k]<c[k]).map(k=>RI[k]+Math.ceil(c[k]-r[k])).join(' ')}
+function lackTxt(o,c){const r=players[o].res;return Object.keys(c).filter(k=>r[k]<c[k]).map(k=>({food:'食物',wood:'木材',gold:'黃金',stone:'石頭'})[k]+Math.ceil(c[k]-r[k])).join('、')}
 function hasB(o,type){return blds.some(b=>b.o===o&&b.type===type)}
 
 // ================= placement =================
@@ -307,16 +382,18 @@ function damage(src,e){
  return dmg}
 function hit(src,e,ranged){
  const dmg=damage(src,e);
+ if(ranged)sfx('arrow',src.x,src.y);else sfx(e.kind==='b'?'hit':'sword',e.x,e.y);
  if(ranged){fx.push({k:'arrow',x:src.x,y:src.y-.2,tx:e.x,ty:e.y,t:0,life:.35,dmg,e:e.id,src:src.o})}
  else applyDmg(src,e,dmg)}
 function applyDmg(src,e,dmg){
  if(!e||e.dead)return;e.hp-=dmg;e.hitT=.15;
- if(e.o===0&&gt-(G.lastAlert||-99)>12){G.lastAlert=gt;toast('⚠️ 我方遭到攻擊！');pings.push({x:e.x,y:e.y,t:3})}
+ if(e.o===0&&gt-(G.lastAlert||-99)>12){G.lastAlert=gt;toast('⚠️ 我方遭到攻擊！');sfx('alert');sayV('attacked',null,true);pings.push({x:e.x,y:e.y,t:3})}
  if(e.kind==='u'&&!e.def.vil&&(!e.task||e.task.k==='move'&&e.task.auto)&&src.kind==='u')e.task={k:'attack',t:src.id,auto:1};
  if(AIS[e.o])AIS[e.o].threat={x:src.x,y:src.y,t:gt,id:src.id};
  if(e.hp<=0)kill(e,src)}
 function kill(e,src){if(e.dead)return;e.dead=1;
  if(src&&players[src.o])players[src.o].kills++;
+ sfx(e.kind==='u'?'die':'boom',e.x,e.y);
  if(e.kind==='u'){fx.push({k:'corpse',x:e.x,y:e.y,o:e.o,type:e.type,t:0,life:2.5,face:e.face})}
  else{for(let y=e.ty;y<e.ty+e.s;y++)for(let x=e.tx;x<e.tx+e.s;x++){const i=idx(x,y);bldAt[i]=-1;updBlk(i)}
   fx.push({k:'boom',x:e.x,y:e.y,s:e.s,t:0,life:1.6});}
@@ -341,6 +418,7 @@ function doGather(u,t,dt){
  if(t.ph==='go'){if(approach(u,dt,rx,ry,rx,ry,.8)){t.ph='work';u.face=rx+.5>u.x?1:-1}return}
  // work
  const rtype=RT[t.rt];if(u.ctype!==rtype){u.carry=0;u.ctype=rtype}
+ u.sndT=(u.sndT||0)-dt;if(u.sndT<=0){u.sndT=.85;sfx(t.rt===1?'chop':t.rt===2?'gather':'mine',u.x,u.y)}
  const amt=Math.min(RATE[t.rt]*gatherMult(u.o)*dt,resAmt[i]);u.carry+=amt;resAmt[i]-=amt;
  if(resAmt[i]<=.001){resType[i]=0;resAmt[i]=0;updBlk(i);fx.push({k:'puff',x:rx+.5,y:ry+.5,t:0,life:.6})}
  if(u.carry>=CAP){u.carry=CAP;t.ph='drop'}}
@@ -353,6 +431,7 @@ function doFarm(u,t,dt){
   if(distRect(u.x,u.y,b.tx,b.ty,b.tx+b.s,b.ty+b.s)<=0.05&&!u.path.length){t.ph='work';return}
   if(!u.path.length&&u.repath<=0){u.repath=.7;const ok=pathRect(u,b.tx,b.ty,b.tx+b.s-1,b.ty+b.s-1,t.spot);if(!ok)u.stuck++}moveAlong(u,dt);return}
  if(u.ctype!=='food'){u.carry=0;u.ctype='food'}
+ u.sndT=(u.sndT||0)-dt;if(u.sndT<=0){u.sndT=1.4;sfx('gather',u.x,u.y)}
  u.carry+=FARM_RATE*gatherMult(u.o)*dt;if(u.carry>=CAP){u.carry=CAP;t.ph='drop'}}
 function freeFarm(o,x,y){let best=null,bd=1e9;for(const b of blds)if(b.o===o&&!b.dead&&b.def.farm){const f=b.farmer&&ents.get(b.farmer);const busy=f&&!f.dead&&f.task&&f.task.k==='farm'&&f.task.b===b.id;if(busy)continue;const d=Math.hypot(b.x-x,b.y-y);if(d<bd){bd=d;best=b}}return best}
 function doBuild(u,t,dt){
@@ -382,15 +461,15 @@ function enqueue(o,b,item){if(b.queue.length>=5){if(o===0)toast('佇列已滿');
 function updBld(b,dt){
  b.cd=Math.max(0,b.cd-dt);
  if(b.def.atk&&b.cd<=0){let best=null,bd=b.def.rng+b.s/2;const eo=enemyOf(b.o);for(const e of units)if(e.o===eo&&!e.dead){const d=Math.hypot(e.x-b.x,e.y-b.y);if(d<bd){bd=d;best=e}}
-  if(best){b.cd=2;fx.push({k:'arrow',x:b.x,y:b.y-b.s*.4,tx:best.x,ty:best.y,t:0,life:.4,dmg:damage(b,best),e:best.id,src:b.o,srcId:b.id})}}
+  if(best){b.cd=2;sfx('arrow',b.x,b.y);fx.push({k:'arrow',x:b.x,y:b.y-b.s*.4,tx:best.x,ty:best.y,t:0,life:.4,dmg:damage(b,best),e:best.id,src:b.o,srcId:b.id})}}
  const q=b.queue[0];if(!q)return;
- if(q.k==='u'&&!q.started){if(popUsed(b.o)<players[b.o].cap)q.started=true;else{if(b.o===0&&gt-(G.lastHoused||-99)>10){G.lastHoused=gt;toast('人口已滿，請蓋房屋🏠')}return}}
+ if(q.k==='u'&&!q.started){if(popUsed(b.o)<players[b.o].cap)q.started=true;else{if(b.o===0&&gt-(G.lastHoused||-99)>10){G.lastHoused=gt;toast('人口已滿，請蓋房屋');sayV('housed')}return}}
  q.p+=dt;if(q.p<q.t)return;b.queue.shift();
  const P=players[b.o];
- if(q.k==='u'){const sp=spawnPoint(b);const u=addUnit(b.o,q.type,sp.x,sp.y);
+ if(q.k==='u'){const sp=spawnPoint(b);const u=addUnit(b.o,q.type,sp.x,sp.y);if(b.o===0)sfx('train');
   if(b.rally){if(b.rally.res>=0&&u.def.vil&&resType[b.rally.res])setGather(u,b.rally.res);else if(b.rally.farm&&u.def.vil){const f=ents.get(b.rally.farm);if(f&&!f.dead){u.task={k:'farm',b:f.id,ph:'go'}}}
    else{u.task={k:'move'};pathRect(u,Math.floor(b.rally.x),Math.floor(b.rally.y),Math.floor(b.rally.x),Math.floor(b.rally.y),b.rally)}}}
- else if(q.k==='age'){P.age++;P.aging=false;refreshStats(b.o);if(b.o===0){toast('🎉 進入'+AGES[P.age]+'！');fx.push({k:'ring',x:b.x,y:b.y,t:0,life:1.5})}}
+ else if(q.k==='age'){P.age++;P.aging=false;refreshStats(b.o);if(b.o===0){sfx('age');say('王國進入'+AGES[P.age]+'！',1,true);toast('🎉 進入'+AGES[P.age]+'！');fx.push({k:'ring',x:b.x,y:b.y,t:0,life:1.5})}}
  else if(q.k==='tech'){P.tech[q.type]=1;refreshStats(b.o);if(b.o===0)toast('研究完成：'+TECHS[q.type].n)}}
 function spawnPoint(b){const tx=b.rally?b.rally.x:b.x,ty=b.rally?b.rally.y:b.y+b.s;let best=null,bd=1e9;
  for(let y=b.ty-1;y<=b.ty+b.s;y++)for(let x=b.tx-1;x<=b.tx+b.s;x++){if(x>=b.tx&&x<b.tx+b.s&&y>=b.ty&&y<b.ty+b.s)continue;if(!inb(x,y)||blk[idx(x,y)])continue;const d=Math.hypot(x+.5-tx,y+.5-ty);if(d<bd){bd=d;best={x:x+.5,y:y+.5}}}
@@ -523,11 +602,12 @@ function checkWin(){if(G.over)return;const t0=blds.some(b=>b.o===0&&b.type==='tc
 
 // ================= new game =================
 function newGame(diff,seed){
- G={diff,over:false,win:false,shade:null,speed:1,auto0:false};
+ seed=seed||((Math.random()*1e9)|0);G={diff,over:false,win:false,shade:null,speed:1,auto0:false,seed};
  units=[];blds=[];plans=[];ents=new Map();nid=0;gt=0;fx=[];marks=[];pings=[];
  players=[0,1].map(()=>({res:{food:200,wood:250,gold:100,stone:200},age:0,aging:false,tech:{},cap:10,trained:0,kills:0,gathered:0}));
- genMap(seed||((Math.random()*1e9)|0));
+ genMap(seed);
  const tc0=addBld(0,'tc',P0.x-2,P0.y-2),tc1=addBld(1,'tc',W-(P0.x-2)-4,H-(P0.y-2)-4);
+ for(const [hx,hy] of [[P0.x-3,P0.y-6],[P0.x,P0.y-6]]){addBld(0,'house',hx,hy);addBld(1,'house',W-hx-2,H-hy-2)}
  for(const [o,tc,sg] of [[0,tc0,1],[1,tc1,-1]]){
   [[-1.5,2.6],[0,2.7],[1.5,2.6]].forEach(([dx,dy])=>addUnit(o,'villager',tc.x+dx*sg,tc.y+dy*sg));
   addUnit(o,'scout',tc.x+3*sg,tc.y+1.5*sg)}
@@ -573,7 +653,7 @@ cv.addEventListener('wheel',e=>{e.preventDefault();const wx=e.clientX/cam.z+cam.
 cv.addEventListener('contextmenu',e=>e.preventDefault());
 function doBox(){const a=toWorld(Math.min(box.x0,box.x1),Math.min(box.y0,box.y1)),b=toWorld(Math.max(box.x0,box.x1),Math.max(box.y0,box.y1));
  const list=units.filter(u=>u.o===0&&!u.dead&&u.x>=a.x&&u.x<=b.x&&u.y>=a.y&&u.y<=b.y);
- if(list.length){selIds=list.map(u=>u.id);placing=null}lastSig=''}
+ if(list.length){selIds=list.map(u=>u.id);placing=null;sayUnit(list.find(u=>!u.def.vil)||list[0],'sel')}lastSig=''}
 function pickAt(wx,wy){const r=Math.max(.5,22/(T*cam.z));let best=null,bd=r;
  for(const u of units){if(u.dead)continue;if(u.o!==0&&!vis[idx(Math.floor(u.x),Math.floor(u.y))])continue;const d=Math.hypot(u.x-wx,u.y-(wy+.1));if(d<bd){bd=d;best=u}}
  if(best)return best;const tx=Math.floor(wx),ty=Math.floor(wy);if(!inb(tx,ty))return null;const i=idx(tx,ty);
@@ -588,18 +668,18 @@ function handleTap(sx,sy){if(!G||G.over)return;const w=toWorld(sx,sy);
  const hit=pickAt(w.x,w.y);const selU=selEnts().filter(e=>e.kind==='u'&&e.o===0);const vils=selU.filter(u=>u.def.vil);const now=performance.now();
  if(hit&&hit.kind==='u'&&hit.o===0){
   if(lastTap.id===hit.id&&now-lastTap.t<380){const a=toWorld(0,0),b=toWorld(VW,VH);selIds=units.filter(u=>u.o===0&&u.type===hit.type&&u.x>=a.x&&u.x<=b.x&&u.y>=a.y&&u.y<=b.y).map(u=>u.id)}
-  else selIds=[hit.id];lastTap={t:now,id:hit.id};lastSig='';return}
+  else{selIds=[hit.id];sayUnit(hit,'sel')}lastTap={t:now,id:hit.id};lastSig='';return}
  if(hit&&hit.kind==='b'&&hit.o===0){
-  if(vils.length&&hit.def.farm){cmdFarm(vils,hit);mark(hit.x,hit.y,'#ffd27a');return}
+  if(vils.length&&hit.def.farm){cmdFarm(vils,hit);sayUnit(vils[0],'farm');mark(hit.x,hit.y,'#ffd27a');return}
   if(vils.length&&selU.length===vils.length&&hit.def.drop&&vils.some(v=>v.carry>0)){vils.forEach(v=>{if(v.carry>0){const prev=v.task&&v.task.k==='gather'?v.task:null;v.task=prev||{k:'gather',i:-1,rt:0,ph:'drop'};v.task.ph='drop';v.task.drop=hit.id}});mark(hit.x,hit.y,'#ffd27a');return}
   selIds=[hit.id];lastSig='';return}
- if(hit&&(hit.kind==='u'||hit.kind==='b')&&hit.o===1){if(selU.length){cmdAttack(selU,hit);mark(hit.x,hit.y,'#ff5050');return}selIds=[hit.id];lastSig='';return}
+ if(hit&&(hit.kind==='u'||hit.kind==='b')&&hit.o===1){if(selU.length){cmdAttack(selU,hit);sayUnit(selU[0],'attack');mark(hit.x,hit.y,'#ff5050');return}selIds=[hit.id];lastSig='';return}
  if(hit&&hit.kind==='r'){
-  if(vils.length){cmdGather(vils,hit.i);const mil=selU.filter(u=>!u.def.vil);if(mil.length)cmdMove(mil,w.x,w.y);mark((hit.i%W)+.5,((hit.i/W)|0)+.5,'#ffd27a');return}
+  if(vils.length){cmdGather(vils,hit.i);sayUnit(vils[0],['','wood','food','gold','stone'][resType[hit.i]]);const mil=selU.filter(u=>!u.def.vil);if(mil.length)cmdMove(mil,w.x,w.y);mark((hit.i%W)+.5,((hit.i/W)|0)+.5,'#ffd27a');return}
   if(selU.length){cmdMove(selU,w.x,w.y);mark(w.x,w.y,'#7fd27f');return}
   const sb=selEnts()[0];if(sb&&sb.kind==='b'&&sb.o===0&&sb.def.train){sb.rally={x:w.x,y:w.y,res:hit.i};toast('🚩 集結點：新村民會自動去採集');return}
   selIds=[];G.selRes=hit.i;lastSig='';return}
- if(selU.length){cmdMove(selU,w.x,w.y);mark(w.x,w.y,'#7fd27f');return}
+ if(selU.length){cmdMove(selU,w.x,w.y);sayUnit(selU[0],'move');mark(w.x,w.y,'#7fd27f');return}
  const sb=selEnts()[0];if(sb&&sb.kind==='b'&&sb.o===0&&sb.def.train){sb.rally={x:w.x,y:w.y,res:-1};mark(w.x,w.y,'#ffd27a');toast('🚩 集結點已設定');return}
  selIds=[];G.selRes=-1;lastSig=''}
 
@@ -651,28 +731,37 @@ function drawBld(b,sel){const x=b.tx*T,y=b.ty*T,s=b.s*T;const age=gt-b.born;cons
   ctx.fillStyle=b.hitT>0?'#fff':TEAM[b.o];ctx.globalAlpha=.85;rrect(3,3,s-6,(s-6)*.42,6);ctx.fill();ctx.globalAlpha=1;
   ctx.lineWidth=2.5;ctx.strokeStyle=TEAMD[b.o];rrect(3,3,s-6,s-6,6);ctx.stroke();
   ctx.fillStyle='rgba(255,255,255,.12)';for(let k=0;k<b.s*2;k++)ctx.fillRect(6+k*(s-12)/(b.s*2),s*.55,2,s*.35);
-  drawEmo(b.def.ic,s/2,s*.55,s*.5)}
+  drawIcon(b.type,s/2,s*.55,s*.55)}
  if(b.queue.length){const q=b.queue[0];ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(4,s-9,s-8,5);ctx.fillStyle='#ffd27a';ctx.fillRect(4,s-9,(s-8)*Math.min(1,q.p/q.t),5);if(b.o===0||vis[idx(b.tx,b.ty)]){const sm=Math.sin(gt*6)*1.5;ctx.globalAlpha=.6;ctx.fillStyle='#ddd';ctx.beginPath();ctx.arc(s*.8,-2+sm,4,0,7);ctx.arc(s*.85,-8+sm,3,0,7);ctx.fill();ctx.globalAlpha=1}}
  ctx.restore();
  if(sel){ctx.setLineDash([6,4]);ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.strokeRect(x,y,s,s);ctx.setLineDash([])}
  if(sel||b.hp<b.maxhp)hpBar(x+4,y-6,s-8,b.hp/b.maxhp);
- if(sel&&b.rally&&b.o===0){ctx.strokeStyle='rgba(255,255,255,.5)';ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(b.x*T,b.y*T);ctx.lineTo(b.rally.x*T,b.rally.y*T);ctx.stroke();ctx.setLineDash([]);drawEmo('🚩',b.rally.x*T+6,b.rally.y*T-8,18)}}
+ if(sel&&b.rally&&b.o===0){ctx.strokeStyle='rgba(255,255,255,.5)';ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(b.x*T,b.y*T);ctx.lineTo(b.rally.x*T,b.rally.y*T);ctx.stroke();ctx.setLineDash([]);drawIcon('flag',b.rally.x*T+5,b.rally.y*T-8,20)}}
+function unitImg(u){let k=u.type;if(k==='villager'&&u.fem&&IMG.villager_f)k='villager_f';if(k==='militia'&&players[u.o].age>=2&&IMG.militia2)k='militia2';const im=IMG[k];if(!im)return null;return u.o===1?(IMG[k+'_1']||im):im}
 function drawUnit(u,sel){
  const x=u.x*T,y=u.y*T;const walk=u.moving?Math.abs(Math.sin(u.anim*10))*3:0;
  let lx=0,ly=0;if(u.atkT>0&&u.task&&u.task.k==='attack'){const e=ents.get(u.task.t);if(e){const k=Math.sin((1-u.atkT/.35)*Math.PI)*(u.def.rng?1.5:6);const dx=e.x-u.x,dy=e.y-u.y,d=Math.hypot(dx,dy)||1;lx=dx/d*k;ly=dy/d*k}}
  const working=u.task&&((u.task.k==='gather'&&u.task.ph==='work')||(u.task.k==='farm'&&u.task.ph==='work'));
  const bob=working?Math.abs(Math.sin(u.anim*7))*2:0;
  const cav=u.def.cls==='cav';const r=T*(cav?.4:.33);
- ctx.fillStyle='rgba(0,0,0,.28)';ctx.beginPath();ctx.ellipse(x,y+r*.75,r*.95,r*.38,0,0,7);ctx.fill();
- if(sel){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,y+r*.75,r*1.1,r*.48,0,0,7);ctx.stroke()}
- const cx=x+lx,cy=y+ly-walk-bob;
- if(IMG[u.type]){ctx.save();ctx.translate(cx,cy);if(u.face<0)ctx.scale(-1,1);ctx.drawImage(IMG[u.type],-T*.55,-T*.75,T*1.1,T*1.1);ctx.restore();ctx.fillStyle=TEAM[u.o];ctx.fillRect(cx-6,cy+T*.33,12,3)}
- else{ctx.fillStyle=u.hitT>0?'#fff':TEAM[u.o];ctx.beginPath();ctx.arc(cx,cy,r,0,7);ctx.fill();ctx.lineWidth=2;ctx.strokeStyle=TEAMD[u.o];ctx.stroke();
-  drawEmo(u.def.ic,cx,cy-1,T*(cav?.56:.5),u.face<0)}
- if(working){const sw=Math.sin(u.anim*7);const tool=u.task.k==='farm'||u.task.rt===2?'🧺':u.task.rt===1?'🪓':'⛏️';ctx.save();ctx.translate(cx+u.face*r*.9,cy-r*.3);ctx.rotate(sw*.7*u.face);drawEmo(tool,0,-5,13);ctx.restore();
+ const shake=u.hitT>0?Math.sin(u.hitT*120)*2:0;
+ const cx=x+lx+shake,cy=y+ly-walk-bob;
+ const im=unitImg(u);
+ if(im){
+  ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(x,y+r*.8,r*1.05,r*.42,0,0,7);ctx.fill();
+  ctx.strokeStyle=TEAM[u.o];ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(x,y+r*.8,r*1.05,r*.42,0,0,7);ctx.stroke();
+  if(sel){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,y+r*.8,r*1.3,r*.55,0,0,7);ctx.stroke()}
+  const h=T*(cav?1.55:1.35);ctx.save();ctx.translate(cx,cy+r*.95);if(u.face<0)ctx.scale(-1,1);ctx.drawImage(im,-h/2,-h,h,h);ctx.restore()}
+ else{
+  ctx.fillStyle='rgba(0,0,0,.28)';ctx.beginPath();ctx.ellipse(x,y+r*.75,r*.95,r*.38,0,0,7);ctx.fill();
+  if(sel){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,y+r*.75,r*1.1,r*.48,0,0,7);ctx.stroke()}
+  ctx.fillStyle=u.hitT>0?'#fff':TEAM[u.o];ctx.beginPath();ctx.arc(cx,cy,r,0,7);ctx.fill();ctx.lineWidth=2;ctx.strokeStyle=TEAMD[u.o];ctx.stroke();
+  ctx.save();ctx.translate(cx,cy-1);if(u.face<0)ctx.scale(-1,1);drawIcon(u.type,0,0,T*(cav?.6:.54));ctx.restore()}
+ if(working){const sw=Math.sin(u.anim*7);const tool=u.task.k==='farm'||u.task.rt===2?'basket':u.task.rt===1?'axe':'mine';ctx.save();ctx.translate(cx+u.face*r*1.1,cy-r*.2);ctx.rotate(sw*.7*u.face);if(u.face<0)ctx.scale(-1,1);drawIcon(tool,0,-5,15);ctx.restore();
   if(sw>.95&&Math.random()<.5)fx.push({k:'chip',x:u.x+u.face*.4,y:u.y-.2,vx:(Math.random()-.5)*2,vy:-1.5-Math.random(),t:0,life:.5,c:u.task.rt===1?'#c8a165':u.task.rt===3?'#f2c230':u.task.rt===4?'#bbb':'#e57373'})}
- if(u.carry>0){ctx.fillStyle={food:'#e57373',wood:'#a1887f',gold:'#f2c230',stone:'#bdbdbd'}[u.ctype];ctx.fillRect(cx-r-2,cy-r-2,7,7);ctx.strokeStyle='#000';ctx.lineWidth=1;ctx.strokeRect(cx-r-2,cy-r-2,7,7)}
- if(sel||u.hp<u.maxhp)hpBar(x-r,y-r-10,r*2,u.hp/u.maxhp)}
+ const top=im?cy+r*.95-T*(cav?1.55:1.35)*.92:cy-r;
+ if(u.carry>0){ctx.save();ctx.translate(cx-r-2,top+8);drawIcon(u.ctype,0,0,13);ctx.restore()}
+ if(sel||u.hp<u.maxhp)hpBar(x-r,top-6,r*2,u.hp/u.maxhp)}
 function render(){
  ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0b0b0b';ctx.fillRect(0,0,cv.width,cv.height);if(!G)return;
  const z=cam.z*DPR;ctx.setTransform(z,0,0,z,-cam.x*z,-cam.y*z);ctx.imageSmoothingEnabled=true;
@@ -684,9 +773,9 @@ function render(){
  // territory hint while placing
  if(placing){ctx.fillStyle='rgba(255,255,255,.07)';ctx.strokeStyle='rgba(255,255,255,.35)';ctx.setLineDash([6,6]);ctx.lineWidth=1.5;for(const b of blds)if(b.o===0){ctx.beginPath();ctx.arc(b.x*T,b.y*T,(TER+b.s/2)*T,0,7);ctx.fill();ctx.stroke()}ctx.setLineDash([])}
  // plans
- for(const p of plans)if(p.o===0){const s=BLDS[p.type].s;ctx.setLineDash([5,4]);ctx.strokeStyle='#ffd27a';ctx.lineWidth=2;ctx.strokeRect(p.tx*T+2,p.ty*T+2,s*T-4,s*T-4);ctx.setLineDash([]);ctx.globalAlpha=.55;drawEmo(BLDS[p.type].ic,(p.tx+s/2)*T,(p.ty+s/2)*T,s*T*.4);ctx.globalAlpha=1}
+ for(const p of plans)if(p.o===0){const s=BLDS[p.type].s;ctx.setLineDash([5,4]);ctx.strokeStyle='#ffd27a';ctx.lineWidth=2;ctx.strokeRect(p.tx*T+2,p.ty*T+2,s*T-4,s*T-4);ctx.setLineDash([]);ctx.globalAlpha=.55;drawIcon(p.type,(p.tx+s/2)*T,(p.ty+s/2)*T,s*T*.45);ctx.globalAlpha=1}
  // corpses
- for(const f of fx)if(f.k==='corpse'){ctx.globalAlpha=Math.max(0,1-f.t/f.life)*.8;ctx.save();ctx.translate(f.x*T,f.y*T);ctx.rotate(Math.PI/2*Math.min(1,f.t*4)*(f.face||1));ctx.fillStyle=TEAMD[f.o];ctx.beginPath();ctx.arc(0,0,T*.28,0,7);ctx.fill();drawEmo(UNITS[f.type].ic,0,0,T*.4);ctx.restore();ctx.globalAlpha=1}
+ for(const f of fx)if(f.k==='corpse'){ctx.globalAlpha=Math.max(0,1-f.t/f.life)*.8;ctx.save();ctx.translate(f.x*T,f.y*T);ctx.rotate(Math.PI/2*Math.min(1,f.t*4)*(f.face||1));ctx.fillStyle=TEAMD[f.o];ctx.beginPath();ctx.arc(0,0,T*.28,0,7);ctx.fill();drawIcon(f.type,0,0,T*.45);ctx.restore();ctx.globalAlpha=1}
  // depth-sorted: resources, buildings, units
  const list=[];
  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const i=idx(x,y);if(resType[i]&&explored[i])list.push({k:0,y:y+.9,x,ty:y,i})}
@@ -708,7 +797,7 @@ function render(){
  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const i=idx(x,y);if(!explored[i])unseen.rect(x*T,y*T,T+.5,T+.5);else if(!vis[i])dim.rect(x*T,y*T,T+.5,T+.5)}
  ctx.fillStyle='rgba(0,0,0,.42)';ctx.fill(dim);ctx.fillStyle='#000';ctx.fill(unseen);
  // ghost
- if(placing&&placing.tx!=null){const s=BLDS[placing.type].s;const ok=canPlace(0,placing.type,placing.tx,placing.ty);ctx.fillStyle=ok?'rgba(80,220,80,.35)':'rgba(230,60,60,.4)';ctx.fillRect(placing.tx*T,placing.ty*T,s*T,s*T);ctx.strokeStyle=ok?'#7fd27f':'#ff6b6b';ctx.lineWidth=2;ctx.strokeRect(placing.tx*T,placing.ty*T,s*T,s*T);drawEmo(BLDS[placing.type].ic,(placing.tx+s/2)*T,(placing.ty+s/2)*T,s*T*.45)}
+ if(placing&&placing.tx!=null){const s=BLDS[placing.type].s;const ok=canPlace(0,placing.type,placing.tx,placing.ty);ctx.fillStyle=ok?'rgba(80,220,80,.35)':'rgba(230,60,60,.4)';ctx.fillRect(placing.tx*T,placing.ty*T,s*T,s*T);ctx.strokeStyle=ok?'#7fd27f':'#ff6b6b';ctx.lineWidth=2;ctx.strokeRect(placing.tx*T,placing.ty*T,s*T,s*T);drawIcon(placing.type,(placing.tx+s/2)*T,(placing.ty+s/2)*T,s*T*.5)}
  // box
  ctx.setTransform(DPR,0,0,DPR,0,0);
  if(box){ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.setLineDash([5,4]);ctx.strokeRect(Math.min(box.x0,box.x1),Math.min(box.y0,box.y1),Math.abs(box.x1-box.x0),Math.abs(box.y1-box.y0));ctx.setLineDash([]);ctx.fillStyle='rgba(255,255,255,.08)';ctx.fillRect(Math.min(box.x0,box.x1),Math.min(box.y0,box.y1),Math.abs(box.x1-box.x0),Math.abs(box.y1-box.y0))}}
@@ -721,27 +810,27 @@ function btn(a,ic,l,c,cls){return`<button class="b ${cls||''}" data-a="${a}"><sp
 function vilState(u){const t=u.task;if(!t)return'閒置';if(t.k==='gather')return t.ph==='drop'?'運送資源中':'採集'+(RNAME[t.rt]||'')+'中';if(t.k==='farm')return'耕種中';if(t.k==='build')return'前往建造'+BLDS[t.p.type].n;if(t.k==='move')return'移動中';if(t.k==='attack')return'攻擊中';return''}
 function renderPanel(force){if(!G)return;const es=selEnts();selIds=es.map(e=>e.id);const P=players[0];let info='',acts='';
  if(placing){const d=BLDS[placing.type];const ok=placing.tx!=null&&canPlace(0,placing.type,placing.tx,placing.ty);
-  info=`<div class="big">${d.ic}</div><div class="nm">${d.n}</div><div>${costTxt(d.cost)}</div>`;
-  acts=`<span class="hint">點地圖放置，可拖曳調整<br>${placing.tx==null?'':ok?'✅ 可以蓋':'❌ 這裡不能蓋'}</span>`+btn('pok','✔️','確定','',ok?'ok':'na')+btn('pno','✖️','取消','','no')}
- else if(!es.length){if(G.selRes>=0&&resType[G.selRes]){info=`<div class="big">${['','🌲','🫐','🪙','🪨'][resType[G.selRes]]}</div><div class="nm">${RNAME[resType[G.selRes]]}</div><div>剩餘 ${Math.ceil(resAmt[G.selRes])}</div>`}
+  info=`<div class="big">${ico(placing.type)}</div><div class="nm">${d.n}</div><div>${costTxt(d.cost)}</div>`;
+  acts=`<span class="hint">點地圖放置，可拖曳調整<br>${placing.tx==null?'':ok?'✅ 可以蓋':'❌ 這裡不能蓋'}</span>`+btn('pok',ico('ok'),'確定','',ok?'ok':'na')+btn('pno',ico('no'),'取消','','no')}
+ else if(!es.length){if(G.selRes>=0&&resType[G.selRes]){info=`<div class="big">${ico(['','tree','berry','gold','stone'][resType[G.selRes]])}</div><div class="nm">${RNAME[resType[G.selRes]]}</div><div>剩餘 ${Math.ceil(resAmt[G.selRes])}</div>`}
   else info=`<div class="nm">${AGES[P.age]}</div><div style="opacity:.75">點選單位或建築</div>`;
-  acts=`<span class="hint">提示：點村民→再點樹木/金礦就會採集。<br>左側🧑‍🌾可找閒置村民。</span>`}
+  acts=`<span class="hint">提示：點村民→再點樹木/金礦就會採集。<br>左側${ico('villager','s')}可找閒置村民。</span>`}
  else{const e=es[0];
   if(e.kind==='u'&&e.o===0){const vils=es.filter(u=>u.def.vil);
-   if(es.length===1){info=`<div class="big">${e.def.ic}</div><div class="nm">${uname(0,e.type)}</div><div class="hp"><div style="width:${e.hp/e.maxhp*100}%"></div></div><div>❤️${Math.ceil(e.hp)}/${e.maxhp} ⚔️${stat(0,e.type,'atk')} 🛡️${stat(0,e.type,'arm')}${e.def.rng?' 🎯'+stat(0,e.type,'rng'):''}</div>`+(e.def.vil?`<div>${vilState(e)}${e.carry>0?' '+RI[e.ctype]+Math.floor(e.carry):''}</div>`:'')}
-   else{const c={};es.forEach(u=>c[u.type]=(c[u.type]||0)+1);info=`<div class="nm">已選 ${es.length} 個</div><div>${Object.keys(c).map(k=>UNITS[k].ic+c[k]).join(' ')}</div>`}
-   if(vils.length){const list=buildTab?MIL:ECO;acts+=btn('tab',buildTab?'🏘️':'🛡️',buildTab?'經濟建築':'軍事建築','','tb');
-    for(const t of list){const d=BLDS[t];const lr=lockReason(0,t);acts+=btn('build:'+t,d.ic,d.n,lr?'🔒'+(players[0].age<d.age?AGES[d.age].slice(0,2):BLDS[d.req].n):costTxt(d.cost),lr||!afford(0,d.cost)?'na':'')}}
-   acts+=btn('stop','✋','停止','');if(!vils.length||vils.length<es.length)acts+=btn('desel','↩️','取消選取','');else acts+=btn('desel','↩️','取消選取','')}
-  else if(e.kind==='b'&&e.o===0){const d=e.def;info=`<div class="big">${d.ic}</div><div class="nm">${d.n}</div><div class="hp"><div style="width:${e.hp/e.maxhp*100}%"></div></div><div>❤️${Math.ceil(e.hp)}/${e.maxhp}</div>`;
-   if(e.queue.length){info+='<div>'+e.queue.map((q,k)=>`<span class="q" data-a="q:${k}">${q.k==='u'?UNITS[q.type].ic:q.k==='age'?'⏫':TECHS[q.type].ic}</span>`).join('')+'</div><div id="qbar"><div></div></div>'}
-   if(d.train)for(const t of d.train){const ud=UNITS[t];const lk=P.age<ud.age;acts+=btn('train:'+t,ud.ic,uname(0,t),lk?'🔒'+AGES[ud.age]:costTxt(ud.cost),lk||!afford(0,ud.cost)?'na':'')}
-   if(e.type==='tc'&&P.age<3)acts+=btn('age','⏫','升'+AGES[P.age+1].slice(0,2),P.aging?'升級中':costTxt(AGE_COST[P.age+1]),P.aging||!afford(0,AGE_COST[P.age+1])?'na':'');
-   if(d.tech)for(const k of d.tech){if(P.tech[k]||e.queue.some(q=>q.type===k))continue;acts+=btn('tech:'+k,TECHS[k].ic,TECHS[k].n,costTxt(TECHS[k].cost),afford(0,TECHS[k].cost)?'':'na')}
-   if(d.train)acts+=`<span class="hint">點地圖設定集結點🚩<br>點佇列圖示可取消</span>`;
-   if(!d.train&&!d.tech)acts+=`<span class="hint">${d.pop?'人口上限 +'+d.pop:d.drop?'可存放：'+d.drop.map(k=>RI[k]).join(''):d.farm?'點村民再點農田即可耕種':d.atk?'會自動射擊附近敵人':''}</span>`;
-   acts+=btn('desel','↩️','取消選取','')}
-  else{info=`<div class="big">${e.kind==='u'?e.def.ic:e.def.ic}</div><div class="nm" style="color:#ff9090">敵方${e.kind==='u'?uname(1,e.type):e.def.n}</div><div class="hp"><div style="width:${e.hp/e.maxhp*100}%;background:#ef4444"></div></div><div>❤️${Math.ceil(e.hp)}/${e.maxhp}</div>`;acts=btn('desel','↩️','取消選取','')}}
+   if(es.length===1){info=`<div class="big">${ico(e.type)}</div><div class="nm">${uname(0,e.type)}</div><div class="hp"><div style="width:${e.hp/e.maxhp*100}%"></div></div><div>❤️${Math.ceil(e.hp)}/${e.maxhp} ⚔️${stat(0,e.type,'atk')} 🛡️${stat(0,e.type,'arm')}${e.def.rng?' 🎯'+stat(0,e.type,'rng'):''}</div>`+(e.def.vil?`<div>${vilState(e)}${e.carry>0?' '+ico(e.ctype,'s')+Math.floor(e.carry):''}</div>`:'')}
+   else{const c={};es.forEach(u=>c[u.type]=(c[u.type]||0)+1);info=`<div class="nm">已選 ${es.length} 個</div><div>${Object.keys(c).map(k=>ico(k)+c[k]).join(' ')}</div>`}
+   if(vils.length){const list=buildTab?MIL:ECO;acts+=btn('tab',ico(buildTab?'house':'armor'),buildTab?'經濟建築':'軍事建築','','tb');
+    for(const t of list){const d=BLDS[t];const lr=lockReason(0,t);acts+=btn('build:'+t,ico(t),d.n,lr?'🔒'+(players[0].age<d.age?AGES[d.age].slice(0,2):BLDS[d.req].n):costTxt(d.cost),lr||!afford(0,d.cost)?'na':'')}}
+   acts+=btn('stop',ico('stop'),'停止','');acts+=btn('desel',ico('back'),'取消選取','')}
+  else if(e.kind==='b'&&e.o===0){const d=e.def;info=`<div class="big">${ico(e.type)}</div><div class="nm">${d.n}</div><div class="hp"><div style="width:${e.hp/e.maxhp*100}%"></div></div><div>❤️${Math.ceil(e.hp)}/${e.maxhp}</div>`;
+   if(e.queue.length){info+='<div>'+e.queue.map((q,k)=>`<span class="q" data-a="q:${k}">${q.k==='age'?ico('age'):ico(q.type)}</span>`).join('')+'</div><div id="qbar"><div></div></div>'}
+   if(d.train)for(const t of d.train){const ud=UNITS[t];const lk=P.age<ud.age;acts+=btn('train:'+t,ico(t),uname(0,t),lk?'🔒'+AGES[ud.age]:costTxt(ud.cost),lk||!afford(0,ud.cost)?'na':'')}
+   if(e.type==='tc'&&P.age<3)acts+=btn('age',ico('age'),'升'+AGES[P.age+1].slice(0,2),P.aging?'升級中':costTxt(AGE_COST[P.age+1]),P.aging||!afford(0,AGE_COST[P.age+1])?'na':'');
+   if(d.tech)for(const k of d.tech){if(P.tech[k]||e.queue.some(q=>q.type===k))continue;acts+=btn('tech:'+k,ico(k),TECHS[k].n,costTxt(TECHS[k].cost),afford(0,TECHS[k].cost)?'':'na')}
+   if(d.train)acts+=`<span class="hint">點地圖設定集結點${ico('flag','s')}<br>點佇列圖示可取消</span>`;
+   if(!d.train&&!d.tech)acts+=`<span class="hint">${d.pop?'人口上限 +'+d.pop:d.drop?'可存放：'+d.drop.map(k=>ico(k,'s')).join(''):d.farm?'點村民再點農田即可耕種':d.atk?'會自動射擊附近敵人':''}</span>`;
+   acts+=btn('desel',ico('back'),'取消選取','')}
+  else{info=`<div class="big">${ico(e.type)}</div><div class="nm" style="color:#ff9090">敵方${e.kind==='u'?uname(1,e.type):e.def.n}</div><div class="hp"><div style="width:${e.hp/e.maxhp*100}%;background:#ef4444"></div></div><div>❤️${Math.ceil(e.hp)}/${e.maxhp}</div>`;acts=btn('desel',ico('back'),'取消選取','')}}
  const sig=info+'|'+acts;if(!force&&sig===lastSig)return;lastSig=sig;$('info').innerHTML=info;$('acts').innerHTML=acts;layout()}
 function onAct(a){const P=players[0];const es=selEnts();
  if(a==='tab'){buildTab^=1}
@@ -749,7 +838,7 @@ function onAct(a){const P=players[0];const es=selEnts();
   const s=BLDS[t].s;const w=toWorld(VW/2,VH/2);const v=es.find(u=>u.kind==='u');let sp=null;
   if(v){const near=aiFindSpot(0,t,v.x,v.y,10);if(near)sp=near}
   placing={type:t,tx:sp?sp.tx:Math.round(w.x-s/2),ty:sp?sp.ty:Math.round(w.y-s/2)};if(sp){const sx=(sp.tx+s/2)*T,sy=(sp.ty+s/2)*T;const px=(sx-cam.x)*cam.z,py=(sy-cam.y)*cam.z;if(px<40||px>VW-40||py<80||py>VH-140)centerOn(sp.tx+s/2,sp.ty+s/2)}}
- else if(a==='pok'){if(!placing)return;const vils=es.filter(u=>u.kind==='u'&&u.def.vil);if(!vils.length){placing=null;return}if(cmdBuild(0,vils,placing.type,placing.tx,placing.ty)){mark(placing.tx+BLDS[placing.type].s/2,placing.ty+BLDS[placing.type].s/2,'#ffd27a');placing=null}}
+ else if(a==='pok'){if(!placing)return;const vils=es.filter(u=>u.kind==='u'&&u.def.vil);if(!vils.length){placing=null;return}if(cmdBuild(0,vils,placing.type,placing.tx,placing.ty)){sayUnit(vils[0],'build');mark(placing.tx+BLDS[placing.type].s/2,placing.ty+BLDS[placing.type].s/2,'#ffd27a');placing=null}}
  else if(a==='pno'){placing=null}
  else if(a==='stop'){es.forEach(u=>{if(u.kind==='u'){u.task=null;u.path.length=0}})}
  else if(a==='desel'){selIds=[];placing=null}
@@ -758,41 +847,133 @@ function onAct(a){const P=players[0];const es=selEnts();
  else if(a.startsWith('tech:')){const k=a.slice(5);enqueue(0,es[0],{k:'tech',type:k,t:TECHS[k].t,p:0,cost:TECHS[k].cost})}
  else if(a.startsWith('q:')){const b=es[0];const k=+a.slice(2);const q=b&&b.queue[k];if(q){b.queue.splice(k,1);refund(0,q.cost);if(q.k==='age')P.aging=false;toast('已取消，資源退還')}}
  lastSig='';renderPanel(true)}
-document.getElementById('bottom').addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(b)onAct(b.dataset.a)});
+document.getElementById('bottom').addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(b){sfx('click');onAct(b.dataset.a)}});
 let toastT=0;function toast(s){const t=$('toast');t.textContent=s;t.style.opacity=1;clearTimeout(toastT);toastT=setTimeout(()=>t.style.opacity=0,2200)}
 let idleIdx=0;
 $('bidle').onclick=()=>{const idle=units.filter(u=>u.o===0&&u.def.vil&&!u.task);if(!idle.length){toast('沒有閒置村民');return}const u=idle[idleIdx++%idle.length];selIds=[u.id];placing=null;centerOn(u.x,u.y);lastSig=''};
-$('barmy').onclick=()=>{const a=units.filter(u=>u.o===0&&!u.def.vil);if(!a.length){toast('還沒有軍隊');return}const same=a.length===selIds.length&&a.every(u=>selIds.includes(u.id));selIds=a.map(u=>u.id);placing=null;if(same){let x=0,y=0;a.forEach(u=>{x+=u.x;y+=u.y});centerOn(x/a.length,y/a.length)}lastSig=''};
+$('barmy').onclick=()=>{const a=units.filter(u=>u.o===0&&!u.def.vil);if(!a.length){toast('還沒有軍隊');return}const same=a.length===selIds.length&&a.every(u=>selIds.includes(u.id));selIds=a.map(u=>u.id);placing=null;sayUnit(a[0],'sel');if(same){let x=0,y=0;a.forEach(u=>{x+=u.x;y+=u.y});centerOn(x/a.length,y/a.length)}lastSig=''};
 $('bbox').onclick=()=>{boxMode=!boxMode;$('bbox').classList.toggle('on',boxMode);toast(boxMode?'框選模式：拖曳畫面來框選':'已關閉框選模式')};
 $('bhome').onclick=()=>{const tc=blds.find(b=>b.o===0&&b.type==='tc');if(tc){centerOn(tc.x,tc.y);selIds=[tc.id];lastSig=''}};
 $('bspeed').onclick=()=>{G.speed=G.speed===1?1.5:G.speed===1.5?2:1;$('bspeed').textContent=G.speed+'x'};
 $('bmenu').onclick=()=>{paused=true;$('ovMenu').classList.add('show')};
+$('bsnd').onclick=()=>{audioInit();SND.mode=(SND.mode+2)%3;try{localStorage.setItem('ke_snd',SND.mode)}catch(e){}updSndBtn();if(SND.mode<2)try{speechSynthesis.cancel()}catch(e){}toast('聲音：'+['靜音','只有音效','音效＋語音'][SND.mode]);if(SND.mode===2)say('遵命，陛下！',1,true)};
+$('upd').onclick=doUpdate;
 $('bresume').onclick=()=>{paused=false;$('ovMenu').classList.remove('show')};
-$('brestart').onclick=()=>{$('ovMenu').classList.remove('show');$('ovStart').classList.add('show');running=false;paused=false};
+$('brestart').onclick=()=>{saveGame();$('ovMenu').classList.remove('show');$('ovStart').classList.add('show');running=false;paused=false;refreshContinue()};
 let diffSel='normal';
 document.querySelectorAll('#diffRow button').forEach(b=>b.onclick=()=>{diffSel=b.dataset.d;document.querySelectorAll('#diffRow button').forEach(x=>x.classList.toggle('sel',x===b))});
-$('bstart').onclick=()=>{$('ovStart').classList.remove('show');newGame(diffSel);running=true;paused=false;try{document.documentElement.requestFullscreen&&Math.min(innerWidth,innerHeight)<500&&document.documentElement.requestFullscreen().catch(()=>{})}catch(e){}};
-$('bagain').onclick=()=>{$('ovEnd').classList.remove('show');$('ovStart').classList.add('show');running=false};
+$('bcont').onclick=()=>{const d=loadSave();if(!d)return;audioInit();$('ovStart').classList.remove('show');resumeGame(d);running=true;paused=false;toast('已載入上一局')};
+$('bstart').onclick=()=>{audioInit();clearSave();$('ovStart').classList.remove('show');newGame(diffSel);running=true;paused=false;try{document.documentElement.requestFullscreen&&Math.min(innerWidth,innerHeight)<500&&document.documentElement.requestFullscreen().catch(()=>{})}catch(e){}};
+$('bagain').onclick=()=>{$('ovEnd').classList.remove('show');$('ovStart').classList.add('show');running=false;refreshContinue()};
 $('ver').textContent='版本 '+VERSION;
 function fmtT(s){s=Math.floor(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
-function showEnd(){running=false;$('endT').textContent=G.win?'🏆 勝利！':'💀 戰敗';$('endT').style.color=G.win?'#ffd27a':'#ff8080';const P=players[0];
+function showEnd(){running=false;clearSave();sfx(G.win?'win':'lose');say(G.win?'勝利！王國萬歲！':'我們戰敗了',1,true);$('endT').textContent=G.win?'🏆 勝利！':'💀 戰敗';$('endT').style.color=G.win?'#ffd27a':'#ff8080';const P=players[0];
  $('endS').innerHTML=`時間 ${fmtT(gt)}・難度 ${DIFF[G.diff].n}<br>到達 ${AGES[P.age]}・訓練 ${P.trained} 個單位・擊殺 ${P.kills}`;$('ovEnd').classList.add('show')}
 function updTop(){const P=players[0];$('rf').textContent=Math.floor(P.res.food);$('rw').textContent=Math.floor(P.res.wood);$('rg').textContent=Math.floor(P.res.gold);$('rs').textContent=Math.floor(P.res.stone);
  const pu=popUsed(0);$('rp').textContent=pu+'/'+P.cap;$('rp').style.color=pu>=P.cap?'#ff8080':'';$('age').textContent=AGES[P.age]+(P.aging?'⏫':'');$('clock').textContent=fmtT(gt);
  $('nidle').textContent=units.filter(u=>u.o===0&&u.def.vil&&!u.task).length;$('narmy').textContent=units.filter(u=>u.o===0&&!u.def.vil).length;
  const es=selEnts();const b=es[0];const qb=document.querySelector('#qbar>div');if(qb&&b&&b.queue&&b.queue[0])qb.style.width=Math.min(100,b.queue[0].p/b.queue[0].t*100)+'%'}
 
+
+// ================= sound & voice =================
+const SND={mode:2};try{const m=localStorage.getItem('ke_snd');if(m!==null)SND.mode=+m}catch(e){}
+let AC=null,master=null,noiseBuf=null;const SFXBUF={};
+function audioInit(){try{if(!AC){AC=new(window.AudioContext||window.webkitAudioContext)();master=AC.createGain();master.gain.value=.8;master.connect(AC.destination);
+  noiseBuf=AC.createBuffer(1,AC.sampleRate,AC.sampleRate);const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+  fetch('sfx/list.json?v='+VERSION,{cache:'no-store'}).then(r=>r.ok?r.json():[]).then(list=>(list||[]).forEach(k=>fetch('sfx/'+k+'.mp3?v='+VERSION).then(r=>r.arrayBuffer()).then(b=>AC.decodeAudioData(b,buf=>SFXBUF[k]=buf,()=>{})).catch(()=>{}))).catch(()=>{})}
+ if(AC.state==='suspended')AC.resume()}catch(e){}}
+function env(g,t,a,d,v){g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(v,t+a);g.gain.exponentialRampToValueAtTime(.0001,t+a+d)}
+function tone(type,f,dur,v,f2,delay){const t=AC.currentTime+(delay||0);const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+dur);env(g,t,.005,dur,v);o.connect(g);g.connect(master);o.start(t);o.stop(t+dur+.05)}
+function noise(dur,v,ft,freq,q,delay,f2){const t=AC.currentTime+(delay||0);const src=AC.createBufferSource();src.buffer=noiseBuf;const f=AC.createBiquadFilter();f.type=ft;f.frequency.setValueAtTime(freq,t);if(f2)f.frequency.exponentialRampToValueAtTime(f2,t+dur);f.Q.value=q||1;const g=AC.createGain();env(g,t,.003,dur,v);src.connect(f);f.connect(g);g.connect(master);src.start(t,Math.random()*.5);src.stop(t+dur+.05)}
+const SYN={
+ chop:v=>{noise(.07,v,'bandpass',1100,2.5);tone('triangle',190,.09,v*.7,90)},
+ mine:v=>{tone('square',1500,.1,v*.18,1200);tone('triangle',2300,.2,v*.3);noise(.04,v*.5,'highpass',3500)},
+ gather:v=>{noise(.12,v*.45,'bandpass',700,1.2)},
+ sword:v=>{noise(.05,v*.8,'highpass',2800);tone('triangle',2700,.16,v*.22,2300);tone('triangle',3500,.12,v*.15)},
+ arrow:v=>{noise(.2,v*.45,'bandpass',2400,4,0,500)},
+ hit:v=>{noise(.07,v*.6,'lowpass',600);tone('sine',130,.09,v*.5,60)},
+ build:v=>{tone('triangle',230,.1,v*.7,110);noise(.07,v*.5,'lowpass',500);tone('sine',660,.25,v*.3,0,.13);tone('sine',990,.32,v*.25,0,.22)},
+ train:v=>{tone('sine',880,.16,v*.25);tone('sine',1320,.22,v*.22,0,.08)},
+ age:v=>{[523,659,784,1047].forEach((f,i)=>tone('sawtooth',f,.32,v*.13,0,i*.13));tone('triangle',1047,.9,v*.3,0,.52)},
+ alert:v=>{tone('sawtooth',330,.35,v*.22);tone('sawtooth',440,.55,v*.22,0,.36)},
+ boom:v=>{noise(1,v,'lowpass',900,1,0,70);tone('sine',75,.7,v*.6,35)},
+ die:v=>{tone('sine',220,.28,v*.3,70)},
+ click:v=>{tone('sine',1300,.035,v*.2)},
+ win:v=>{[523,659,784,1047,1319].forEach((f,i)=>tone('triangle',f,.4,v*.3,0,i*.15))},
+ lose:v=>{[392,349,311,262].forEach((f,i)=>tone('triangle',f,.5,v*.3,0,i*.28))},
+};
+const sLast={};const SGAP={chop:.16,mine:.2,gather:.3,sword:.1,arrow:.09,hit:.1,die:.15,boom:.3};
+function sfx(k,x,y){if(SND.mode<1||!AC||AC.state!=='running')return;const now=AC.currentTime;if(sLast[k]&&now-sLast[k]<(SGAP[k]||.05))return;
+ let v=1;if(x!=null){const cx=(cam.x+VW/2/cam.z)/T,cy=(cam.y+VH/2/cam.z)/T,vr=Math.max(VW,VH)/cam.z/T*.55,d=Math.hypot(x-cx,y-cy);if(d>vr*1.5)return;v=d<vr?1:1-(d-vr)/(vr*.5)}
+ sLast[k]=now;try{if(SFXBUF[k]){const src=AC.createBufferSource(),g=AC.createGain();src.buffer=SFXBUF[k];g.gain.value=v;src.connect(g);g.connect(master);src.start()}else SYN[k]&&SYN[k](v*.55)}catch(e){}}
+const VO={
+ selVil:['村民在此','有何吩咐？','大人請說','聽候差遣'],selMil:['準備戰鬥！','聽候命令！','劍已出鞘','隨時待命'],selKnight:['為了國王！','騎士在此','請下令，陛下'],
+ wood:['伐木工！','去砍樹！','木材，遵命'],food:['去採集食物','採果子去'],farm:['去耕田！','農夫上工'],gold:['挖金礦去！','黃金，遵命'],stone:['採石去！','去挖石頭'],
+ build:['遵命，這就去蓋！','馬上動工！'],move:['遵命，陛下！','出發！','明白！'],attack:['衝啊！','為了王國！','殺啊！'],
+ attacked:['我們遭到攻擊！','敵人來襲！'],housed:['需要更多房屋','人口已滿，陛下'],
+};
+const PITCH={villager:1,villager_f:1.55,militia:.95,spear:1,archer:1.1,scout:1.05,knight:.75};
+let vLast=0,zhVoice=null;
+function pickVoice(){try{const vs=speechSynthesis.getVoices();zhVoice=vs.find(v=>/zh[-_]TW/i.test(v.lang))||vs.find(v=>/zh[-_]HK/i.test(v.lang))||vs.find(v=>/^zh/i.test(v.lang))||null}catch(e){}}
+try{pickVoice();speechSynthesis.onvoiceschanged=pickVoice}catch(e){}
+function say(text,pitch,force){if(SND.mode<2||!('speechSynthesis'in window))return;const now=performance.now();if(!force&&now-vLast<1100)return;vLast=now;
+ try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);if(!zhVoice)pickVoice();if(zhVoice)u.voice=zhVoice;u.lang=zhVoice?zhVoice.lang:'zh-TW';u.pitch=Math.min(2,pitch||1);u.rate=1.08;u.volume=1;speechSynthesis.speak(u)}catch(e){}}
+function sayV(k,u,force){const a=VO[k];if(!a)return;const pk=u?(u.type==='villager'&&u.fem?'villager_f':u.type):null;say(a[Math.floor(Math.random()*a.length)],pk?PITCH[pk]:1,force)}
+function sayUnit(u,kind){if(!u)return;if(kind==='sel')sayV(u.def.vil?'selVil':u.type==='knight'?'selKnight':'selMil',u);else sayV(kind,u)}
+function updSndBtn(){$('bsnd').innerHTML=ico('snd'+SND.mode)}
+
+// ================= save / load =================
+const SAVE_KEY='ke_save';
+function b64(a){let s='';const b=new Uint8Array(a.buffer);for(let i=0;i<b.length;i+=8192)s+=String.fromCharCode.apply(null,b.subarray(i,i+8192));return btoa(s)}
+function unb64(str,a){const bin=atob(str);const b=new Uint8Array(a.buffer);for(let i=0;i<b.length&&i<bin.length;i++)b[i]=bin.charCodeAt(i)}
+function saveGame(){if(!G||G.over||!running)return;try{
+ const data={v:1,ver:VERSION,seed:G.seed,diff:G.diff,gt,nid,speed:G.speed,players,AIS,cam:{x:cam.x,y:cam.y,z:cam.z},rt:b64(resType),ra:b64(resAmt),ex:b64(explored),
+  plans:plans.map(p=>({o:p.o,type:p.type,tx:p.tx,ty:p.ty})),
+  blds:blds.filter(b=>!b.dead).map(b=>({id:b.id,o:b.o,type:b.type,tx:b.tx,ty:b.ty,hp:b.hp,maxhp:b.maxhp,queue:b.queue,rally:b.rally,farmer:b.farmer})),
+  units:units.filter(u=>!u.dead).map(u=>{let t=u.task;if(t&&t.k==='build'){const pi=plans.indexOf(t.p);t=pi>=0?{k:'build',pi,prev:t.prev||null}:(t.prev||null)}else if(t&&t.k==='move')t=null;
+   return{id:u.id,o:u.o,type:u.type,x:u.x,y:u.y,hp:u.hp,maxhp:u.maxhp,task:t,carry:u.carry,ctype:u.ctype,face:u.face,fem:u.fem}})};
+ localStorage.setItem(SAVE_KEY,JSON.stringify(data))}catch(e){}}
+function loadSave(){try{const d=JSON.parse(localStorage.getItem(SAVE_KEY)||'null');return d&&d.v===1&&d.units?d:null}catch(e){return null}}
+function clearSave(){try{localStorage.removeItem(SAVE_KEY)}catch(e){}}
+function resumeGame(d){
+ G={diff:d.diff,over:false,win:false,shade:null,speed:d.speed||1,auto0:false,seed:d.seed};
+ units=[];blds=[];plans=[];ents=new Map();fx=[];marks=[];pings=[];gt=d.gt;nid=d.nid;players=d.players;
+ genMap(d.seed);unb64(d.rt,resType);unb64(d.ra,resAmt);unb64(d.ex,explored);bldAt.fill(-1);
+ for(const sb of d.blds){const def=BLDS[sb.type];const b=Object.assign({kind:'b',def,s:def.s,x:sb.tx+def.s/2,y:sb.ty+def.s/2,cd:0,born:-9,flash:0,hitT:0},sb);ents.set(b.id,b);blds.push(b);
+  for(let y=b.ty;y<b.ty+b.s;y++)for(let x=b.tx;x<b.tx+b.s;x++)bldAt[idx(x,y)]=b.id}
+ for(let i=0;i<NN;i++)updBlk(i);
+ plans=d.plans.map(p=>Object.assign({},p));
+ for(const su of d.units){const u=Object.assign({kind:'u',def:UNITS[su.type],path:[],cd:0,repath:0,acq:Math.random()*.5,anim:0,atkT:0,hitT:0,moving:0,stuck:0},su);
+  if(u.task&&u.task.k==='build'){u.task.p=plans[u.task.pi];if(!u.task.p)u.task=u.task.prev||null}if(u.task)u.task.ph=u.task.ph==='work'?'go':u.task.ph;ents.set(u.id,u);units.push(u)}
+ AIS=d.AIS||[null,aiInit(1)];cam.x=d.cam.x;cam.y=d.cam.y;cam.z=d.cam.z;clampCam();
+ updFog();selIds=[];placing=null;buildTab=0;lastSig='';renderPanel(true);$('bspeed').textContent=G.speed+'x'}
+function refreshContinue(){const d=loadSave();const b=$('bcont');if(d){b.style.display='';b.innerHTML='繼續上一局<br><small>'+fmtT(d.gt)+'・'+DIFF[d.diff].n+'・'+AGES[d.players[0].age]+'</small>'}else b.style.display='none'}
+
+// ================= auto update =================
+let newVer=null;
+function checkUpdate(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.v||j.v===VERSION)return;newVer=j.v;
+ let tried=null;try{tried=sessionStorage.getItem('ke_upd_try')}catch(e){}
+ if(!running&&tried!==newVer)doUpdate();else $('upd').classList.add('show')}).catch(()=>{})}
+function doUpdate(){if(running&&G&&!G.over){saveGame();try{sessionStorage.setItem('ke_resume','1')}catch(e){}}
+ try{sessionStorage.setItem('ke_upd_try',newVer||'')}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(newVer||Date.now()))}
+
 // ================= loop =================
-let running=false,paused=false,last=performance.now(),acc=0,uiT=0,mmT=0;
+let running=false,paused=false,last=performance.now(),acc=0,uiT=0,mmT=0,saveT=15;
 function frame(now){const dt=Math.min(.1,(now-last)/1000);last=now;
  if(G&&running&&!paused){acc+=dt*G.speed;let n=0;while(acc>=STEP&&n<8){tick(STEP);acc-=STEP;n++}if(n>=8)acc=0;
   for(const u of units){u.atkT=Math.max(0,u.atkT-dt);u.hitT=Math.max(0,u.hitT-dt)}for(const b of blds)b.hitT=Math.max(0,(b.hitT||0)-dt)}
+ saveT-=dt;if(saveT<=0){saveT=15;if(running&&!paused)saveGame()}
  render();uiT-=dt;if(G&&uiT<=0){uiT=.2;renderPanel();updTop()}mmT-=dt;if(G&&mmT<=0){mmT=.4;drawMinimap()}
  requestAnimationFrame(frame)}
-addEventListener('resize',resize);document.addEventListener('visibilitychange',()=>{if(document.hidden&&running){paused=true;$('ovMenu').classList.add('show')}});
-resize();requestAnimationFrame(frame);
+addEventListener('resize',resize);document.addEventListener('visibilitychange',()=>{if(document.hidden){if(running){saveGame();paused=true;$('ovMenu').classList.add('show')}}else checkUpdate()});
+addEventListener('pagehide',saveGame);
+document.addEventListener('pointerdown',audioInit,{once:false,passive:true});
+resize();updSndBtn();refreshContinue();
+try{if(sessionStorage.getItem('ke_resume')){sessionStorage.removeItem('ke_resume');const d=loadSave();if(d){$('ovStart').classList.remove('show');resumeGame(d);running=true;setTimeout(()=>toast('已更新到新版本 '+VERSION),300)}}}catch(e){}
+checkUpdate();setInterval(checkUpdate,60000);
+requestAnimationFrame(frame);
 // test hook
-window.__KE={newGame:(d,s)=>{newGame(d,s);running=true},autoBoth:()=>{AIS[0]=aiInit(0);G.auto0=true},step:n=>{for(let i=0;i<n&&!G.over;i++)tick(STEP)},get G(){return G},get players(){return players},get units(){return units},get blds(){return blds},get gt(){return gt},cam,centerOn,renderPanel,selectIds:a=>{selIds=a;lastSig=''},onAct,handleTap,toScreen:(x,y)=>({x:(x*T-cam.x)*cam.z,y:(y*T-cam.y)*cam.z})};
+window.__KE={save:()=>saveGame(),newGame:(d,s)=>{newGame(d,s);running=true},autoBoth:()=>{AIS[0]=aiInit(0);G.auto0=true},step:n=>{for(let i=0;i<n&&!G.over;i++)tick(STEP)},get G(){return G},get players(){return players},get units(){return units},get blds(){return blds},get gt(){return gt},cam,centerOn,renderPanel,selectIds:a=>{selIds=a;lastSig=''},onAct,handleTap,toScreen:(x,y)=>({x:(x*T-cam.x)*cam.z,y:(y*T-cam.y)*cam.z})};
 </script>
 </body>
 </html>
