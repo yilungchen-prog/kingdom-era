@@ -205,7 +205,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 
 <script>
 'use strict';
-const VERSION='2026-11-21i';
+const VERSION='2026-11-21j';
 // ================= constants =================
 const W=80,H=80,T=32,NN=W*H,STEP=0.05,CAP=10,MAXPOP=150,TER=9;
 const TEAMA=['rgba(59,130,246,.5)','rgba(239,68,68,.5)','rgba(34,197,94,.5)','rgba(234,179,8,.55)'];
@@ -591,7 +591,7 @@ function doGather(u,t,dt){
  if(t.ph==='go'){if(approach(u,dt,rx,ry,rx,ry,.8)){t.ph='work';u.face=rx+.5>u.x?1:-1}return}
  // work
  const rtype=RT[t.rt];if(u.ctype!==rtype){u.carry=0;u.ctype=rtype}
- u.sndT=(u.sndT||0)-dt;if(u.sndT<=0){u.sndT=.85;sfx(t.rt===1?'chop':t.rt===2?'gather':'mine',u.x,u.y)}
+ workSound(u,WKIND[t.rt]);
  const amt=Math.min(RATE[t.rt]*gatherMult(u.o)*ecoMult(u.o,t.rt)*dt,resAmt[i]);u.carry+=amt;resAmt[i]-=amt;
  if(resAmt[i]<=.001){resType[i]=0;resAmt[i]=0;updBlk(i);fx.push({k:'puff',x:rx+.5,y:ry+.5,t:0,life:.6});if(NET.host){NET.dep.push(i);NET.depAll&&NET.depAll.push(i);evp(['p',rx+.5,ry+.5])}}
  if(u.carry>=carryCap(u.o)){u.carry=carryCap(u.o);t.ph='drop'}}
@@ -604,7 +604,7 @@ function doFarm(u,t,dt){
   if(distRect(u.x,u.y,b.tx,b.ty,b.tx+b.s,b.ty+b.s)<=0.05&&!u.path.length){t.ph='work';return}
   if(!u.path.length&&u.repath<=0){u.repath=.7;const ok=pathRect(u,b.tx,b.ty,b.tx+b.s-1,b.ty+b.s-1,t.spot);if(!ok)u.stuck++}moveAlong(u,dt);return}
  if(u.ctype!=='food'){u.carry=0;u.ctype='food'}
- u.sndT=(u.sndT||0)-dt;if(u.sndT<=0){u.sndT=1.4;sfx('gather',u.x,u.y)}
+ workSound(u,'farm');
  u.carry+=FARM_RATE*gatherMult(u.o)*farmMult(u.o)*dt;if(u.carry>=carryCap(u.o)){u.carry=carryCap(u.o);t.ph='drop'}}
 function freeFarm(o,x,y){let best=null,bd=1e9;for(const b of blds)if(b.o===o&&!b.dead&&b.def.farm){const f=b.farmer&&ents.get(b.farmer);const busy=f&&!f.dead&&f.task&&f.task.k==='farm'&&f.task.b===b.id;if(busy)continue;const d=Math.hypot(b.x-x,b.y-y);if(d<bd){bd=d;best=b}}return best}
 function doBuild(u,t,dt){
@@ -640,7 +640,7 @@ function updBld(b,dt){
  if(q.k==='u'&&!q.started){if(popUsed(b.o)<players[b.o].cap)q.started=true;else{if(gt-(G['lh'+b.o]||-99)>(players[b.o].cap>=MAXPOP?25:10)){G['lh'+b.o]=gt;if(players[b.o].cap>=MAXPOP)note(b.o,'人口已達上限（'+MAXPOP+'），無法再增加');else note(b.o,'人口已滿，請蓋房屋','',{v:'housed'})}return}}
  q.p+=dt;if(q.p<q.t)return;b.queue.shift();
  const P=players[b.o];
- if(q.k==='u'){const sp=spawnPoint(b);const u=addUnit(b.o,q.type,sp.x,sp.y);note(b.o,null,'train');
+ if(q.k==='u'){const sp=spawnPoint(b);const u=addUnit(b.o,q.type,sp.x,sp.y);note(b.o,null,u.def.vil?'train':'horn');
   if(b.rally){if(b.rally.res>=0&&u.def.vil&&resType[b.rally.res])setGather(u,b.rally.res);else if(b.rally.farm&&u.def.vil){const f=ents.get(b.rally.farm);if(f&&!f.dead){u.task={k:'farm',b:f.id,ph:'go'}}}
    else{u.task={k:'move'};pathRect(u,Math.floor(b.rally.x),Math.floor(b.rally.y),Math.floor(b.rally.x),Math.floor(b.rally.y),b.rally)}}}
  else if(q.k==='age'){P.age++;P.aging=false;refreshStats(b.o);note(b.o,'🎉 進入'+AGES[P.age]+'！','age',{say:'王國進入'+AGES[P.age]+'！'});if(b.o===ME)fx.push({k:'ring',x:b.x,y:b.y,t:0,life:1.5})}
@@ -859,10 +859,10 @@ function handleTap(sx,sy){if(!G||G.over)return;const w=toWorld(sx,sy);
  const hit=pickAt(w.x,w.y);const selU=selEnts().filter(e=>e.kind==='u'&&e.o===ME);const vils=selU.filter(u=>u.def.vil);const now=performance.now();
  if(hit&&hit.kind==='u'&&hit.o===ME){
   if(lastTap.id===hit.id&&now-lastTap.t<380){const a=toWorld(0,0),b=toWorld(VW,VH);selIds=units.filter(u=>u.o===ME&&u.type===hit.type&&u.x>=a.x&&u.x<=b.x&&u.y>=a.y&&u.y<=b.y).map(u=>u.id)}
-  else{selIds=[hit.id];sayUnit(hit,'sel')}lastTap={t:now,id:hit.id};lastSig='';return}
+  else{selIds=[hit.id];sayUnit(hit,'sel');sfx('sel')}lastTap={t:now,id:hit.id};lastSig='';return}
  if(hit&&hit.kind==='b'&&hit.o===ME){
   if(vils.length&&hit.def.farm){act({t:'farm',u:ids(vils),b:hit.id});sayUnit(vils[0],'farm');mark(hit.x,hit.y,'#ffd27a');return}
-  selIds=[hit.id];lastSig='';return}
+  selIds=[hit.id];sfx('sel');lastSig='';return}
  if(hit&&(hit.kind==='u'||hit.kind==='b')&&hit.o!==ME&&!isEnemy(ME,hit.o)){selIds=[hit.id];lastSig='';return}
  if(hit&&(hit.kind==='u'||hit.kind==='b')&&isEnemy(ME,hit.o)){if(selU.length){act({t:'atk',u:ids(selU),e:hit.id});sayUnit(selU[0],'attack');mark(hit.x,hit.y,'#ff5050');return}selIds=[hit.id];lastSig='';return}
  if(hit&&hit.kind==='r'){
@@ -1109,22 +1109,42 @@ function updTop(){const P=players[ME];$('rf').textContent=Math.floor(P.res.food)
 // ================= sound & voice =================
 const SND={mode:2};try{const m=localStorage.getItem('ke_snd');if(m!==null)SND.mode=+m}catch(e){}
 let AC=null,master=null,noiseBuf=null;const SFXBUF={};
-function audioInit(){try{if(!AC){AC=new(window.AudioContext||window.webkitAudioContext)();master=AC.createGain();master.gain.value=.8;master.connect(AC.destination);
+function audioInit(){try{if(!AC){AC=new(window.AudioContext||window.webkitAudioContext)();master=AC.createGain();master.gain.value=.8;const comp=AC.createDynamicsCompressor();comp.threshold.value=-10;comp.knee.value=8;comp.ratio.value=8;comp.attack.value=.003;comp.release.value=.15;master.connect(comp);comp.connect(AC.destination);
   noiseBuf=AC.createBuffer(1,AC.sampleRate,AC.sampleRate);const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
   fetch('sfx/list.json?v='+VERSION,{cache:'no-store'}).then(r=>r.ok?r.json():[]).then(list=>(list||[]).forEach(k=>fetch('sfx/'+k+'.mp3?v='+VERSION).then(r=>r.arrayBuffer()).then(b=>AC.decodeAudioData(b,buf=>SFXBUF[k]=buf,()=>{})).catch(()=>{}))).catch(()=>{})}
  if(AC.state==='suspended')AC.resume()}catch(e){}}
 function env(g,t,a,d,v){g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(v,t+a);g.gain.exponentialRampToValueAtTime(.0001,t+a+d)}
 function tone(type,f,dur,v,f2,delay){const t=AC.currentTime+(delay||0);const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+dur);env(g,t,.005,dur,v);o.connect(g);g.connect(master);o.start(t);o.stop(t+dur+.05)}
 function noise(dur,v,ft,freq,q,delay,f2){const t=AC.currentTime+(delay||0);const src=AC.createBufferSource();src.buffer=noiseBuf;const f=AC.createBiquadFilter();f.type=ft;f.frequency.setValueAtTime(freq,t);if(f2)f.frequency.exponentialRampToValueAtTime(f2,t+dur);f.Q.value=q||1;const g=AC.createGain();env(g,t,.003,dur,v);src.connect(f);f.connect(g);g.connect(master);src.start(t,Math.random()*.5);src.stop(t+dur+.05)}
+const rnd=(a,b)=>a+Math.random()*(b-a);
+// metallic ring: inharmonic partials that decay at different speeds
+function ring(base,parts,dur,v,delay){parts.forEach(([m,a,d])=>tone('sine',base*m,dur*d,v*a,0,delay))}
 const SYN={
- chop:v=>{noise(.07,v,'bandpass',1100,2.5);tone('triangle',190,.09,v*.7,90)},
- mine:v=>{tone('square',1500,.1,v*.18,1200);tone('triangle',2300,.2,v*.3);noise(.04,v*.5,'highpass',3500)},
- gather:v=>{noise(.12,v*.45,'bandpass',700,1.2)},
- sword:v=>{noise(.05,v*.8,'highpass',2800);tone('triangle',2700,.16,v*.22,2300);tone('triangle',3500,.12,v*.15)},
+ chop:v=>{const p=rnd(.9,1.12);v*=.72;
+  noise(.035,v*1.1,'highpass',2600*p,1);                       // crack of the blade biting
+  noise(.11,v*1.2,'bandpass',420*p,3.5);                       // hollow wooden knock
+  tone('triangle',150*p,.16,v*.9,70*p);                        // body thump
+  tone('sine',95*p,.22,v*.7,60*p);
+  if(Math.random()<.35)noise(.06,v*.5,'bandpass',1800*p,6,.05)},  // splinter
+ mine:v=>{const p=rnd(.93,1.08);                               // pickaxe on gold: bright clang
+  noise(.025,v*1.1,'highpass',3500,1);
+  ring(1650*p,[[1,.35,1],[1.48,.22,.8],[2.37,.16,.6],[3.02,.1,.45],[.52,.14,.7]],.55,v);
+  noise(.08,v*.45,'bandpass',900,2,.01)},
+ stone:v=>{const p=rnd(.9,1.1);                                // pickaxe on stone: duller, gritty
+  noise(.03,v*1.1,'highpass',2400,1);
+  ring(820*p,[[1,.3,1],[1.62,.18,.7],[2.4,.1,.5]],.28,v);
+  noise(.16,v*.7,'bandpass',650*p,1.5,.01);
+  if(Math.random()<.5)noise(.05,v*.4,'highpass',4000,1,.08)},  // pebbles
+ gather:v=>{v*=2.2;noise(.08,v*.6,'bandpass',rnd(2600,3600),1.4);noise(.1,v*.5,'bandpass',rnd(1800,2600),1.4,.09)},   // leaves rustling
+ farm:v=>{v*=1.7;noise(.18,v*.7,'bandpass',rnd(700,900),1.3,0,450);tone('sine',120,.08,v*.4,80)},                  // hoe scraping soil
+ sword:v=>{noise(.05,v*.8,'highpass',2800);ring(2700,[[1,.22,1],[1.33,.15,.8],[2.1,.08,.6]],.25,v)},
  arrow:v=>{noise(.2,v*.45,'bandpass',2400,4,0,500)},
  hit:v=>{noise(.07,v*.6,'lowpass',600);tone('sine',130,.09,v*.5,60)},
- build:v=>{tone('triangle',230,.1,v*.7,110);noise(.07,v*.5,'lowpass',500);tone('sine',660,.25,v*.3,0,.13);tone('sine',990,.32,v*.25,0,.22)},
+ build:v=>{for(let i=0;i<3;i++){noise(.05,v*.9,'bandpass',rnd(500,650),3,i*.13);tone('triangle',rnd(170,200),.1,v*.7,90,i*.13)}  // hammer knocks
+  tone('sine',784,.3,v*.25,0,.42);tone('sine',1175,.4,v*.22,0,.5)},
+ sel:v=>{noise(.02,v*.5,'bandpass',1800,4);tone('sine',rnd(620,700),.06,v*.25)},
  train:v=>{tone('sine',880,.16,v*.25);tone('sine',1320,.22,v*.22,0,.08)},
+ horn:v=>{v*=2;tone('sawtooth',196,.18,v*.16,0);tone('sawtooth',294,.38,v*.18,0,.16);noise(.3,v*.08,'bandpass',600,2,.05)},
  age:v=>{[523,659,784,1047].forEach((f,i)=>tone('sawtooth',f,.32,v*.13,0,i*.13));tone('triangle',1047,.9,v*.3,0,.52)},
  alert:v=>{tone('sawtooth',330,.35,v*.22);tone('sawtooth',440,.55,v*.22,0,.36)},
  boom:v=>{noise(1,v,'lowpass',900,1,0,70);tone('sine',75,.7,v*.6,35)},
@@ -1133,10 +1153,14 @@ const SYN={
  win:v=>{[523,659,784,1047,1319].forEach((f,i)=>tone('triangle',f,.4,v*.3,0,i*.15))},
  lose:v=>{[392,349,311,262].forEach((f,i)=>tone('triangle',f,.5,v*.3,0,i*.28))},
 };
-const sLast={};const SGAP={chop:.16,mine:.2,gather:.3,sword:.1,arrow:.09,hit:.1,die:.15,boom:.3};
-function sfx(k,x,y){if(NET.host&&x!=null)NET.ev.push(['s',k,+x.toFixed(1),+y.toFixed(1)]);if(SND.mode<1||!AC||AC.state!=='running')return;const now=AC.currentTime;if(sLast[k]&&now-sLast[k]<(SGAP[k]||.05))return;
+const WORK_SND=new Set(['chop','mine','stone','gather','farm']);
+// play a work sound when the tool swing reaches the bottom of its arc
+function workSound(u,kind){const sw=Math.sin(u.anim*7);if((u.lastSw||0)<.92&&sw>=.92)sfx(kind,u.x,u.y);u.lastSw=sw}
+const WKIND=[null,'chop','gather','mine','stone'];
+const sLast={};const SGAP={chop:.07,mine:.09,stone:.08,farm:.15,sel:.05,sword:.1,arrow:.09,hit:.1,die:.15,boom:.3};
+function sfx(k,x,y){if(NET.host&&x!=null&&!WORK_SND.has(k))NET.ev.push(['s',k,+x.toFixed(1),+y.toFixed(1)]);if(SND.mode<1||!AC||AC.state!=='running')return;const now=AC.currentTime;if(sLast[k]&&now-sLast[k]<(SGAP[k]||.05))return;
  let v=1;if(x!=null){const cx=(cam.x+VW/2/cam.z)/T,cy=(cam.y+VH/2/cam.z)/T,vr=Math.max(VW,VH)/cam.z/T*.55,d=Math.hypot(x-cx,y-cy);if(d>vr*1.5)return;v=d<vr?1:1-(d-vr)/(vr*.5)}
- sLast[k]=now;try{if(SFXBUF[k]){const src=AC.createBufferSource(),g=AC.createGain();src.buffer=SFXBUF[k];g.gain.value=v;src.connect(g);g.connect(master);src.start()}else SYN[k]&&SYN[k](v*.55)}catch(e){}}
+ sLast[k]=now;if(WORK_SND.has(k))v*=1.45;try{if(SFXBUF[k]){const src=AC.createBufferSource(),g=AC.createGain();src.buffer=SFXBUF[k];g.gain.value=v;src.connect(g);g.connect(master);src.start()}else SYN[k]&&SYN[k](v*.55)}catch(e){}}
 const VO={
  selVil:['村民在此','有何吩咐？','大人請說','聽候差遣'],selMil:['準備戰鬥！','聽候命令！','劍已出鞘','隨時待命'],selKnight:['為了國王！','騎士在此','請下令，陛下'],
  wood:['伐木工！','去砍樹！','木材，遵命'],food:['去採集食物','採果子去'],farm:['去耕田！','農夫上工'],gold:['挖金礦去！','黃金，遵命'],stone:['採石去！','去挖石頭'],
@@ -1326,7 +1350,7 @@ function clientEvent(e){const k=e[0];
  else if(k==='p')fx.push({k:'puff',x:e[1],y:e[2],t:0,life:.6});
  else if(k==='s')sfx(e[1],e[2],e[3]);
  else if(k==='n'&&(e[1]===ME||e[1]===-1)){if(e[2])toast(e[2]);if(e[3])sfx(e[3]);if(e[4])sayV(e[4],null,true);if(e[5])say(e[5],1,true);if(e[6])pings.push({x:e[6][0],y:e[6][1],t:3})}}
-function clientTick(dt){gt+=dt;const k=Math.min(1,dt*8);for(const u of units){if(u.nx!=null){u.x+=(u.nx-u.x)*k;u.y+=(u.ny-u.y)*k}u.anim+=dt}
+function clientTick(dt){gt+=dt;const k=Math.min(1,dt*8);for(const u of units){if(u.nx!=null){u.x+=(u.nx-u.x)*k;u.y+=(u.ny-u.y)*k}u.anim+=dt;const t=u.task;if(t&&t.ph==='work'&&(t.k==='gather'||t.k==='farm'))workSound(u,t.k==='farm'?'farm':WKIND[t.rt])}
  for(const f of fx)f.t+=dt;fx=fx.filter(f=>f.t<f.life);marks=marks.filter(m=>(m.t-=dt)>0);pings=pings.filter(m=>(m.t-=dt)>0);
  fogT-=dt;if(fogT<=0){fogT=.25;updFog()}
  if(!G.over&&performance.now()-NET.last>10000&&!NET.lostShown){NET.lostShown=1;toast('與房主的連線中斷了…')}}
