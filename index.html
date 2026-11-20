@@ -107,6 +107,8 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
  <button id="bidle" title="閒置村民"><span data-ic="villager"></span><i id="nidle">0</i><em>閒置</em></button>
  <button id="barmy" title="全部軍隊"><span data-ic="barracks"></span><i id="narmy">0</i><em>全軍</em></button>
  <button id="bhome" title="回到城鎮中心"><span data-ic="tc"></span><em>主城</em></button>
+ <button id="bmic" style="display:none"><span></span><em>麥克風</em></button>
+ <button id="bspk" style="display:none"><span></span><em>喇叭</em></button>
 </div>
 <div id="bottom"><div id="info"></div><div id="acts"></div></div>
 <div id="toast"></div>
@@ -166,6 +168,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
  <h1 style="font-size:28px">遊戲說明</h1>
  <div class="help" style="margin-top:4px">
  <b>目標：</b>摧毀所有敵方的城鎮中心<span data-ic="tc"></span>，城鎮中心被摧毀的一方就出局。<br>
+ <b>連線語音</b>：連線對戰時左側有 🎤，點一下切換 關閉→隊伍頻道→全體頻道；🔈 可關掉別人的聲音。<br>
  <b>攻擊移動</b>（預設開）：選軍隊後點地面，行軍途中遇到敵人會自動開打。<br>
  <b>點一下</b>單位＝選取；<b>連點兩下</b>＝選取畫面上同類單位。<br>
  選了單位後<b>點地面</b>＝移動、<b>點資源</b>＝採集、<b>點敵人</b>＝攻擊。<br>
@@ -196,7 +199,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 
 <script>
 'use strict';
-const VERSION='2026-11-21c';
+const VERSION='2026-11-21d';
 // ================= constants =================
 const W=80,H=80,T=32,NN=W*H,STEP=0.05,CAP=10,MAXPOP=100,TER=9;
 const TEAM=['#3b82f6','#ef4444','#22c55e','#eab308'],TEAMD=['#1e3a8a','#7f1d1d','#14532d','#713f12'],TEAML=['#a0c8ff','#ff9090','#90f0a0','#ffe680'];
@@ -332,6 +335,8 @@ const IC={
  pause:'<rect x="6" y="4.5" width="4" height="15" rx="1" fill="#f3ead8"/><rect x="14" y="4.5" width="4" height="15" rx="1" fill="#f3ead8"/>',
  snd2:'<path d="M3.5 9h4l5-4.2v14.4l-5-4.2h-4z" fill="#f3ead8"/><path d="M15.5 8.5c1.8 2 1.8 5 0 7M18 6c3.3 3.4 3.3 8.6 0 12" fill="none" stroke="#f3ead8" stroke-width="1.8"/>',
  snd1:'<path d="M3.5 9h4l5-4.2v14.4l-5-4.2h-4z" fill="#f3ead8"/><path d="M15.5 8.5c1.8 2 1.8 5 0 7" fill="none" stroke="#f3ead8" stroke-width="1.8"/>',
+ mic:'<rect x="8.5" y="2.5" width="7" height="12" rx="3.5" fill="#f3ead8"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5v4M8.5 21.5h7" fill="none" stroke="#f3ead8" stroke-width="1.8"/>',
+ mic0:'<rect x="8.5" y="2.5" width="7" height="12" rx="3.5" fill="#8a8a8a"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5v4M8.5 21.5h7" fill="none" stroke="#8a8a8a" stroke-width="1.8"/><path d="M4 3l16 18" stroke="#ff7b7b" stroke-width="2.4"/>',
  snd0:'<path d="M3.5 9h4l5-4.2v14.4l-5-4.2h-4z" fill="#f3ead8"/><path d="M15.5 9l5 6M20.5 9l-5 6" fill="none" stroke="#ff7b7b" stroke-width="2"/>',
  flag:'<path d="M6 21.5V3" stroke-width="2.2"/><path d="M6.5 3.5h12l-3 4 3 4h-12z" fill="#d23a2a"/>',
  basket:'<path d="M4 10.5h16l-2.2 9.5H6.2z" fill="#c8a165"/><path d="M7.5 10.5c0-4.6 9-4.6 9 0" fill="none" stroke-width="1.8"/><circle cx="9.5" cy="10" r="1.6" fill="#c2185b"/><circle cx="12.5" cy="9.5" r="1.6" fill="#c2185b"/><circle cx="15" cy="10.2" r="1.4" fill="#c2185b"/><path d="M6.5 14h11M7.2 17h9.6" stroke-width=".8"/>',
@@ -1305,6 +1310,7 @@ async function netConnect(code,asHost){
  ch.on('broadcast',{event:'st'},({payload})=>{if(NET.client&&NET.started)applySnap(payload)});
  ch.on('broadcast',{event:'cmd'},({payload})=>{if(NET.host&&NET.started&&payload&&NET.seats[payload.o]===payload.id)applyCmd(payload.o,payload.c)});
  ch.on('broadcast',{event:'over'},({payload})=>{if(NET.client&&G&&!G.over){G.over=true;G.win=TEAMS[ME]===payload.wt;showEnd()}});
+ ch.on('broadcast',{event:'rtc'},({payload})=>onRtc(payload));
  ch.on('broadcast',{event:'hello'},()=>{if(NET.host)netSend('lobby',lobbyPayload())});
  ch.subscribe(st=>{if(st==='SUBSCRIBED'){ch.track({id:NET.myId,name:netName(),host:asHost});netShow(2);
    if(asHost){LOBBY.seats=[NET.myId,null,null,null];LOBBY.names={[NET.myId]:netName()};renderLobby();netSend('lobby',lobbyPayload())}
@@ -1317,7 +1323,7 @@ function onPresence(){const st=NET.ch.presenceState();const present={};for(const
   for(const id in present){if(!LOBBY.seats.includes(id)){const i=LOBBY.seats.indexOf(null);if(i>=0){LOBBY.seats[i]=id;ch=true}}LOBBY.names[id]=present[id].name}
   const humans=LOBBY.seats.filter(Boolean).length;if(LOBBY.np<humans)LOBBY.np=humans;renderLobby();netSend('lobby',lobbyPayload())}
  if(NET.started){
-  if(NET.host){NET.seats.forEach((id,o)=>{if(id&&id!==NET.myId&&!present[id]&&NET.human[o]){NET.human[o]=0;if(!players[o].out)AIS[o]=aiInit(o);note(-1,(LOBBY.names[id]||PNAME[o])+' 離線了，改由電腦接手')}})}
+  if(NET.host){NET.seats.forEach((id,o)=>{if(id&&id!==NET.myId&&!present[id]&&NET.human[o]){NET.human[o]=0;vcDrop(id);if(!players[o].out)AIS[o]=aiInit(o);note(-1,(LOBBY.names[id]||PNAME[o])+' 離線了，改由電腦接手')}})}
   else{const hid=NET.seats[0];if(!present[hid]){clearTimeout(NET.hostGone);NET.hostGone=setTimeout(()=>{const st2=NET.ch&&NET.ch.presenceState();let back=false;for(const k in st2||{}){if(st2[k][0]&&st2[k][0].id===hid)back=true}if(!back&&G&&!G.over){G.over=true;G.win=false;G.hostLeft=1;showEnd()}},6000)}}}}
 function renderLobby(){$('netCode').textContent=NET.code||'----';const host=NET.host;
  $('netSeats').innerHTML=[0,1,2,3].map(i=>{const id=LOBBY.seats[i];const used=i<LOBBY.np;const nm=id?(LOBBY.names[id]||'玩家')+(id===NET.myId?'（你）':''):(used?'電腦':'—');
@@ -1328,14 +1334,15 @@ function renderLobby(){$('netCode').textContent=NET.code||'----';const host=NET.
  document.querySelectorAll('#netDiff button').forEach(b=>{b.classList.toggle('sel',b.dataset.d===LOBBY.diff);b.disabled=!host});
  $('netGo').style.display=host?'':'none';$('netWait').style.display=host?'none':'';
  $('netMsg').textContent=host?'把房號告訴朋友，大家加入後按「開始」。空位由電腦補上。':(NET.gotLobby?'已加入，等待房主開始…':'尋找房間中…')}
-function netLeave(keepMsg){try{if(NET.ch){NET.ch.untrack();SBC.removeChannel(NET.ch)}}catch(e){}NET.ch=null;NET.on=NET.host=NET.client=NET.started=false;if(!keepMsg)$('netMsg').textContent='';netShow(1)}
+function netLeave(keepMsg){vcStop();try{if(NET.ch){NET.ch.untrack();SBC.removeChannel(NET.ch)}}catch(e){}NET.ch=null;NET.on=NET.host=NET.client=NET.started=false;if(!keepMsg)$('netMsg').textContent='';netShow(1)}
 function startOnline(p){
  NET.seats=p.seats;const me=p.seats.indexOf(NET.myId);if(me<0){$('netMsg').textContent='房間已滿';return}
  NET.on=true;NET.started=true;NET.ev=[];NET.dep=[];NET.human=p.seats.map(Boolean);NET.last=performance.now();NET.lostShown=0;LOBBY.names=p.names||LOBBY.names;
  audioInit();$('ovNet').classList.remove('show');$('ovStart').classList.remove('show');
  newGame(p.diff,p.seed,p.np,p.mode,me);
  if(NET.host)AIS=players.map((P,o)=>NET.human[o]?null:aiInit(o));else AIS=players.map(()=>null);
- running=true;paused=false;G.speed=1;toast('連線對戰開始！你是'+PNAME[me]);NET.sT=0}
+ running=true;paused=false;G.speed=1;toast('連線對戰開始！你是'+PNAME[me]);NET.sT=0;
+ if(NET.human.filter(Boolean).length>1)setTimeout(()=>{vcStart();if(VC.on)setTimeout(()=>toast('左側 🎤 可以開麥克風和其他玩家講話'),2500)},1200)}
 function hostStart(){const np=LOBBY.np;const seats=LOBBY.seats.slice(0,np);
  const p={seed:(Math.random()*1e9)|0,np,mode:np===4?LOBBY.mode:'ffa',diff:LOBBY.diff,seats,names:LOBBY.names};netSend('start',p);startOnline(p)}
 $('bnet').onclick=()=>{audioInit();try{$('netName').value=localStorage.getItem('ke_name')||''}catch(e){}$('netMsg').textContent='';netShow(1)};
@@ -1348,6 +1355,42 @@ document.querySelectorAll('#netNp button').forEach(b=>b.onclick=()=>{if(!NET.hos
 document.querySelectorAll('#netMode button').forEach(b=>b.onclick=()=>{if(!NET.host||b.disabled)return;LOBBY.mode=b.dataset.m;renderLobby();netSend('lobby',lobbyPayload())});
 document.querySelectorAll('#netDiff button').forEach(b=>b.onclick=()=>{if(!NET.host)return;LOBBY.diff=b.dataset.d;renderLobby();netSend('lobby',lobbyPayload())});
 setInterval(()=>{if(NET.host&&NET.ch&&!NET.started)netSend('lobby',lobbyPayload())},2500);
+
+
+// ================= voice chat (WebRTC, signalling over the room channel) =================
+const VC={pcs:{},stream:null,mode:0,spk:1,audios:{},on:false};
+const hasAllies=()=>NET.seats.some((id,o)=>id&&id!==NET.myId&&TEAMS[o]===TEAMS[ME]);
+function vcPeers(){return NET.seats.map((id,o)=>({id,o})).filter(p=>p.id&&p.id!==NET.myId&&NET.human[p.o])}
+function vcBtns(){if(!VC.on){$('bmic').style.display=$('bspk').style.display='none';return}$('bmic').style.display=$('bspk').style.display='';
+ $('bmic').querySelector('span').innerHTML=ico(VC.mode?'mic':'mic0');$('bmic').querySelector('em').textContent=['麥克風','隊伍','全體'][VC.mode];$('bmic').classList.toggle('on',VC.mode>0);
+ $('bspk').querySelector('span').innerHTML=ico(VC.spk?'snd2':'snd0');$('bspk').querySelector('em').textContent=VC.spk?'喇叭':'靜音';layout()}
+function vcStart(){if(!NET.on||!window.RTCPeerConnection)return;VC.on=true;vcBtns();for(const p of vcPeers())vcPc(p.id,p.o)}
+function vcPc(id,o){if(VC.pcs[id])return VC.pcs[id];
+ const pc=new RTCPeerConnection({iceServers:[{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']}]});
+ pc._o=o;pc._id=id;pc._tr=pc.addTransceiver('audio',{direction:'sendrecv'});pc._iceq=[];
+ pc.onicecandidate=e=>{if(e.candidate)netSend('rtc',{from:NET.myId,to:id,k:'ice',d:e.candidate.toJSON()})};
+ pc.ontrack=e=>{let a=VC.audios[id];if(!a){a=document.createElement('audio');a.autoplay=true;a.setAttribute('playsinline','');document.body.appendChild(a);VC.audios[id]=a}
+  a.srcObject=e.streams&&e.streams[0]?e.streams[0]:new MediaStream([e.track]);a.muted=!VC.spk;a.play().catch(()=>{})};
+ pc.onconnectionstatechange=()=>{if(pc.connectionState==='connected'&&!pc._ok){pc._ok=1;toast('🔊 已和'+(LOBBY.names[id]||PNAME[o])+'接通語音')}
+  if(pc.connectionState==='failed'&&!pc._failMsg){pc._failMsg=1;toast('⚠️ 和'+(LOBBY.names[id]||PNAME[o])+'的語音接不通（網路限制）')}};
+ VC.pcs[id]=pc;vcApplyTrack(pc);
+ if(NET.myId<id)pc.createOffer().then(d=>pc.setLocalDescription(d)).then(()=>netSend('rtc',{from:NET.myId,to:id,k:'offer',d:{type:pc.localDescription.type,sdp:pc.localDescription.sdp}})).catch(()=>{});
+ return pc}
+async function vcFlush(pc){for(const c of pc._iceq.splice(0))try{await pc.addIceCandidate(c)}catch(e){}}
+async function onRtc(m){if(!m||m.to!==NET.myId||!VC.on)return;const o=NET.seats.indexOf(m.from);if(o<0)return;const pc=vcPc(m.from,o);
+ try{if(m.k==='offer'){await pc.setRemoteDescription(m.d);const a=await pc.createAnswer();await pc.setLocalDescription(a);netSend('rtc',{from:NET.myId,to:m.from,k:'answer',d:{type:pc.localDescription.type,sdp:pc.localDescription.sdp}});vcFlush(pc)}
+  else if(m.k==='answer'){await pc.setRemoteDescription(m.d);vcFlush(pc)}
+  else if(m.k==='ice'){if(pc.remoteDescription)await pc.addIceCandidate(m.d);else pc._iceq.push(m.d)}}catch(e){}}
+function vcApplyTrack(pc){const ok=VC.stream&&VC.mode>0&&(VC.mode===2||TEAMS[pc._o]===TEAMS[ME]);try{pc._tr.sender.replaceTrack(ok?VC.stream.getAudioTracks()[0]:null)}catch(e){}}
+async function vcMic(){let next=(VC.mode+1)%3;if(next===1&&!hasAllies())next=2;
+ if(next>0&&!VC.stream){try{VC.stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}})}catch(e){toast('無法使用麥克風：請允許網頁使用麥克風');return}}
+ VC.mode=next;if(!VC.mode&&VC.stream){VC.stream.getTracks().forEach(t=>t.stop());VC.stream=null}
+ for(const id in VC.pcs)vcApplyTrack(VC.pcs[id]);for(const id in VC.audios)VC.audios[id].play().catch(()=>{});
+ vcBtns();toast(['🎤 麥克風已關閉','🎤 隊伍頻道：只有隊友聽得到你','🎤 全體頻道：所有人都聽得到你'][VC.mode])}
+function vcSpk(){VC.spk^=1;for(const id in VC.audios){VC.audios[id].muted=!VC.spk;VC.audios[id].play().catch(()=>{})}vcBtns();toast(VC.spk?'🔈 已開啟對方語音':'🔇 已關閉對方語音')}
+function vcDrop(id){const pc=VC.pcs[id];if(pc){try{pc.close()}catch(e){}delete VC.pcs[id]}const a=VC.audios[id];if(a){a.srcObject=null;a.remove();delete VC.audios[id]}}
+function vcStop(){for(const id in VC.pcs)vcDrop(id);for(const id in VC.audios)vcDrop(id);if(VC.stream){VC.stream.getTracks().forEach(t=>t.stop());VC.stream=null}VC.mode=0;VC.on=false;vcBtns()}
+$('bmic').onclick=vcMic;$('bspk').onclick=vcSpk;
 
 // ================= loop =================
 let running=false,paused=false,last=performance.now(),acc=0,uiT=0,mmT=0,saveT=15;
