@@ -165,6 +165,13 @@ body.mmoff #mm,body.mmoff #mmMin{display:none!important}body.mmoff #mmDot{displa
 #actDots{display:flex;gap:5px;justify-content:center;height:7px;margin-top:2px}#actDots i{width:5px;height:5px;border-radius:50%;background:#6a5030}#actDots i.on{background:#ffd27a;width:14px;border-radius:3px}
 #bottom.slim{padding-top:3px!important;padding-bottom:calc(env(safe-area-inset-bottom) + 3px)!important}#bottom.slim #info{width:auto!important;max-height:none}#bottom.slim #info .big{display:none}#bottom.slim #info>div{display:inline;margin-right:6px}#bottom.slim #actDots{display:none}#bottom.slim #acts .hint{max-width:none;font-size:11px}#bottom.slim #acts{grid-template-rows:auto}#bottom.slim #info>div:nth-child(2){display:none}
 #info .q b{position:absolute;right:-4px;bottom:-4px;font-size:9px;line-height:12px;background:#7a5a20;border:1px solid #ffd27a;border-radius:6px;padding:0 2px;color:#fff3c8}#info .q{overflow:visible}#info small{font-size:10px;opacity:.8;margin-left:2px}
+#btut{background:#2f6b4a!important;border-color:#7fd2a0!important}
+#tutBox{position:fixed;z-index:12;left:calc(env(safe-area-inset-left) + 54px);right:calc(env(safe-area-inset-right) + 6px);top:calc(env(safe-area-inset-top) + 40px);max-width:440px;display:none;background:#1d140bf2;border:2px solid #ffd27a;border-radius:14px;padding:8px 12px 10px;box-shadow:0 6px 20px #000a}
+#tutHead{display:flex;align-items:center;gap:6px;font-size:12px;color:#ffd27a}#tutHead .sp{flex:1}#tutHead button{min-width:0!important;padding:4px 8px!important;font-size:11.5px!important;background:#3a2a18;border:1px solid #8a6a3a;border-radius:8px;color:#e8d6b0}
+#tutText{font-size:14px;line-height:1.55;color:#f6ead2;margin-top:4px}#tutText b{color:#ffe680}
+#tutEnd{display:none;gap:6px;margin-top:8px;flex-wrap:wrap}#tutEnd .go{flex:1;min-width:0!important;padding:9px 4px!important;font-size:14px!important;margin:0!important}
+.tutHL{animation:tuthl .8s infinite alternate!important;position:relative;z-index:6}@keyframes tuthl{from{box-shadow:0 0 0 2px #ffe680,0 0 8px #ffe680}to{box-shadow:0 0 0 5px #ffe680,0 0 22px #ffd27a}}
+#ovTutAsk{z-index:30;background:#000a;justify-content:center}.tutask{background:#2a1d10;border:2px solid #ffd27a;border-radius:18px;padding:18px 18px 14px;max-width:340px;display:flex;flex-direction:column;gap:10px;align-items:center;text-align:center;line-height:1.6}.tutask b{font-size:19px;color:#ffe9b0}.tutask .go{width:100%;margin:0!important}#tutNo{background:none;border:none;color:#cdb890;font-size:14px;padding:6px}
 </style>
 </head>
 <body>
@@ -202,7 +209,7 @@ body.mmoff #mm,body.mmoff #mmMin{display:none!important}body.mmoff #mmDot{displa
  </div>
  <div class="sgo"><button class="go" id="bcont" style="display:none"></button><button class="go" id="bstart">開始新遊戲</button></div>
  <button id="bnetBack" class="netbtn" style="display:none;background:#7a4a10!important;border-color:#ffd27a!important"></button>
- <div class="smini"><button id="bcamp"><b>📜</b>劇情</button><button id="bnet"><b>🌐</b>連線</button><button id="bart"><b>🎨</b>美術圖</button></div>
+ <div class="smini"><button id="bcamp"><b>📜</b>劇情</button><button id="bnet"><b>🌐</b>連線</button><button id="bart"><b>🎨</b>美術圖</button><button id="btut"><b>🎓</b>教學</button></div>
  <div class="ver" id="ver"></div>
 </div>
 <div class="ov" id="ovArt">
@@ -324,6 +331,8 @@ body.mmoff #mm,body.mmoff #mmMin{display:none!important}body.mmoff #mmDot{displa
  <div id="stBox"><div id="stWho"></div><div id="stText"></div><div id="stBtns"><button id="stSkip">跳過</button><button class="go" id="stNext">下一頁 ▶</button></div></div>
 </div>
 <div id="objBox"></div>
+<div id="tutBox"><div id="tutHead"><b id="tutNum"></b><span class="sp"></span><button id="tutSkip">跳過這步</button><button id="tutQuit">離開教學</button></div><div id="tutText"></div><div id="tutEnd"><button class="go" id="tutNew">開始新遊戲</button><button class="go" id="tutCamp" style="background:#7a4a1a">📜 劇情模式</button><button class="go" id="tutHome" style="background:#4a3a28">回主畫面</button></div></div>
+<div class="ov" id="ovTutAsk"><div class="tutask"><div style="font-size:44px">🎓</div><b>第一次玩王國紀元嗎？</b><div>要不要先跟著教學走一遍？大約 5 分鐘，一步一步教你採集、蓋房子、訓練士兵和打仗。</div><button class="go" id="tutYes">好，開始教學</button><button id="tutNo">跳過，我會玩</button></div></div>
 <div class="ov" id="ovEnd">
  <h1 id="endT">勝利</h1>
  <h2 id="endS"></h2>
@@ -333,7 +342,7 @@ body.mmoff #mm,body.mmoff #mmMin{display:none!important}body.mmoff #mmDot{displa
 
 <script>
 'use strict';
-const VERSION='2026-11-23e';
+const VERSION='2026-11-23f';
 // ================= constants =================
 const W=80,H=80,T=32,NN=W*H,STEP=0.05,CAP=10,MAXPOP=150,TER=9;
 const TEAMA=['rgba(59,130,246,.5)','rgba(239,68,68,.5)','rgba(34,197,94,.5)','rgba(234,179,8,.55)'];
@@ -421,7 +430,7 @@ const CAMP={joan:{n:'聖女貞德',e:'⚜️',d:'1429 年，百年戰爭打到�
  {t:'奧爾良之圍',soon:1},{t:'清掃羅亞爾河',soon:1},{t:'蘭斯加冕',soon:1},{t:'貢比涅之役',soon:1}]}};
 function campProg(){try{return JSON.parse(localStorage.getItem('ke_camp')||'{}')}catch(e){return{}}}
 function campSetProg(cid,n){const p=campProg();p[cid]=Math.max(p[cid]||0,n);try{localStorage.setItem('ke_camp',JSON.stringify(p))}catch(e){}}
-function campShow(){const c=CAMP.joan,pr=campProg().joan||0;$('campHead').innerHTML=`<div style="font-size:20px;font-weight:900;color:#ffe9b0">${c.e} ${c.n}</div>${c.d}`;
+function campShow(){const c=CAMP.joan,pr=campProg().joan||0;$('campHead').innerHTML=`<div style="font-size:12.5px;margin-bottom:6px;opacity:.85">${(()=>{try{return localStorage.getItem('ke_tut')==='done'}catch(e){return false}})()?'✅ 已完成教學':'🎓 還沒玩過？主畫面的「教學」會一步一步教你'}</div><div style="font-size:20px;font-weight:900;color:#ffe9b0">${c.e} ${c.n}</div>${c.d}`;
  $('campList').innerHTML=c.missions.map((m,i)=>{const done=i<pr,open=i<=pr&&!m.soon;const st=m.soon?'🚧 即將推出':done?'✅ 已完成':open?'▶ 開始':'🔒 先完成上一章';
   return`<button class="cmis ${open?(done?'':'go1'):'lock'}" data-i="${i}"><span style="font-size:26px">${done?'⚜️':m.soon?'📜':'🗡️'}</span><span><small>第 ${i+1} 章</small><b>${m.t}</b></span><span class="st">${st}</span></button>`}).join('');
  document.querySelectorAll('#campList .cmis').forEach(b=>b.onclick=()=>{const i=+b.dataset.i,m=c.missions[i];if(m.soon){toast('這一章還在製作中');return}if(i>pr){toast('先完成上一章');return}campStart('joan',i)});
@@ -455,7 +464,42 @@ function campJoan1(){newGame('normal',20261123,3,'ffa',0,'std','arabia');
  updFog();reveal(tc.x,tc.y,7);selIds=units.filter(u=>u.o===0).map(u=>u.id);cam.z=clamp(Math.min(VW,VH)/(T*11),.7,1.5);centerOn(joan.x,joan.y);lastSig='';renderPanel(true)}
 function objRender(){const el=$('objBox');if(!G||!G.camp||G.over){el.style.display='none';return}el.style.display='block';
  el.innerHTML='<b>🎯 目標</b> <small style="opacity:.6">（點一下收起）</small>'+G.camp.obj.map(o=>`<div class="ln ${o.done?'ok':''}">${o.keep?'⚠️':'•'} ${o.t}</div>`).join('')}
-function campCheck(){const C=G.camp;if(!C||G.over)return;const j=ents.get(C.joan),tc=ents.get(C.chinon);
+// ================= tutorial =================
+const TUT=[];let TS=null;
+function own(t){return units.filter(u=>u.o===ME&&!u.dead&&(!t||u.type===t))}
+function myTC(){return blds.find(b=>b.o===ME&&b.type==='tc'&&!b.dead)}
+function nearRes(rt,x,y){let best=null,bd=1e9;for(let i=0;i<NN;i++)if(resType[i]===rt&&resAmt[i]>0){const tx=i%W,ty=(i/W)|0,d=Math.hypot(tx-x,ty-y);if(d<bd){bd=d;best={x:tx+.5,y:ty+.5}}}return best}
+const selU=()=>selIds.map(id=>ents.get(id)).filter(e=>e&&e.kind==='u'&&!e.dead);
+TUT.push(
+ {t:'歡迎來到王國紀元！先試試移動畫面：用<b>一根手指拖曳</b>地圖看看四周，<b>兩根手指</b>可以放大縮小。',init:()=>{TS.c0={x:cam.x,y:cam.y,z:cam.z}},check:()=>Math.hypot(cam.x-TS.c0.x,cam.y-TS.c0.y)>90||Math.abs(cam.z-TS.c0.z)>.15},
+ {t:'這些戴草帽的是<b>村民</b>，負責採集和蓋房子。<b>點一個村民</b>選取他。',hl:()=>{const tc=myTC();return own('villager').sort((a,b)=>Math.hypot(a.x-tc.x,a.y-tc.y)-Math.hypot(b.x-tc.x,b.y-tc.y))[0]},check:()=>selU().some(u=>u.def.vil)},
+ {t:'選好了！現在<b>點漿果叢</b>（紅紫色果子的灌木），村民就會去採集食物。',hl:()=>{const tc=myTC();return nearRes(2,tc.x,tc.y)},check:()=>own('villager').concat(own('villager_f')).some(u=>u.task&&u.task.k==='gather'&&u.task.rt===2)},
+ {t:'食物可以用來生產更多村民。<b>點你的城鎮中心</b>（大城堡），再按下方的<b>「村民」</b>按鈕。',init:()=>{TS.v0=units.filter(u=>u.o===ME&&u.def.vil).length},hl:()=>{const tc=myTC();return selIds.includes(tc.id)?'[data-a="train:villager"]':tc},check:()=>{const tc=myTC();return tc.queue.some(q=>q.type==='villager')||units.filter(u=>u.o===ME&&u.def.vil).length>TS.v0}},
+ {t:'人口上限由<b>房屋</b>決定。<b>選一個村民 → 按「房屋」</b>，在地圖上點位置，再按預定地<b>旁邊的 ✔</b>。',init:()=>{TS.h0=blds.filter(b=>b.o===ME&&b.type==='house').reduce((a,b)=>a+(b.cnt||1),0)},hl:()=>{if(placing)return'#pfOk';const s=selU();if(s.some(u=>u.def.vil))return'[data-a="build:house"]';return own('villager')[0]},
+  check:()=>plans.some(p=>p.o===ME&&p.type==='house')||blds.filter(b=>b.o===ME&&b.type==='house').reduce((a,b)=>a+(b.cnt||1),0)>TS.h0},
+ {t:'很好！左上角的<b>村民圓鈕</b>會找出沒事做的村民。按它，再<b>點一棵樹</b>叫他去砍木頭。',hl:()=>selU().some(u=>u.def.vil)?(()=>{const s=selU()[0];return nearRes(1,s.x,s.y)})():'#bidle',check:()=>units.some(u=>u.o===ME&&u.def.vil&&u.task&&u.task.k==='gather'&&u.task.rt===1)},
+ {t:'接下來要有軍隊。<b>選一個村民 → 切到「軍事建築」→ 按「兵營」</b>，放好後按 ✔。',hl:()=>{if(placing)return'#pfOk';const s=selU();if(!s.some(u=>u.def.vil))return own('villager')[0];return document.querySelector('[data-a="build:barracks"]')?'[data-a="build:barracks"]':'[data-a="tab"]'},
+  check:()=>blds.some(b=>b.o===ME&&b.type==='barracks')},
+ {t:'兵營蓋好了！<b>點兵營</b>，再按<b>「民兵」三次</b>，訓練 3 個士兵（教學中會訓練得比較快）。',hl:()=>{const b=blds.find(b=>b.o===ME&&b.type==='barracks');return b&&selIds.includes(b.id)?'[data-a="train:militia"]':b},check:()=>own('militia').length>=3},
+ {t:'一次選很多士兵用<b>框選</b>：手指<b>按住空地不放</b> → 等白色<b>圓圈轉滿</b> → 不放開直接<b>拖出方框</b>把民兵框起來 → 放開。（也可以按左上的⚔️「全軍」）',check:()=>selU().filter(u=>!u.def.vil).length>=2},
+ {t:'<b>敵人來了！</b>選好你的部隊，<b>點紅色的敵人</b>就會攻擊。把他們全部打倒！',init:()=>{const tc=myTC();const base=Math.atan2(H/2-tc.y,W/2-tc.x);const st=nearestFree(tc.x,tc.y+tc.s/2+1);let sx=tc.x+11,sy=tc.y;for(let k=0;k<16;k++){const ang=base+(k%2?1:-1)*Math.ceil(k/2)*.35;const q=nearestFree(tc.x+Math.cos(ang)*11,tc.y+Math.sin(ang)*11);if(!inb(Math.floor(q.x),Math.floor(q.y)))continue;const r=astar(Math.floor(st.x),Math.floor(st.y),Math.floor(q.x)-1,Math.floor(q.y)-1,Math.floor(q.x)+1,Math.floor(q.y)+1,6000);if(r.ok){sx=q.x;sy=q.y;break}}TS.en=[];for(let k=0;k<3;k++){const p=nearestFree(sx+k*.8,sy);TS.en.push(addUnit(1,'militia',p.x,p.y).id)}
+   for(const id of TS.en){const e=ents.get(id);e.hp=e.maxhp=26}reveal(sx,sy,5);cmdMove(TS.en.map(id=>ents.get(id)),tc.x,tc.y+2,0,1);note(ME,'⚠️ 敵人來襲！','alert')},
+  hl:()=>TS.en.map(id=>ents.get(id)).find(e=>e&&!e.dead),check:()=>{if(performance.now()-TS.t0>60000){const tc=myTC();for(const id of TS.en){const e=ents.get(id);if(e&&!e.dead&&!astar(Math.floor(e.x),Math.floor(e.y),tc.tx-1,tc.ty-1,tc.tx+tc.s,tc.ty+tc.s,6000).ok)kill(e,null)}}return TS.en.every(id=>{const e=ents.get(id);return!e||e.dead})}},
+ {t:'🎉 <b>教學完成！</b>你已經學會採集、蓋房子、訓練士兵和打仗了。說明（右上角 ❓）裡還有城牆、駐軍、英雄、海軍等進階玩法。',end:1});
+function tutStart(){audioInit();clearSave();['ovStart','ovCamp','ovEnd','ovTutAsk'].forEach(i=>$(i).classList.remove('show'));try{localStorage.setItem('ke_tutSeen','1')}catch(e){}
+ newGame('easy',20261124,2,'ffa',0,'std','arabia');AIS=[null,null];players[0].civ='frank';players[1].civ='brit';players.forEach((P,o)=>refreshStats(o));
+ players[0].res={food:400,wood:450,gold:150,stone:100};G.camp={tut:1};TS={i:-1};running=true;paused=false;$('tutBox').style.display='block';tutGo(0);toast('🎓 教學開始')}
+function tutGo(i){TS.i=i;const st=TUT[i];TS.t0=performance.now();if(st.init)st.init();$('tutNum').textContent=st.end?'教學完成':'教學 '+(i+1)+' / '+(TUT.length-1);$('tutText').innerHTML=st.t;
+ $('tutEnd').style.display=st.end?'flex':'none';$('tutSkip').style.display=st.end?'none':'';try{speechSynthesis.cancel()}catch(e){}say($('tutText').textContent.replace(/（[^）]*）/g,''),1,true);
+ if(st.end){G.over=true;try{localStorage.setItem('ke_tut','done')}catch(e){}sfx('win')}}
+function tutQuit(){$('tutBox').style.display='none';document.querySelectorAll('.tutHL').forEach(e=>e.classList.remove('tutHL'));running=false;G.over=true;G.camp=null;['ovEnd','ovCamp'].forEach(i=>$(i).classList.remove('show'))}
+function tutFrame(){if(!TS||TS.i<0)return;const st=TUT[TS.i];if(!st.end&&performance.now()-TS.t0>700&&st.check()){sfx('build');tutGo(TS.i+1);return}
+ const h=st.hl?st.hl():null;document.querySelectorAll('.tutHL').forEach(e=>{if(typeof h!=='string'||!e.matches(h))e.classList.remove('tutHL')});
+ if(typeof h==='string'){const el=document.querySelector(h);if(el)el.classList.add('tutHL')}
+ else if(h){const wx=(h.x??0),wy=(h.y??0);const sx=(wx*T-cam.x)*cam.z,sy=(wy*T-cam.y)*cam.z;const t=performance.now()/1000;ctx.save();ctx.setTransform(DPR,0,0,DPR,0,0);
+  const r=(h.kind==='b'?h.s*T*cam.z*.6:20)+Math.sin(t*5)*3;ctx.strokeStyle='#ffe680';ctx.lineWidth=3;ctx.shadowColor='#ffd27a';ctx.shadowBlur=12;ctx.beginPath();ctx.arc(sx,sy,r,0,7);ctx.stroke();
+  const ay=sy-r-14-Math.abs(Math.sin(t*4))*10;ctx.fillStyle='#ffe680';ctx.beginPath();ctx.moveTo(sx,ay+12);ctx.lineTo(sx-10,ay);ctx.lineTo(sx-4,ay);ctx.lineTo(sx-4,ay-12);ctx.lineTo(sx+4,ay-12);ctx.lineTo(sx+4,ay);ctx.lineTo(sx+10,ay);ctx.closePath();ctx.fill();ctx.restore()}}
+function campCheck(){const C=G.camp;if(!C||G.over||C.tut)return;const j=ents.get(C.joan),tc=ents.get(C.chinon);
  if(!j||j.dead){campLose('貞德陣亡了');return}
  if(tc&&!tc.dead&&!C.flags.rf&&Math.hypot(j.x-tc.x,j.y-tc.y)<C.start*.58){C.flags.rf=1;const ks=[];for(let k=0;k<4;k++){const p=nearestFree(j.x-2+k*.7,j.y+2);ks.push(addUnit(0,'knight',p.x,p.y))}
   note(0,'🐎 法國騎士拉海爾帶著 4 名騎士趕來支援！','age',{say:'援軍到了！'});mark(j.x,j.y+2,'#7fd27f',1)}
@@ -963,7 +1007,7 @@ function updBld(b,dt){
    for(let k=0;k<A;k++){const best=tg[k%Math.min(tg.length,3)][1];const ox=((k%3)-1)*.25,oy=-b.s*.4-Math.floor(k/3)*.08;fx.push({k:'arrow',x:b.x+ox,y:b.y+oy,tx:best.x,ty:best.y,t:0,life:.4,dmg:damage(src,best),e:best.id,src:b.o,srcId:b.id});if(k<4)evp(['a',+(b.x+ox).toFixed(2),+(b.y+oy).toFixed(2),+best.x.toFixed(2),+best.y.toFixed(2),best.id,40])}}}}
  const q=b.queue[0];if(!q)return;
  if(q.k==='u'&&!q.started){if(UNITS[q.type].cap||popUsed(b.o)<players[b.o].cap)q.started=true;else{if(gt-(G['lh'+b.o]||-99)>(players[b.o].cap>=MAXPOP?25:10)){G['lh'+b.o]=gt;if(players[b.o].cap>=MAXPOP)note(b.o,'人口已達上限（'+MAXPOP+'），無法再增加');else note(b.o,'人口已滿，請蓋房屋','',{v:'housed'})}return}}
- q.p+=dt*(b.type==='archery'&&civOf(b.o)==='brit'?1.25:1);if(q.p<q.t)return;b.queue.shift();
+ q.p+=dt*(b.type==='archery'&&civOf(b.o)==='brit'?1.25:1)*(G.camp&&G.camp.tut?3:1);if(q.p<q.t)return;b.queue.shift();
  const P=players[b.o];
  if(q.k==='u'){const sp=spawnPoint(b,UNITS[q.type].naval);const u=addUnit(b.o,q.type,sp.x,sp.y);note(b.o,null,u.def.vil?'train':'horn');
   if(b.rally){if(b.rally.res>=0&&(u.def.vil||u.def.fish)&&resType[b.rally.res]&&(resType[b.rally.res]===5)===!!u.def.fish)setGather(u,b.rally.res);else if(b.rally.farm&&u.def.vil){const f=ents.get(b.rally.farm);if(f&&!f.dead){u.task={k:'farm',b:f.id,ph:'go'}}}
@@ -1611,7 +1655,7 @@ let toastT=0;function toast(s){const t=$('toast');t.textContent=s;t.style.opacit
 let idleIdx=0;
 $('bidle').onclick=()=>{const idle=units.filter(u=>u.o===ME&&u.def.vil&&!u.task);if(!idle.length){toast('沒有閒置村民');return}const u=idle[idleIdx++%idle.length];selIds=[u.id];placing=null;centerOn(u.x,u.y);lastSig=''};
 $('barmy').onclick=()=>{const a=units.filter(u=>u.o===ME&&!u.def.vil&&!u.def.naval&&!u.inShip);if(!a.length){toast('還沒有軍隊');return}const same=a.length===selIds.length&&a.every(u=>selIds.includes(u.id));selIds=a.map(u=>u.id);placing=null;sayUnit(a[0],'sel');if(same){let x=0,y=0;a.forEach(u=>{x+=u.x;y+=u.y});centerOn(x/a.length,y/a.length)}lastSig=''};
-$('bhome').onclick=()=>{if(G&&G.camp){const j=ents.get(G.camp.joan);if(j&&!j.dead){centerOn(j.x,j.y);selIds=[j.id];lastSig=''}return}const tc=blds.find(b=>b.o===ME&&b.type==='tc');if(tc){centerOn(tc.x,tc.y);selIds=[tc.id];lastSig=''}};
+$('bhome').onclick=()=>{if(G&&G.camp&&G.camp.joan){const j=ents.get(G.camp.joan);if(j&&!j.dead){centerOn(j.x,j.y);selIds=[j.id];lastSig=''}return}const tc=blds.find(b=>b.o===ME&&b.type==='tc');if(tc){centerOn(tc.x,tc.y);selIds=[tc.id];lastSig=''}};
 $('bspeed').onclick=()=>{G.speed=G.speed===1?1.5:G.speed===1.5?2:1;$('bspeed').textContent='速度 '+G.speed+'x'};
 $('bmenu').onclick=()=>{paused=!NET.on;$('bspeed').style.display=NET.on?'none':'';$('menuInfo').textContent=G?'遊戲時間 '+fmtT(gt)+'・'+DIFF[G.diff].n:'';$('ovMenu').classList.add('show')};
 $('bsnd').onclick=()=>{audioInit();SND.mode=(SND.mode+2)%3;try{localStorage.setItem('ke_snd',SND.mode)}catch(e){}updSndBtn();if(SND.mode<2)try{speechSynthesis.cancel()}catch(e){}toast('聲音：'+['靜音','只有音效','音效＋語音'][SND.mode]);if(SND.mode===2)say('遵命，陛下！',1,true)};
@@ -1636,6 +1680,10 @@ $('bcamp').onclick=()=>{audioInit();campShow()};
 $('campBack').onclick=()=>$('ovCamp').classList.remove('show');
 $('objBox').onclick=()=>$('objBox').classList.toggle('min');
 $('bretry').onclick=()=>{const C=G.camp;$('ovEnd').classList.remove('show');campStart(C.cid,C.mi)};
+$('btut').onclick=()=>tutStart();$('tutYes').onclick=()=>tutStart();$('tutNo').onclick=()=>{$('ovTutAsk').classList.remove('show');try{localStorage.setItem('ke_tutSeen','1')}catch(e){}};
+$('tutSkip').onclick=()=>{if(TS&&!TUT[TS.i].end)tutGo(TS.i+1)};$('tutQuit').onclick=()=>{tutQuit();$('ovStart').classList.add('show')};
+$('tutNew').onclick=()=>{tutQuit();$('ovStart').classList.add('show');$('bstart').click()};$('tutCamp').onclick=()=>{tutQuit();$('ovStart').classList.add('show');campShow()};$('tutHome').onclick=()=>{tutQuit();$('ovStart').classList.add('show')};
+try{if(!localStorage.getItem('ke_tutSeen')&&!localStorage.getItem('ke_save')&&!sessionStorage.getItem('ke_room'))$('ovTutAsk').classList.add('show')}catch(e){}
 $('bhelp').onclick=()=>$('ovHelp').classList.add('show');$('bhelp2').onclick=()=>$('ovHelp').classList.add('show');$('helpClose').onclick=()=>$('ovHelp').classList.remove('show');
 $('bresume').onclick=()=>{paused=false;$('ovMenu').classList.remove('show')};
 $('brestart').onclick=()=>{if(NET.on){netLeave(1);NET.on=false}saveGame();$('ovMenu').classList.remove('show');$('ovStart').classList.add('show');running=false;paused=false;refreshContinue()};
@@ -1659,7 +1707,7 @@ document.querySelectorAll('#npRow button').forEach(b=>b.onclick=()=>{if(b.datase
 updSetup();
 document.querySelectorAll('#diffRow button').forEach(b=>b.onclick=()=>{diffSel=b.dataset.d;document.querySelectorAll('#diffRow button').forEach(x=>x.classList.toggle('sel',x===b))});
 $('bcont').onclick=()=>{const d=loadSave();if(!d)return;audioInit();$('ovStart').classList.remove('show');resumeGame(d);running=true;paused=false;toast('已載入上一局')};
-$('bstart').onclick=()=>{$('objBox').style.display='none';audioInit();clearSave();$('ovStart').classList.remove('show');newGame(diffSel,0,npSel,modeSel,0,srSel,pickMap(mapSel));setCivs([civSel==='rand'?randCiv():civSel]);toast((mapSel==='random'?'隨機地圖：'+MAPS[G.map]+'・':'')+'你的文明：'+CIVS[players[ME].civ].e+' '+CIVS[players[ME].civ].n);running=true;paused=false;try{document.documentElement.requestFullscreen&&Math.min(innerWidth,innerHeight)<500&&document.documentElement.requestFullscreen().catch(()=>{})}catch(e){}};
+$('bstart').onclick=()=>{$('objBox').style.display='none';$('tutBox').style.display='none';audioInit();clearSave();$('ovStart').classList.remove('show');newGame(diffSel,0,npSel,modeSel,0,srSel,pickMap(mapSel));setCivs([civSel==='rand'?randCiv():civSel]);toast((mapSel==='random'?'隨機地圖：'+MAPS[G.map]+'・':'')+'你的文明：'+CIVS[players[ME].civ].e+' '+CIVS[players[ME].civ].n);running=true;paused=false;try{document.documentElement.requestFullscreen&&Math.min(innerWidth,innerHeight)<500&&document.documentElement.requestFullscreen().catch(()=>{})}catch(e){}};
 $('bagain').onclick=()=>{if(G&&G.camp){$('ovEnd').classList.remove('show');$('bretry').style.display='none';$('bagain').textContent='再玩一次';running=false;campShow();return}if(NET.ch)netLeave(1);$('ovEnd').classList.remove('show');$('ovStart').classList.add('show');running=false;refreshContinue()};
 $('ver').textContent='版本 '+VERSION;
 function fmtT(s){s=Math.floor(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
@@ -1668,7 +1716,7 @@ function showEnd(){if(NET.on)try{sessionStorage.removeItem('ke_room')}catch(e){}
 function fmtN(n){n=Math.floor(n);return n>=10000?(n/10000).toFixed(n>=100000?0:1)+'萬':String(n)}
 function updTop(){const P=players[ME];$('rf').textContent=fmtN(P.res.food);$('rw').textContent=fmtN(P.res.wood);$('rg').textContent=fmtN(P.res.gold);$('rs').textContent=fmtN(P.res.stone);
  $('mmDot').classList.toggle('alert',!!(G&&gt-(G['la'+ME]??-99)<5&&document.body.classList.contains('mmoff')));
- const pu=popUsed(ME);$('rp').textContent=G&&G.camp?String(pu):pu+'/'+P.cap;$('rp').style.color=!(G&&G.camp)&&pu>=P.cap?'#ff8080':'';{const el=$('age');const txt=(VW<500?AGES[P.age].slice(0,2):AGES[P.age]);const crown=P.age===3;if(el.dataset.a!=String(P.age)){if(el.dataset.a!=null)el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1500);el.dataset.a=P.age}el.className='age'+P.age+(el.classList.contains('flash')?' flash':'');
+ const pu=popUsed(ME);const cmp=G&&G.camp&&!G.camp.tut;$('rp').textContent=cmp?String(pu):pu+'/'+P.cap;$('rp').style.color=!cmp&&pu>=P.cap?'#ff8080':'';{const el=$('age');const txt=(VW<500?AGES[P.age].slice(0,2):AGES[P.age]);const crown=P.age===3;if(el.dataset.a!=String(P.age)){if(el.dataset.a!=null)el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1500);el.dataset.a=P.age}el.className='age'+P.age+(el.classList.contains('flash')?' flash':'');
   let prog=0;if(P.aging){const tc=blds.find(b=>b.o===ME&&b.type==='tc'&&b.queue.some(q=>q.k==='age'));const q=tc&&tc.queue.find(q=>q.k==='age');if(q&&tc.queue[0]===q)prog=q.p/q.t}
   el.innerHTML=(crown?'<small>👑</small>':'')+txt+(P.aging?'<i style="width:'+Math.round(prog*100)+'%"></i>':'')}$('clock').textContent=fmtT(gt);
  $('nidle').textContent=units.filter(u=>u.o===ME&&u.def.vil&&!u.task).length;$('narmy').textContent=units.filter(u=>u.o===ME&&!u.def.vil).length;
@@ -2073,7 +2121,7 @@ function frame(now){const dt=Math.min(.1,(now-last)/1000);last=now;
   for(const u of units){u.atkT=Math.max(0,u.atkT-dt);u.hitT=Math.max(0,u.hitT-dt)}for(const b of blds)b.hitT=Math.max(0,(b.hitT||0)-dt)}
  if(NET.host&&NET.started&&running){NET.sT-=dt;if(NET.sT<=0){NET.sT=.22;netSend('st',snapshot())}}
  saveT-=dt;if(saveT<=0){saveT=15;if(running&&!paused)saveGame()}
- render();placeFloat();uiT-=dt;if(G&&uiT<=0){uiT=.2;renderPanel();updTop()}mmT-=dt;if(G&&mmT<=0){mmT=.4;drawMinimap()}
+ render();placeFloat();if(G&&G.camp&&G.camp.tut)tutFrame();uiT-=dt;if(G&&uiT<=0){uiT=.2;renderPanel();updTop()}mmT-=dt;if(G&&mmT<=0){mmT=.4;drawMinimap()}
  requestAnimationFrame(frame)}
 addEventListener('resize',resize);document.addEventListener('visibilitychange',()=>{if(!document.hidden&&NET.ch){try{NET.ch.track({id:NET.myId,name:netName(),host:NET.host,civ:civSel})}catch(e){}}if(document.hidden){if(running&&!NET.on){saveGame();paused=true;$('ovMenu').classList.add('show')}}else checkUpdate()});
 addEventListener('pagehide',saveGame);
