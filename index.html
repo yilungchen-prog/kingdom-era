@@ -11,6 +11,7 @@
 html,body{margin:0;height:100%;overflow:hidden;background:#111;color:#f3e9d2;font-family:-apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 button{font-family:inherit;color:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
+#pfloat{position:fixed;left:0;top:0;z-index:4;display:none;gap:12px;pointer-events:none}#pfloat button{pointer-events:auto;width:50px;height:50px;border-radius:50%;font-size:24px;font-weight:900;line-height:1;border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.55);color:#fff;padding:0;touch-action:manipulation}#pfOk{background:#2e9d46}#pfOk.na{background:#7d7d7d;border-color:#ccc}#pfNo{background:#c0392b}
 #top{position:fixed;left:0;right:0;top:0;z-index:5;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;
  padding:calc(env(safe-area-inset-top) + 4px) calc(env(safe-area-inset-right) + 6px) 4px calc(env(safe-area-inset-left) + 6px);
  background:linear-gradient(#2a1d10f0,#2a1d10d0);border-bottom:2px solid #8a6a3a}
@@ -117,6 +118,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
  <button id="bmic" style="display:none"><span></span><em>麥克風</em></button>
  <button id="bspk" style="display:none"><span></span><em>喇叭</em></button>
 </div>
+<div id="pfloat"><button id="pfOk" aria-label="確定">✔</button><button id="pfNo" aria-label="取消">✕</button></div>
 <div id="bottom"><div id="info"></div><div id="acts"></div></div>
 <div id="toast"></div>
 <button id="upd">🔄 有新版本，點這裡更新</button>
@@ -220,7 +222,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 
 <script>
 'use strict';
-const VERSION='2026-11-22c';
+const VERSION='2026-11-22d';
 // ================= constants =================
 const W=80,H=80,T=32,NN=W*H,STEP=0.05,CAP=10,MAXPOP=150,TER=9;
 const TEAMA=['rgba(59,130,246,.5)','rgba(239,68,68,.5)','rgba(34,197,94,.5)','rgba(234,179,8,.55)'];
@@ -1229,7 +1231,7 @@ function vilState(u){const t=u.task;if(!t)return'閒置';if(t.k==='board')return
 function renderPanel(force){if(!G)return;const es=selEnts();selIds=es.map(e=>e.id);const P=players[ME];let info='',acts='';
  if(placing){const d=BLDS[placing.type];const ok=placing.tx!=null&&canPlace(ME,placing.type,placing.tx,placing.ty,0,placing.move);
   info=`<div class="big">${ico(placing.type)}</div><div class="nm">${placing.move?'搬移：':''}${d.n}</div><div>${placing.move?'免費':costTxt(d.cost)}</div>`;
-  acts=`<span class="hint">點地圖放置，可拖曳調整<br>${placing.tx==null?'':ok?(placing.move?'✅ 可以放':'✅ 可以蓋'):(placing.move?'❌ 這裡不能放':'❌ 這裡不能蓋')}</span>`+btn('pok',ico('ok'),'確定','',ok?'ok':'na')+btn('pno',ico('no'),'取消','','no')}
+  acts=`<span class="hint">點地圖放置，可拖曳調整，按旁邊的 ✔ 確定<br>${placing.tx==null?'':ok?(placing.move?'✅ 可以放':'✅ 可以蓋'):(placing.move?'❌ 這裡不能放':'❌ 這裡不能蓋')}</span>`+btn('pok',ico('ok'),'確定','',ok?'ok':'na')+btn('pno',ico('no'),'取消','','no')}
  else if(!es.length){if(G.selRes>=0&&resType[G.selRes]){info=`<div class="big">${ico(['','tree','berry','gold','stone'][resType[G.selRes]])}</div><div class="nm">${RNAME[resType[G.selRes]]}</div><div>剩餘 ${Math.ceil(resAmt[G.selRes])}</div>`}
   else info=`<div class="nm">${AGES[P.age]}</div><div style="opacity:.75">點選單位或建築</div>`;
   acts=`<span class="hint">提示：點村民→再點樹木/金礦就會採集。<br>左側${ico('villager','s')}可找閒置村民。</span>`}
@@ -1696,13 +1698,24 @@ $('bmic').onclick=vcMic;$('bspk').onclick=vcSpk;
 
 // ================= loop =================
 let running=false,paused=false,last=performance.now(),acc=0,uiT=0,mmT=0,saveT=15;
+// floating confirm/cancel buttons right next to the building ghost
+function placeFloat(){const el=$('pfloat');if(!placing||placing.tx==null||!running){if(el.style.display!=='none')el.style.display='none';return}
+ const s=BLDS[placing.type].s,ok=canPlace(ME,placing.type,placing.tx,placing.ty,0,placing.move);
+ const x0=(placing.tx*T-cam.x)*cam.z,y0=(placing.ty*T-cam.y)*cam.z,x1=((placing.tx+s)*T-cam.x)*cam.z,y1=((placing.ty+s)*T-cam.y)*cam.z;
+ const top=$('top').getBoundingClientRect().bottom+6,bot=$('bottom').getBoundingClientRect().top-6,BW=112,BH=50;
+ let x=(x0+x1)/2-BW/2,y=y1+10;
+ if(y+BH>bot){y=y0-BH-10;if(y<top){y=Math.max(top,Math.min(bot-BH,(y0+y1)/2-BH/2));x=x1+10;if(x+BW>innerWidth-6)x=x0-BW-10}}
+ x=Math.max(6,Math.min(innerWidth-BW-6,x));y=Math.max(top,Math.min(bot-BH,y));
+ el.style.display='flex';el.style.transform=`translate(${Math.round(x)}px,${Math.round(y)}px)`;$('pfOk').className=ok?'':'na'}
+$('pfOk').addEventListener('click',e=>{e.stopPropagation();onAct('pok');lastSig='';renderPanel(true)});
+$('pfNo').addEventListener('click',e=>{e.stopPropagation();onAct('pno');lastSig='';renderPanel(true)});
 function frame(now){const dt=Math.min(.1,(now-last)/1000);last=now;
  if(G&&running&&NET.client){clientTick(dt);for(const u of units){u.atkT=Math.max(0,u.atkT-dt);u.hitT=Math.max(0,u.hitT-dt)}for(const b of blds)b.hitT=Math.max(0,(b.hitT||0)-dt)}
  else if(G&&running&&(!paused||NET.on)){acc+=dt*G.speed;let n=0;while(acc>=STEP&&n<8){tick(STEP);acc-=STEP;n++}if(n>=8)acc=0;
   for(const u of units){u.atkT=Math.max(0,u.atkT-dt);u.hitT=Math.max(0,u.hitT-dt)}for(const b of blds)b.hitT=Math.max(0,(b.hitT||0)-dt)}
  if(NET.host&&NET.started&&running){NET.sT-=dt;if(NET.sT<=0){NET.sT=.22;netSend('st',snapshot())}}
  saveT-=dt;if(saveT<=0){saveT=15;if(running&&!paused)saveGame()}
- render();uiT-=dt;if(G&&uiT<=0){uiT=.2;renderPanel();updTop()}mmT-=dt;if(G&&mmT<=0){mmT=.4;drawMinimap()}
+ render();placeFloat();uiT-=dt;if(G&&uiT<=0){uiT=.2;renderPanel();updTop()}mmT-=dt;if(G&&mmT<=0){mmT=.4;drawMinimap()}
  requestAnimationFrame(frame)}
 addEventListener('resize',resize);document.addEventListener('visibilitychange',()=>{if(!document.hidden&&NET.ch){try{NET.ch.track({id:NET.myId,name:netName(),host:NET.host})}catch(e){}}if(document.hidden){if(running&&!NET.on){saveGame();paused=true;$('ovMenu').classList.add('show')}}else checkUpdate()});
 addEventListener('pagehide',saveGame);
