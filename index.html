@@ -174,6 +174,10 @@ body.mmoff #mm,body.mmoff #mmMin{display:none!important}body.mmoff #mmDot{displa
 #ovTutAsk{z-index:30;background:#000a;justify-content:center}.tutask{background:#2a1d10;border:2px solid #ffd27a;border-radius:18px;padding:18px 18px 14px;max-width:340px;display:flex;flex-direction:column;gap:10px;align-items:center;text-align:center;line-height:1.6}.tutask b{font-size:19px;color:#ffe9b0}.tutask .go{width:100%;margin:0!important}#tutNo{background:none;border:none;color:#cdb890;font-size:14px;padding:6px}
 #side .grp{width:32px!important;height:32px!important;margin-left:4px;background:#24324acc!important;border-color:#7f9fd2!important}#side .grp b{font-size:15px;color:#cfe0ff}#side .grp.has{background:#2b4a7a!important;border-color:#9fc2ff!important}#side .grp>i:empty{display:none}
 .b.chip{background:#2b3a55;border-color:#7f9fd2}
+#artTabs{display:flex;gap:6px;overflow-x:auto;width:100%;max-width:640px;padding:2px 2px 6px;scrollbar-width:none;flex-shrink:0}#artTabs::-webkit-scrollbar{display:none}
+#artTabs button{flex-shrink:0;padding:6px 11px;border-radius:16px;border:2px solid #8a6a3a;background:#3a2a18;color:#e8d6b0;font-size:13.5px;font-weight:700;min-width:0}#artTabs button.sel{background:#7a5a20;border-color:#ffd27a;color:#fff3c8}
+#artTabs button small{font-size:11px;opacity:.8;margin-left:3px}#artTabs button.done small{color:#7fd27f;opacity:1}
+#artTodoL{font-size:13px;margin:0 0 6px;align-self:center}#artGrid{touch-action:pan-y}
 </style>
 </head>
 <body>
@@ -218,6 +222,8 @@ body.mmoff #mm,body.mmoff #mmMin{display:none!important}body.mmoff #mmDot{displa
 <div class="ov" id="ovArt">
  <div class="arthead"><b>🎨 美術圖上傳</b><button id="artClose">關閉</button></div>
  <div id="artNote" class="artnote">連線中…</div>
+ <div id="artTabs"></div>
+ <label id="artTodoL"><input type="checkbox" id="artTodo"> 只看還沒畫的</label>
  <div id="artGrid"></div>
 </div>
 <div class="ov" id="artPrev">
@@ -348,7 +354,7 @@ body.mmoff #mm,body.mmoff #mmMin{display:none!important}body.mmoff #mmDot{displa
 
 <script>
 'use strict';
-const VERSION='2026-11-23k';
+const VERSION='2026-11-23l';
 // ================= constants =================
 const W=80,H=80,T=32,NN=W*H,STEP=0.05,CAP=10,MAXPOP=150,TER=9;
 const TEAMA=['rgba(59,130,246,.5)','rgba(239,68,68,.5)','rgba(34,197,94,.5)','rgba(234,179,8,.55)'];
@@ -1907,13 +1913,24 @@ function processArt(img,doCut,flat){
  if(x1<x0){x0=0;y0b=0;x1=w-1;y1=h-1}
  const bw=x1-x0+1,bh=y1-y0b+1,S=Math.max(bw,bh);const o=document.createElement('canvas');o.width=o.height=outSize;const og=o.getContext('2d');og.imageSmoothingQuality='high';
  const k=outSize/S;og.drawImage(c,x0,y0b,bw,bh,(S-bw)/2*k,(S-bh)*k,bw*k,bh*k);return o}
-let ART_CUR=null,ART_FILEIMG=null,ART_OUT=null;
+let ART_CUR=null,ART_FILEIMG=null,ART_OUT=null,ART_TAB=0;
+const ART_CATS=[['村民與士兵',['villager','villager_f','militia','militia2','spear','archer','scout','knight']],['文明特殊兵',['longbow','axeman','tknight','berserk']],['英雄',['joan','wallace','barbarossa','hardrada','tamar']],
+ ['城鎮中心',['tc','tc0','tc1','tc2','tc3']],['經濟建築',['house','farm','mill','lumber','mine','market','dock']],['軍事建築',['barracks','archery','stable','smith','hosp','tower']],
+ ['船與資源',['fishship','galley','transport','fish','tree','berry','gold','stone','grass']],['劇情圖',k=>k.startsWith('story_')]];
+function artInCat(c,k){const f=ART_CATS[c][1];return typeof f==='function'?f(k):f.includes(k)}
+{const used=new Set();ART_SLOTS.forEach(([k])=>{if(ART_CATS.some((c,i)=>artInCat(i,k)))used.add(k)});const rest=ART_SLOTS.map(s=>s[0]).filter(k=>!used.has(k));if(rest.length)ART_CATS.push(['其他',rest])}
 function artOpen(){$('ovArt').classList.add('show');artRender();loadCloudArt().then(ok=>{$('artNote').textContent=ok?'已連上雲端。上傳後就是遊戲的預設圖，所有人下次打開遊戲都會看到。':'⚠️ 連不上雲端：請用 GitHub 網址（yilungchen-prog.github.io/kingdom-era）開啟才能上傳。';artRender()})}
-function artRender(){const box=$('artGrid');if(!box||!$('ovArt').classList.contains('show'))return;
- box.innerHTML=ART_SLOTS.map(([k,n])=>{const src=ART_SRC[k];const pri=ART_PRI[k]||0;const row=ART_ROWS[k];
+function artRender(){const box=$('artGrid');if(!box||!$('ovArt').classList.contains('show'))return;const todo=$('artTodo').checked;
+ $('artTabs').innerHTML=ART_CATS.map((c,i)=>{const ks=ART_SLOTS.filter(([k])=>artInCat(i,k));const d=ks.filter(([k])=>(ART_PRI[k]||0)>0).length;return`<button data-t="${i}" class="${i===ART_TAB?'sel':''} ${d===ks.length?'done':''}">${c[0]}<small>${d}/${ks.length}</small></button>`}).join('');
+ document.querySelectorAll('#artTabs button').forEach(b=>b.onclick=()=>{ART_TAB=+b.dataset.t;artRender();b.scrollIntoView({inline:'center',block:'nearest'})});
+ const list=ART_SLOTS.filter(([k])=>artInCat(ART_TAB,k)&&(!todo||!(ART_PRI[k]||0)));
+ if(!list.length){box.innerHTML='<div style="opacity:.8;padding:20px">這一類都畫好了 🎉</div>';return}
+ box.innerHTML=list.map(([k,n])=>{const src=ART_SRC[k];const pri=ART_PRI[k]||0;const row=ART_ROWS[k];
   return `<div class="ac"><div class="at">${src?`<img src="${src}">`:ico(k)}</div><div class="an">${n}</div><div class="as">${pri===2?'雲端上傳':pri===1?'內建圖':'尚未有圖'}</div>
   <button class="go2" data-up="${k}">上傳</button>${row?`<button data-rv="${k}">${row.prev_path?'還原上一張':'改回內建'}</button>`:''}</div>`}).join('')}
 artRefresh=artRender;
+$('artTodo').onchange=artRender;
+{let sx=0,sy=0;$('artGrid').addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});$('artGrid').addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5){ART_TAB=Math.max(0,Math.min(ART_CATS.length-1,ART_TAB+(dx<0?1:-1)));artRender();const b=document.querySelector('#artTabs button.sel');b&&b.scrollIntoView({inline:'center',block:'nearest'})}})}
 function artPick(k){ART_CUR=k;const f=$('artFile');f.value='';f.click()}
 function artPreview(){const flat=!!(ART_SLOTS.find(s=>s[0]===ART_CUR)||[])[2];const doCut=$('artCut').checked;
  try{ART_OUT=processArt(ART_FILEIMG,doCut,flat);$('artAfter').innerHTML='';$('artAfter').appendChild(ART_OUT);$('artMsg').textContent=''}catch(e){$('artMsg').textContent='處理失敗：'+e.message}}
