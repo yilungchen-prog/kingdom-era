@@ -63,8 +63,23 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 .ov{position:fixed;inset:0;z-index:20;background:radial-gradient(#3a2a18f2,#120c06fa);display:none;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:20px;overflow:auto}
 .ov.show{display:flex}
 #menuBg{position:fixed;inset:0;width:100%;height:100%;z-index:0;display:block;margin:0!important}
-#ovStart>*:not(#menuBg){position:relative;z-index:1}#ovStart{padding-bottom:150px!important}#ovStart>#bhelp{position:absolute}
+#ovStart>*:not(#menuBg){position:relative;z-index:1}#ovStart>#bhelp{position:absolute}
 .ov{justify-content:flex-start}
+#ovStart{justify-content:center;padding:12px 14px 70px!important;overflow:hidden}#ovStart>*:first-child,#ovStart>*:last-child{margin:0}
+#ovStart .sttl{font-size:clamp(30px,8.5vw,40px);margin:0 0 2px}#ovStart .ssub{font-size:13px;margin:0 0 10px}
+.setup{width:100%;max-width:400px;display:flex;flex-direction:column;gap:8px;background:#1d140bb8;border:1.5px solid #6a5030;border-radius:16px;padding:10px 10px 8px}
+.sr{display:flex;align-items:center;gap:8px}.sl{flex:0 0 38px;text-align:left;font-weight:800;color:#e8c98a;font-size:14px}
+.seg{display:flex;flex:1;gap:5px}.seg button{flex:1;min-width:0!important;padding:8px 0!important;font-size:15px!important;margin:0!important;border-radius:9px!important}
+.ssel{flex:1;font-size:16px;padding:9px 10px;border-radius:9px;border:2px solid #a7834a;background:#4a3520;color:#f3e3c0;font-family:inherit;-webkit-appearance:none;appearance:none;background-image:linear-gradient(45deg,transparent 50%,#ffd27a 50%),linear-gradient(135deg,#ffd27a 50%,transparent 50%);background-position:calc(100% - 18px) 55%,calc(100% - 12px) 55%;background-size:6px 6px;background-repeat:no-repeat}
+#civSw{flex:1;display:flex;align-items:stretch;gap:5px;touch-action:pan-y}#civSw>button{min-width:0!important;padding:0 10px!important;font-size:14px!important;border-radius:9px!important}
+#civCard{flex:1;background:#2a1d10;border:2px solid #ffd27a;border-radius:10px;padding:5px 8px;min-height:52px;display:flex;flex-direction:column;justify-content:center;transition:transform .18s,opacity .18s}
+#civCard b{font-size:16px;color:#ffe9b0}#civCard small{font-size:11.5px;line-height:1.35;opacity:.85;margin-top:1px}
+#setupNote{font-size:12px;opacity:.7}
+.sgo{display:flex;gap:8px;width:100%;max-width:400px;margin-top:10px}.sgo .go{flex:1;margin:0!important;padding:12px 6px!important;font-size:19px!important;min-width:0!important}#bcont{background:#2f5a6b!important;border-color:#7fc8e0!important;font-size:15px!important;line-height:1.2}#bcont small{font-size:11px;opacity:.85}
+.smini{display:flex;gap:8px;width:100%;max-width:400px;margin-top:8px}.smini button{flex:1;min-width:0!important;padding:7px 4px!important;font-size:13.5px!important;display:flex;flex-direction:column;align-items:center;gap:1px;margin:0!important}.smini b{font-size:20px}
+#bcamp{background:#6a4015!important;border-color:#e0a050!important}#bnet{background:#1f4f7a!important;border-color:#7fb6e0!important}#bart{background:#5a3a7a!important;border-color:#c9a0ff!important}
+#ovStart .ver{margin-top:6px!important}
+#netStep2 .row{margin:4px 0}#netStep2 .row button{padding:6px 10px;font-size:14px;min-width:0}#netStep2 select{margin:4px auto;display:block;max-width:320px;width:90%}
 #ovCamp{z-index:24}#campHead{max-width:420px;margin:6px auto 10px;font-size:14px;line-height:1.6;opacity:.9}
 #campList{display:flex;flex-direction:column;gap:9px;width:100%;max-width:420px;margin:0 auto 14px}
 .cmis{display:flex;align-items:center;gap:12px;text-align:left;background:#2a1d10;border:2px solid #8a6a3a;border-radius:14px;padding:11px 14px;color:#f3e3c0;font-size:15px}
@@ -154,29 +169,19 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 <div class="ov show" id="ovStart">
  <button id="bhelp" class="helpbtn">❓ 說明</button>
  <canvas id="menuBg"></canvas>
- <h1>王國紀元</h1>
- <h2>中世紀即時戰略・手機版</h2>
- <div>人數</div>
- <div class="row" id="npRow"><button data-n="2" class="sel">2 人</button><button data-n="3">3 人</button><button data-n="4">4 人</button></div>
- <div>模式</div>
- <div class="row" id="modeRow"><button data-m="ffa" class="sel">各自為戰</button><button data-m="2v2">2 對 2</button></div>
- <div>地圖</div>
- <div class="row" id="mapRow"><button data-m="arabia" class="sel">阿拉伯</button><button data-m="med">地中海</button><button data-m="forest">黑森林</button><button data-m="river">河流高地</button><button data-m="gold">黃金爭奪</button><button data-m="islands">群島</button><button data-m="random">隨機</button></div>
- <div>文明</div>
- <div class="row" id="civRow"><button data-c="rand">🎲 隨機</button><button data-c="brit">🏹 不列顛</button><button data-c="frank">🐎 法蘭克</button><button data-c="teuton">🛡️ 條頓</button><button data-c="viking">⚓ 維京</button></div>
- <div id="civNote" style="font-size:12.5px;opacity:.85;max-width:360px;text-align:center;line-height:1.45;margin:-2px auto 4px"></div>
- <div>起始資源</div>
- <div class="row" id="srRow"><button data-r="std" class="sel">標準</button><button data-r="mid">中等</button><button data-r="rich">豐富</button></div>
- <div id="setupNote" style="font-size:13px;opacity:.8;margin-bottom:4px"></div>
- <div>難度</div>
- <div class="row" id="diffRow"><button data-d="easy">簡單</button><button data-d="normal" class="sel">普通</button><button data-d="hard">困難</button></div>
- <button class="go" id="bcont" style="display:none"></button>
- <button class="go" id="bstart">開始新遊戲</button>
- <button class="go" id="bcamp" style="background:#7a4a1a;border-color:#e0a050">📜 劇情模式</button>
+ <h1 class="sttl">王國紀元</h1>
+ <h2 class="ssub">中世紀即時戰略・手機版</h2>
+ <div class="setup">
+  <div class="sr"><span class="sl">人數</span><div class="seg" id="npRow"><button data-n="2">2人</button><button data-n="3">3人</button><button data-n="4">4人</button><button data-n="22">2對2</button></div></div>
+  <div class="sr"><span class="sl">地圖</span><select id="mapSel" class="ssel"><option value="arabia">阿拉伯（開闊平原）</option><option value="med">地中海（中間是海）</option><option value="forest">黑森林（樹很多）</option><option value="river">河流高地（河中有淺灘）</option><option value="gold">黃金爭奪（中央大金礦）</option><option value="islands">群島（要用船）</option><option value="random">🎲 隨機</option></select></div>
+  <div class="sr"><span class="sl">文明</span><div id="civSw"><button id="civPrev">◀</button><div id="civCard"><b id="civName"></b><small id="civNote"></small></div><button id="civNext">▶</button></div></div>
+  <div class="sr"><span class="sl">資源</span><div class="seg" id="srRow"><button data-r="std" class="sel">標準</button><button data-r="mid">中等</button><button data-r="rich">豐富</button></div></div>
+  <div class="sr"><span class="sl">難度</span><div class="seg" id="diffRow"><button data-d="easy">簡單</button><button data-d="normal" class="sel">普通</button><button data-d="hard">困難</button></div></div>
+  <div id="setupNote"></div>
+ </div>
+ <div class="sgo"><button class="go" id="bcont" style="display:none"></button><button class="go" id="bstart">開始新遊戲</button></div>
  <button id="bnetBack" class="netbtn" style="display:none;background:#7a4a10!important;border-color:#ffd27a!important"></button>
- <button id="bnet" class="netbtn">🌐 連線對戰</button>
- <button id="bart" class="artbtn">🎨 上傳美術圖</button>
-
+ <div class="smini"><button id="bcamp"><b>📜</b>劇情</button><button id="bnet"><b>🌐</b>連線</button><button id="bart"><b>🎨</b>美術圖</button></div>
  <div class="ver" id="ver"></div>
 </div>
 <div class="ov" id="ovArt">
@@ -206,7 +211,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
   <div id="netSeats" class="seats"></div>
   <div class="row" id="netNp"><button data-n="2">2 人</button><button data-n="3">3 人</button><button data-n="4">4 人</button></div>
   <div class="row" id="netMode"><button data-m="ffa">各自為戰</button><button data-m="2v2">2 對 2</button></div>
-  <div class="row" id="netMap"><button data-m="arabia">阿拉伯</button><button data-m="med">地中海</button><button data-m="forest">黑森林</button><button data-m="river">河流</button><button data-m="gold">黃金</button><button data-m="islands">群島</button><button data-m="random">隨機</button></div>
+  <select id="netMapSel" class="ssel"><option value="arabia">阿拉伯（開闊平原）</option><option value="med">地中海（中間是海）</option><option value="forest">黑森林（樹很多）</option><option value="river">河流高地（河中有淺灘）</option><option value="gold">黃金爭奪（中央大金礦）</option><option value="islands">群島（要用船）</option><option value="random">🎲 隨機</option></select>
   <div style="font-size:13px;margin-top:4px">你的文明</div>
   <div class="row" id="netCiv"><button data-c="rand">🎲 隨機</button><button data-c="brit">🏹 不列顛</button><button data-c="frank">🐎 法蘭克</button><button data-c="teuton">🛡️ 條頓</button><button data-c="viking">⚓ 維京</button></div>
   <div class="row" id="netSr"><button data-r="std">資源標準</button><button data-r="mid">資源中等</button><button data-r="rich">資源豐富</button></div>
@@ -307,7 +312,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 
 <script>
 'use strict';
-const VERSION='2026-11-23b';
+const VERSION='2026-11-23c';
 // ================= constants =================
 const W=80,H=80,T=32,NN=W*H,STEP=0.05,CAP=10,MAXPOP=150,TER=9;
 const TEAMA=['rgba(59,130,246,.5)','rgba(239,68,68,.5)','rgba(34,197,94,.5)','rgba(234,179,8,.55)'];
@@ -1605,20 +1610,21 @@ $('bresume').onclick=()=>{paused=false;$('ovMenu').classList.remove('show')};
 $('brestart').onclick=()=>{if(NET.on){netLeave(1);NET.on=false}saveGame();$('ovMenu').classList.remove('show');$('ovStart').classList.add('show');running=false;paused=false;refreshContinue()};
 let diffSel='normal',npSel=2,modeSel='ffa',srSel='std',mapSel='arabia',civSel='rand';try{civSel=localStorage.getItem('ke_civ')||'rand'}catch(e){}
 function civText(c){return c==='rand'||!CIVS[c]?'每局隨機分到一個文明':CIVS[c].e+' '+CIVS[c].n+'：'+CIVS[c].d}
-function updCiv(){document.querySelectorAll('#civRow button').forEach(x=>x.classList.toggle('sel',x.dataset.c===civSel));$('civNote').textContent=civText(civSel);
+const CIVORD=['rand',...CIVK];function updCiv(){const c=CIVS[civSel];$('civName').textContent=c?c.e+' '+c.n:'🎲 隨機文明';$('civNote').textContent=c?c.d.replace(/。特殊兵種：/,'｜特殊兵種：'):'每局隨機分到四個文明之一';
  document.querySelectorAll('#netCiv button').forEach(x=>x.classList.toggle('sel',x.dataset.c===civSel))}
-document.querySelectorAll('#civRow button,#netCiv button').forEach(b=>b.onclick=()=>{civSel=b.dataset.c;try{localStorage.setItem('ke_civ',civSel)}catch(e){}updCiv();
+function civStep(d){const i=(CIVORD.indexOf(civSel)+d+CIVORD.length)%CIVORD.length;civSel=CIVORD[i];try{localStorage.setItem('ke_civ',civSel)}catch(e){}const cc=$('civCard');cc.style.transition='none';cc.style.transform=`translateX(${d*30}px)`;cc.style.opacity=.3;updCiv();requestAnimationFrame(()=>{cc.style.transition='';cc.style.transform='';cc.style.opacity=1})}
+$('civPrev').onclick=()=>civStep(-1);$('civNext').onclick=()=>civStep(1);
+{let sx=0;$('civSw').addEventListener('touchstart',e=>{sx=e.touches[0].clientX},{passive:true});$('civSw').addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx;if(Math.abs(dx)>30)civStep(dx<0?1:-1)})}
+document.querySelectorAll('#netCiv button').forEach(b=>b.onclick=()=>{civSel=b.dataset.c;try{localStorage.setItem('ke_civ',civSel)}catch(e){}updCiv();
  if(b.closest('#netCiv')&&NET.ch){try{NET.ch.track({id:NET.myId,name:netName(),host:NET.host,civ:civSel})}catch(e){}toast(civText(civSel))}});
 updCiv();
 function setCivs(arr){players.forEach((P,o)=>{P.civ=arr[o]&&CIVS[arr[o]]?arr[o]:randCiv();refreshStats(o)})}
-document.querySelectorAll('#mapRow button').forEach(b=>b.onclick=()=>{mapSel=b.dataset.m;document.querySelectorAll('#mapRow button').forEach(x=>x.classList.toggle('sel',x===b))});
+$('mapSel').value=mapSel;$('mapSel').onchange=()=>{mapSel=$('mapSel').value};
 const pickMap=m=>m==='random'?Object.keys(MAPS)[Math.floor(Math.random()*6)]:m;
 document.querySelectorAll('#srRow button').forEach(b=>b.onclick=()=>{srSel=b.dataset.r;document.querySelectorAll('#srRow button').forEach(x=>x.classList.toggle('sel',x===b))});
-function updSetup(){document.querySelectorAll('#npRow button').forEach(x=>x.classList.toggle('sel',+x.dataset.n===npSel));if(npSel!==4)modeSel='ffa';
- document.querySelectorAll('#modeRow button').forEach(x=>{x.classList.toggle('sel',x.dataset.m===modeSel);x.disabled=x.dataset.m==='2v2'&&npSel!==4;x.style.opacity=x.disabled?.4:1});
+function updSetup(){if(npSel!==4)modeSel='ffa';document.querySelectorAll('#npRow button').forEach(x=>x.classList.toggle('sel',x.dataset.n==='22'?modeSel==='2v2':(+x.dataset.n===npSel&&modeSel!=='2v2')));
  $('setupNote').textContent='你是藍方（左下角），其他'+(npSel-1)+'方由電腦控制'+(modeSel==='2v2'?'；你和綠方（左上）同隊':'')+'。'}
-document.querySelectorAll('#npRow button').forEach(b=>b.onclick=()=>{npSel=+b.dataset.n;updSetup()});
-document.querySelectorAll('#modeRow button').forEach(b=>b.onclick=()=>{if(b.disabled)return;modeSel=b.dataset.m;updSetup()});
+document.querySelectorAll('#npRow button').forEach(b=>b.onclick=()=>{if(b.dataset.n==='22'){npSel=4;modeSel='2v2'}else{npSel=+b.dataset.n;modeSel='ffa'}updSetup()});
 updSetup();
 document.querySelectorAll('#diffRow button').forEach(b=>b.onclick=()=>{diffSel=b.dataset.d;document.querySelectorAll('#diffRow button').forEach(x=>x.classList.toggle('sel',x===b))});
 $('bcont').onclick=()=>{const d=loadSave();if(!d)return;audioInit();$('ovStart').classList.remove('show');resumeGame(d);running=true;paused=false;toast('已載入上一局')};
@@ -1735,7 +1741,7 @@ function resumeGame(d){
   if(u.task&&u.task.k==='build'){u.task.p=plans[u.task.pi];if(!u.task.p)u.task=u.task.prev||null}if(u.task)u.task.ph=u.task.ph==='work'?'go':u.task.ph;ents.set(u.id,u);units.push(u)}
  AIS=d.AIS||players.map((p,o)=>o===ME||p.out?null:aiInit(o));cam.x=d.cam.x;cam.y=d.cam.y;cam.z=d.cam.z;clampCam();
  updFog();selIds=[];placing=null;buildTab=0;lastSig='';renderPanel(true);$('bspeed').textContent='速度 '+G.speed+'x'}
-function refreshContinue(){const d=loadSave();const b=$('bcont');if(d){b.style.display='';b.innerHTML='繼續上一局<br><small>'+(MAPS[d.map]||'阿拉伯')+'・'+d.np+'人'+(d.mode==='2v2'?'（2對2）':'')+'・'+fmtT(d.gt)+'・'+DIFF[d.diff].n+'・'+AGES[d.players[ME].age]+'</small>'}else b.style.display='none'}
+function refreshContinue(){const d=loadSave();const b=$('bcont');if(d){b.style.display='';b.innerHTML='繼續上一局<br><small>'+(MAPS[d.map]||'阿拉伯')+'・'+(d.mode==='2v2'?'2對2':d.np+'人')+'・'+fmtT(d.gt)+'</small>'}else b.style.display='none'}
 
 // ================= auto update =================
 let newVer=null;
@@ -1944,7 +1950,7 @@ function renderLobby(){$('netCode').textContent=NET.code||'----';const host=NET.
  document.querySelectorAll('#netNp button').forEach(b=>{b.classList.toggle('sel',+b.dataset.n===LOBBY.np);b.disabled=!host||+b.dataset.n<humans;b.style.opacity=b.disabled&&+b.dataset.n!==LOBBY.np?.4:1});
  document.querySelectorAll('#netMode button').forEach(b=>{b.classList.toggle('sel',b.dataset.m===LOBBY.mode);b.disabled=!host||(b.dataset.m==='2v2'&&LOBBY.np!==4);b.style.opacity=b.disabled&&b.dataset.m!==LOBBY.mode?.4:1});
  document.querySelectorAll('#netDiff button').forEach(b=>{b.classList.toggle('sel',b.dataset.d===LOBBY.diff);b.disabled=!host});
- document.querySelectorAll('#netMap button').forEach(b=>{b.classList.toggle('sel',b.dataset.m===LOBBY.map);b.disabled=!host});
+ $('netMapSel').value=LOBBY.map;$('netMapSel').disabled=!host;
  document.querySelectorAll('#netSr button').forEach(b=>{b.classList.toggle('sel',b.dataset.r===LOBBY.sr);b.disabled=!host});
  $('netGo').style.display=host?'':'none';$('netWait').style.display=host?'none':'';
  $('netMsg').textContent=host?'把房號告訴朋友，大家加入後按「開始」。空位由電腦補上。':(NET.gotLobby?'已加入，等待房主開始…':'尋找房間中…')}
@@ -1974,7 +1980,7 @@ $('netExit').onclick=()=>netLeave();
 $('netGo').onclick=()=>{if(NET.host)hostStart()};
 document.querySelectorAll('#netNp button').forEach(b=>b.onclick=()=>{if(!NET.host||b.disabled)return;LOBBY.np=+b.dataset.n;if(LOBBY.np!==4)LOBBY.mode='ffa';renderLobby();netSend('lobby',lobbyPayload())});
 document.querySelectorAll('#netMode button').forEach(b=>b.onclick=()=>{if(!NET.host||b.disabled)return;LOBBY.mode=b.dataset.m;renderLobby();netSend('lobby',lobbyPayload())});
-document.querySelectorAll('#netMap button').forEach(b=>b.onclick=()=>{if(!NET.host)return;LOBBY.map=b.dataset.m;renderLobby();netSend('lobby',lobbyPayload())});
+$('netMapSel').onchange=()=>{if(!NET.host)return;LOBBY.map=$('netMapSel').value;renderLobby();netSend('lobby',lobbyPayload())};
 document.querySelectorAll('#netSr button').forEach(b=>b.onclick=()=>{if(!NET.host)return;LOBBY.sr=b.dataset.r;renderLobby();netSend('lobby',lobbyPayload())});
 document.querySelectorAll('#netDiff button').forEach(b=>b.onclick=()=>{if(!NET.host)return;LOBBY.diff=b.dataset.d;renderLobby();netSend('lobby',lobbyPayload())});
 setInterval(()=>{if(NET.host&&NET.ch&&!NET.started)netSend('lobby',lobbyPayload())},2500);
