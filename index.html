@@ -180,7 +180,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
  選了建築後點地面＝設定集結點<span data-ic="flag"></span>。點小地圖可快速跳轉。<br>
  建築：村民走到現場後<b>瞬間完成</b>，只能蓋在自己領地內。<br>
  科技：鐵匠鋪（武器、盔甲）、醫護所（回血、生命）、城鎮中心和伐木場、磨坊、採礦場都可以研究升級。<br>
- 房屋：第二間起會直接加蓋在原本的房屋上（最多 20 間）。<br>
+ 房屋：第二間起會直接加蓋在原本的房屋上（最多 30 間，人口上限 150）。<br>
  相剋：<span data-ic="spear"></span>長槍兵剋騎兵、<span data-ic="scout"></span>騎兵剋弓兵、<span data-ic="archer"></span>弓兵剋長槍兵。<br>
  人口上限＝房屋數 × 5，人口滿了就要再蓋房屋。<br>
  暫停選單裡可切換聲音（全開／只有音效／靜音）和遊戲速度。<br>
@@ -203,9 +203,9 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 
 <script>
 'use strict';
-const VERSION='2026-11-21g';
+const VERSION='2026-11-21h';
 // ================= constants =================
-const W=80,H=80,T=32,NN=W*H,STEP=0.05,CAP=10,MAXPOP=100,TER=9;
+const W=80,H=80,T=32,NN=W*H,STEP=0.05,CAP=10,MAXPOP=150,TER=9;
 const TEAMA=['rgba(59,130,246,.5)','rgba(239,68,68,.5)','rgba(34,197,94,.5)','rgba(234,179,8,.55)'];
 const TEAM=['#3b82f6','#ef4444','#22c55e','#eab308'],TEAMD=['#1e3a8a','#7f1d1d','#14532d','#713f12'],TEAML=['#a0c8ff','#ff9090','#90f0a0','#ffe680'];
 const PNAME=['藍方','紅方','綠方','黃方'],PHUE=[null,356,125,48];
@@ -251,7 +251,7 @@ const BLDS={
  tower:{n:'箭塔',ic:'🗼',s:1,hp:1000,cost:{wood:100,stone:175},age:1,atk:6,rng:7,los:8},
 };
 const ECO=['house','lumber','mill','mine','farm','tc'],MIL=['barracks','archery','stable','smith','hosp','tower'];
-const HOUSE_MAX=20;
+const HOUSE_MAX=30;
 const TECHS={
  forge:{n:'鍛造',ic:'forge',age:1,cost:{food:150,gold:50},t:30,d:'近戰攻擊+1'},
  iron:{n:'鐵鑄',ic:'forge',age:2,req:'forge',cost:{food:220,gold:120},t:40,d:'近戰攻擊+1'},
@@ -360,7 +360,7 @@ function svgStr(k,px){return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0
 function ico(k,cls){return `<i class="ico ${cls||''}">${svgStr(k)}</i>`}
 const ICIMG={};
 for(const k in IC){const im=new Image();im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svgStr(k,128));ICIMG[k]=im}
-function drawIcon(k,x,y,px){const im=ICIMG[k];if(im&&im.complete&&im.naturalWidth)ctx.drawImage(im,x-px/2,y-px/2,px,px)}
+function drawIcon(k,x,y,px){const im=ICIMG[k];if(im&&im.complete&&im.naturalWidth){const z=typeof cam!=='undefined'?cam.z*DPR*Math.abs(ctx.getTransform?ctx.getTransform().a/(cam.z*DPR)||1:1):2;ctx.drawImage(scaledSprite(im,px*z),x-px/2,y-px/2,px,px)}}
 document.querySelectorAll('[data-ic]').forEach(el=>el.innerHTML=ico(el.dataset.ic));
 
 // ================= helpers =================
@@ -634,7 +634,7 @@ function updBld(b,dt){
  if(b.def.atk&&b.cd<=0){let best=null,bd=b.def.rng+b.s/2;for(const e of units)if(isEnemy(b.o,e.o)&&!e.dead){const d=Math.hypot(e.x-b.x,e.y-b.y);if(d<bd){bd=d;best=e}}
   if(best){b.cd=2;sfx('arrow',b.x,b.y);fx.push({k:'arrow',x:b.x,y:b.y-b.s*.4,tx:best.x,ty:best.y,t:0,life:.4,dmg:damage(b,best),e:best.id,src:b.o,srcId:b.id});evp(['a',b.x,+(b.y-b.s*.4).toFixed(2),+best.x.toFixed(2),+best.y.toFixed(2),best.id,40])}}
  const q=b.queue[0];if(!q)return;
- if(q.k==='u'&&!q.started){if(popUsed(b.o)<players[b.o].cap)q.started=true;else{if(gt-(G['lh'+b.o]||-99)>10){G['lh'+b.o]=gt;note(b.o,'人口已滿，請蓋房屋','',{v:'housed'})}return}}
+ if(q.k==='u'&&!q.started){if(popUsed(b.o)<players[b.o].cap)q.started=true;else{if(gt-(G['lh'+b.o]||-99)>(players[b.o].cap>=MAXPOP?25:10)){G['lh'+b.o]=gt;if(players[b.o].cap>=MAXPOP)note(b.o,'人口已達上限（'+MAXPOP+'），無法再增加');else note(b.o,'人口已滿，請蓋房屋','',{v:'housed'})}return}}
  q.p+=dt;if(q.p<q.t)return;b.queue.shift();
  const P=players[b.o];
  if(q.k==='u'){const sp=spawnPoint(b);const u=addUnit(b.o,q.type,sp.x,sp.y);note(b.o,null,'train');
@@ -929,7 +929,13 @@ function drawBld(b,sel){const x=b.tx*T,y=b.ty*T,s=b.s*T;const age=gt-b.born;cons
  if(sel){ctx.setLineDash([6,4]);ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.strokeRect(x,y,s,s);ctx.setLineDash([])}
  if(sel||b.hp<b.maxhp)hpBar(x+4,y-6,s-8,b.hp/b.maxhp,b.o);
 }
+// pre-scaled sprite cache: avoid downscaling big art every frame
+function scaledSprite(im,px){px=Math.max(8,Math.round(px/4)*4);const c0=im._sc||(im._sc={});let c=c0[px];if(c)return c;
+ c=document.createElement('canvas');c.width=c.height=px;const g=c.getContext('2d');g.imageSmoothingQuality='high';
+ let src=im,sw=im.naturalWidth||im.width;while(sw/2>=px*1.2){const t=document.createElement('canvas');t.width=t.height=Math.round(sw/2);t.getContext('2d').drawImage(src,0,0,t.width,t.height);src=t;sw=t.width}
+ g.drawImage(src,0,0,px,px);c0[px]=c;return c}
 function unitImg(u){let k=u.type;if(k==='villager'&&u.fem&&IMG.villager_f)k='villager_f';if(k==='militia'&&players[u.o].age>=2&&IMG.militia2)k='militia2';const im=IMG[k];if(!im)return null;return u.o?(IMG[k+'_'+u.o]||im):im}
+let LOD=false;
 function drawUnit(u,sel){
  const x=u.x*T,y=u.y*T;const walk=u.moving?Math.abs(Math.sin(u.anim*10))*3:0;
  let lx=0,ly=0;if(u.atkT>0&&u.task&&u.task.k==='attack'){const e=ents.get(u.task.t);if(e){const k=Math.sin((1-u.atkT/.35)*Math.PI)*(u.def.rng?1.5:6);const dx=e.x-u.x,dy=e.y-u.y,d=Math.hypot(dx,dy)||1;lx=dx/d*k;ly=dy/d*k}}
@@ -943,8 +949,8 @@ function drawUnit(u,sel){
   ctx.fillStyle=TEAMA[u.o];ctx.beginPath();ctx.ellipse(x,y+r*.8,r*1.15,r*.48,0,0,7);ctx.fill();
   ctx.strokeStyle=TEAMD[u.o];ctx.lineWidth=4.5;ctx.stroke();ctx.strokeStyle=TEAM[u.o];ctx.lineWidth=2.5;ctx.stroke();
   if(sel){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,y+r*.8,r*1.3,r*.55,0,0,7);ctx.stroke()}
-  const h=T*(cav?1.55:1.35);ctx.save();ctx.translate(cx,cy+r*.95);if(u.face<0)ctx.scale(-1,1);ctx.drawImage(im,-h/2,-h,h,h);ctx.restore();
-  pennant(cx-u.face*h*.22,cy+r*.95-h*.86,u.o,u.anim)}
+  const h=T*(cav?1.55:1.35);const spr=scaledSprite(im,h*cam.z*DPR);ctx.save();ctx.translate(cx,cy+r*.95);if(u.face<0)ctx.scale(-1,1);ctx.drawImage(spr,-h/2,-h,h,h);ctx.restore();
+  if(!LOD)pennant(cx-u.face*h*.22,cy+r*.95-h*.86,u.o,u.anim)}
  else{
   ctx.fillStyle='rgba(0,0,0,.28)';ctx.beginPath();ctx.ellipse(x,y+r*.75,r*.95,r*.38,0,0,7);ctx.fill();
   if(sel){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,y+r*.75,r*1.1,r*.48,0,0,7);ctx.stroke()}
@@ -983,7 +989,7 @@ function render(){
  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const i=idx(x,y);if(resType[i]&&explored[i])list.push({k:0,y:y+.9,x,ty:y,i})}
  for(const b of blds)if(!b.def.farm&&inView(b.tx,b.ty,b.s)&&(isAlly(b.o)||explored[idx(b.tx,b.ty)]))list.push({k:1,y:b.ty+b.s,b});
  for(const u of units)if(inView(u.x-1,u.y-1,2)&&(isAlly(u.o)||vis[idx(Math.floor(u.x),Math.floor(u.y))]))list.push({k:2,y:u.y+.2,u});
- list.sort((a,b)=>a.y-b.y);
+ list.sort((a,b)=>a.y-b.y);{let nu=0;for(const it of list)if(it.k===2)nu++;LOD=nu>140}
  for(const it of list){if(it.k===0)drawRes(resType[it.i],it.x,it.ty,it.i);else if(it.k===1)drawBld(it.b,sel.has(it.b.id));else drawUnit(it.u,sel.has(it.u.id))}
  // effects
  for(const f of fx){const p=f.t/f.life;
