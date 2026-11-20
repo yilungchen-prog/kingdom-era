@@ -41,7 +41,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 #side button{width:48px;height:48px;border-radius:10px;background:#3a2a18e8;border:1px solid #a7834a;font-size:20px;position:relative;padding:0}
 #side button em{position:absolute;left:0;right:0;top:1px;font-size:10px;font-style:normal;color:#ffe9b0;line-height:1}
 #side button span .ico,#side button>span{margin-top:6px}
-#side button i{position:absolute;right:2px;bottom:1px;font-size:11px;font-style:normal;color:#ffe9b0}
+#side button>i{position:absolute;right:2px;bottom:1px;font-size:11px;font-style:normal;color:#ffe9b0}
 #side button.on{background:#7a5a20;box-shadow:0 0 0 2px #ffd27a}
 #bottom{position:fixed;left:0;right:0;bottom:0;z-index:5;display:flex;gap:6px;min-height:66px;
  padding:6px calc(env(safe-area-inset-right) + 6px) calc(env(safe-area-inset-bottom) + 6px) calc(env(safe-area-inset-left) + 6px);
@@ -144,6 +144,26 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 #helpDots i{width:9px;height:9px;border-radius:50%;background:#6a5030;cursor:pointer;transition:all .2s}#helpDots i.on{background:#ffd27a;width:22px;border-radius:5px}
 #helpNum{font-size:12px;opacity:.75;margin-left:6px}
 .ov .ver{font-size:11px;opacity:.5;margin-top:10px}
+/* ---- compact HUD ---- */
+#top{gap:5px!important;font-size:12px!important;padding-top:calc(env(safe-area-inset-top) + 2px)!important;padding-bottom:2px!important}#top .ico{width:15px!important;height:15px!important}
+#top button{padding:2px 8px!important}#age{font-size:12px!important;padding:1px 7px!important}
+#side{gap:5px}#side button{width:40px!important;height:40px!important;border-radius:50%!important}#side button em{display:none}#side button span .ico,#side button>span{margin-top:0!important}
+#side button .ico{width:22px!important;height:22px!important}#side button{display:flex;align-items:center;justify-content:center;overflow:visible}#side button>span{display:flex;line-height:0}
+#side button>i{position:absolute;right:-5px!important;bottom:-4px!important;background:#7a5a20;border:1px solid #ffd27a;border-radius:8px;min-width:15px;height:15px;line-height:13px!important;font-size:10px!important;padding:0 3px;box-sizing:border-box;text-align:center}
+#mmMin,#mmDot{position:fixed;z-index:5;padding:0!important;min-width:0!important;border:1.5px solid #a7834a;background:#3a2a18ee;color:#ffe9b0;display:flex;align-items:center;justify-content:center}
+#mmMin{width:22px;height:22px;border-radius:6px;font-size:15px;font-weight:900;line-height:1}
+#mmDot{width:40px;height:40px;border-radius:50%;font-size:20px;display:none}
+#mmDot.alert{animation:mmal .6s infinite alternate;border-color:#ff6060}@keyframes mmal{to{box-shadow:0 0 0 6px #ff404088;background:#7a1e1e}}
+body.mmoff #mm,body.mmoff #mmMin{display:none!important}body.mmoff #mmDot{display:flex}
+#bottom{gap:6px;min-height:0!important;padding-top:4px!important}
+#info{width:104px!important;max-height:74px;overflow-y:auto;font-size:11.5px!important;line-height:1.3!important}#info .big{font-size:20px!important;line-height:22px!important;float:left;margin-right:4px}#info .big .ico{width:22px!important;height:22px!important}
+#info .q{width:26px!important;height:26px!important;line-height:26px!important}#info .q .ico{width:18px!important;height:18px!important}
+#actWrap{flex:1;min-width:0;display:flex;flex-direction:column}
+#acts{flex-wrap:nowrap!important;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;scrollbar-width:none;gap:5px;padding-bottom:2px;-webkit-overflow-scrolling:touch}#acts::-webkit-scrollbar{display:none}
+#acts .b{flex:0 0 auto;width:54px!important;height:54px!important;scroll-snap-align:start}#acts .b .i .ico{width:23px!important;height:23px!important}
+#acts .hint{flex:0 0 auto;max-width:170px;white-space:normal;font-size:11.5px;line-height:1.35}
+#actDots{display:flex;gap:5px;justify-content:center;height:7px;margin-top:2px}#actDots i{width:5px;height:5px;border-radius:50%;background:#6a5030}#actDots i.on{background:#ffd27a;width:14px;border-radius:3px}
+#bottom.slim{padding-top:3px!important;padding-bottom:calc(env(safe-area-inset-bottom) + 3px)!important}#bottom.slim #info{width:auto!important;max-height:none}#bottom.slim #info .big{display:none}#bottom.slim #info>div{display:inline;margin-right:6px}#bottom.slim #actDots{display:none}#bottom.slim #acts .hint{max-width:none;font-size:11px}
 </style>
 </head>
 <body>
@@ -153,7 +173,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
  <span id="age"></span><span id="clock"></span><span class="sp"></span>
  <button id="bmenu" data-ic="pause"></button>
 </div>
-<canvas id="mm" width="160" height="160"></canvas>
+<canvas id="mm" width="160" height="160"></canvas><button id="mmMin" title="縮小地圖">－</button><button id="mmDot" title="打開小地圖">🗺</button>
 <div id="side">
  <button id="bidle" title="閒置村民"><span data-ic="villager"></span><i id="nidle">0</i><em>閒置</em></button>
  <button id="barmy" title="全部軍隊"><span data-ic="barracks"></span><i id="narmy">0</i><em>全軍</em></button>
@@ -162,7 +182,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
  <button id="bspk" style="display:none"><span></span><em>喇叭</em></button>
 </div>
 <div id="pfloat"><button id="pfOk" aria-label="確定">✔</button><button id="pfNo" aria-label="取消">✕</button></div>
-<div id="bottom"><div id="info"></div><div id="acts"></div></div>
+<div id="bottom"><div id="info"></div><div id="actWrap"><div id="acts"></div><div id="actDots"></div></div></div>
 <div id="toast"></div>
 <button id="upd">🔄 有新版本，點這裡更新</button>
 
@@ -312,7 +332,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 
 <script>
 'use strict';
-const VERSION='2026-11-23c';
+const VERSION='2026-11-23d';
 // ================= constants =================
 const W=80,H=80,T=32,NN=W*H,STEP=0.05,CAP=10,MAXPOP=150,TER=9;
 const TEAMA=['rgba(59,130,246,.5)','rgba(239,68,68,.5)','rgba(34,197,94,.5)','rgba(234,179,8,.55)'];
@@ -1230,7 +1250,11 @@ const cam={x:0,y:0,z:1};
 function resize(){VW=innerWidth;VH=innerHeight;DPR=Math.min(2,window.devicePixelRatio||1);cv.width=VW*DPR;cv.height=VH*DPR;layout()}
 function layout(){const top=document.getElementById('top').offsetHeight,bot=document.getElementById('bottom').offsetHeight;const mm=document.getElementById('mm');
  const small=Math.min(VW,VH)<450;const ms=small?96:120;mm.style.width=mm.style.height=ms+'px';mm.style.top=(top+6)+'px';
+ {const r=mm.getBoundingClientRect();const mn=$('mmMin'),dt=$('mmDot');mn.style.top=(top+6+ms-20)+'px';mn.style.left=(VW-ms-6-2)+'px';dt.style.top=(top+6)+'px';dt.style.right='calc(env(safe-area-inset-right) + 6px)'}
+ actDotsUpd();
  const side=document.getElementById('side');side.style.top=(top+6)+'px';G&&clampCam();G&&(G.topH=top,G.botH=bot)}
+function actDotsUpd(){const a=$('acts'),d=$('actDots');if(!a||!d)return;const n=a.clientWidth?Math.ceil((a.scrollWidth-4)/a.clientWidth):1;const cur=a.clientWidth?Math.round(a.scrollLeft/a.clientWidth):0;
+ const h=n>1?Array.from({length:n},(_,k)=>`<i class="${k===Math.min(cur,n-1)?'on':''}"></i>`).join(''):'';if(d.innerHTML!==h)d.innerHTML=h}
 function centerOn(x,y){cam.x=x*T-VW/2/cam.z;cam.y=y*T-(VH/2)/cam.z;clampCam()}
 function clampCam(){const m=60;cam.x=clamp(cam.x,-m,W*T-VW/cam.z+m);cam.y=clamp(cam.y,-m-60,H*T-VH/cam.z+m+140)}
 function toWorld(sx,sy){return{x:(sx/cam.z+cam.x)/T,y:(sy/cam.z+cam.y)/T}}
@@ -1541,7 +1565,7 @@ function renderPanel(force){if(!G)return;const es=selEnts();selIds=es.map(e=>e.i
    if(e.type!=='tc'&&!d.wall)acts+=btn('reloc',ico('move'),'搬移','',moveBlock(e)?'na':'');
    acts+=btn('desel',ico('back'),'取消選取','')}
   else{info=`<div class="big">${ico(e.type)}</div><div class="nm" style="color:#ff9090">${isEnemy(ME,e.o)?'敵方':'盟友'}${PNAME[e.o]}${CIVS[civOf(e.o)]?'（'+CIVS[civOf(e.o)].n+'）':''}・${e.kind==='u'?uname(e.o,e.type):e.def.n}</div><div class="hp"><div style="width:${e.hp/e.maxhp*100}%;background:#ef4444"></div></div><div>❤️${Math.ceil(e.hp)}/${e.maxhp}</div>`;acts=btn('desel',ico('back'),'取消選取','')}}
- const sig=info+'|'+acts;if(!force&&sig===lastSig)return;lastSig=sig;$('info').innerHTML=info;$('acts').innerHTML=acts;layout()}
+ const sig=info+'|'+acts;if(!force&&sig===lastSig)return;lastSig=sig;const selKey=selIds.join(',');const keep=G.panelKey===selKey?$('acts').scrollLeft:0;G.panelKey=selKey;$('bottom').classList.toggle('slim',!es.length&&!placing);$('info').innerHTML=info;$('acts').innerHTML=acts;$('acts').scrollLeft=keep;layout()}
 function onAct(a){const P=players[ME];const es=selEnts();
  if(a==='tab'){buildTab^=1}
  else if(a==='amove'){G.amove=G.amove?0:1;toast(G.amove?'攻擊移動：開（行軍途中遇敵就開打）':'攻擊移動：關（只走路，不理敵人）')}
@@ -1575,6 +1599,11 @@ function onAct(a){const P=players[ME];const es=selEnts();
  else if(a.startsWith('tech:')){const k=a.slice(5);if(P.age<TECHS[k].age){toast('需要'+AGES[TECHS[k].age]+'：'+TECHS[k].n+'（'+TECHS[k].d+'）');return}if(!afford(ME,TECHS[k].cost)){toast('資源不足：缺 '+lackTxt(ME,TECHS[k].cost));return}act({t:'tech',b:es[0].id,k})}
  else if(a.startsWith('q:')){const b=es[0];const k=+a.slice(2);if(b&&b.queue[k])act({t:'cq',b:b.id,k})}
  lastSig='';renderPanel(true)}
+$('acts').addEventListener('scroll',actDotsUpd,{passive:true});
+$('actDots').addEventListener('click',e=>{const i=[...$('actDots').children].indexOf(e.target);if(i>=0)$('acts').scrollTo({left:i*$('acts').clientWidth,behavior:'smooth'})});
+{let off=false;try{off=localStorage.getItem('ke_mm')==='0'}catch(e){}document.body.classList.toggle('mmoff',off)}
+$('mmMin').onclick=e=>{e.stopPropagation();document.body.classList.add('mmoff');try{localStorage.setItem('ke_mm','0')}catch(_){}};
+$('mmDot').onclick=e=>{e.stopPropagation();document.body.classList.remove('mmoff');$('mmDot').classList.remove('alert');try{localStorage.setItem('ke_mm','1')}catch(_){};G&&drawMinimap()};
 document.getElementById('bottom').addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(b){sfx('click');onAct(b.dataset.a)}});
 let toastT=0;function toast(s){const t=$('toast');t.textContent=s;t.style.opacity=1;clearTimeout(toastT);toastT=setTimeout(()=>t.style.opacity=0,2200)}
 let idleIdx=0;
@@ -1636,6 +1665,7 @@ function showEnd(){if(NET.on)try{sessionStorage.removeItem('ke_room')}catch(e){}
  $('endS').innerHTML=(G.hostLeft?'房主已離線，遊戲結束<br>':'')+`時間 ${fmtT(gt)}・難度 ${DIFF[G.diff].n}${NET.on?'・連線對戰':''}<br>到達 ${AGES[P.age]}・訓練 ${P.trained} 個單位・擊殺 ${P.kills}`;$('ovEnd').classList.add('show')}
 function fmtN(n){n=Math.floor(n);return n>=10000?(n/10000).toFixed(n>=100000?0:1)+'萬':String(n)}
 function updTop(){const P=players[ME];$('rf').textContent=fmtN(P.res.food);$('rw').textContent=fmtN(P.res.wood);$('rg').textContent=fmtN(P.res.gold);$('rs').textContent=fmtN(P.res.stone);
+ $('mmDot').classList.toggle('alert',!!(G&&gt-(G['la'+ME]??-99)<5&&document.body.classList.contains('mmoff')));
  const pu=popUsed(ME);$('rp').textContent=G&&G.camp?String(pu):pu+'/'+P.cap;$('rp').style.color=!(G&&G.camp)&&pu>=P.cap?'#ff8080':'';{const el=$('age');const txt=(VW<500?AGES[P.age].slice(0,2):AGES[P.age]);const crown=P.age===3;if(el.dataset.a!=String(P.age)){if(el.dataset.a!=null)el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1500);el.dataset.a=P.age}el.className='age'+P.age+(el.classList.contains('flash')?' flash':'');
   let prog=0;if(P.aging){const tc=blds.find(b=>b.o===ME&&b.type==='tc'&&b.queue.some(q=>q.k==='age'));const q=tc&&tc.queue.find(q=>q.k==='age');if(q&&tc.queue[0]===q)prog=q.p/q.t}
   el.innerHTML=(crown?'<small>👑</small>':'')+txt+(P.aging?'<i style="width:'+Math.round(prog*100)+'%"></i>':'')}$('clock').textContent=fmtT(gt);
