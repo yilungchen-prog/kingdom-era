@@ -348,7 +348,7 @@ body.mmoff #mm,body.mmoff #mmMin{display:none!important}body.mmoff #mmDot{displa
 
 <script>
 'use strict';
-const VERSION='2026-11-23h';
+const VERSION='2026-11-23i';
 // ================= constants =================
 const W=80,H=80,T=32,NN=W*H,STEP=0.05,CAP=10,MAXPOP=150,TER=9;
 const TEAMA=['rgba(59,130,246,.5)','rgba(239,68,68,.5)','rgba(34,197,94,.5)','rgba(234,179,8,.55)'];
@@ -396,9 +396,9 @@ const UPG={longbow:[[3,'精銳長弓兵',{hp:5,atk:1,rng:.5}]],axeman:[[3,'精�
 const BLDS={
  tc:{n:'城鎮中心',ic:'🏰',s:3,gar:15,hp:2400,cost:{wood:400,stone:200},age:2,tech:['wheel','masonry'],drop:['food','wood','gold','stone'],train:['villager'],atk:5,rng:6,los:8},
  house:{n:'房屋',ic:'🏠',s:1,hp:550,cost:{wood:40},age:0,pop:5,los:3},
- lumber:{n:'伐木場',ic:'🪓',s:1,hp:600,cost:{wood:120},age:0,tech:['axe2','saw'],drop:['wood'],los:4},
+ lumber:{n:'伐木場',ic:'🪓',s:2,hp:600,cost:{wood:120},age:0,tech:['axe2','saw'],drop:['wood'],los:4},
  mill:{n:'磨坊',ic:'🌾',s:2,hp:600,cost:{wood:120},age:0,tech:['plow','collar'],drop:['food'],los:4},
- mine:{n:'採礦場',ic:'⛏️',s:1,hp:600,cost:{wood:120},age:0,tech:['goldm','stonem'],drop:['gold','stone'],los:4},
+ mine:{n:'採礦場',ic:'⛏️',s:2,hp:600,cost:{wood:120},age:0,tech:['goldm','stonem'],drop:['gold','stone'],los:4},
  farm:{n:'農田',ic:'🌱',s:2,hp:300,cost:{wood:80},age:0,farm:1,req:'mill',los:2},
  barracks:{n:'兵營',ic:'⚔️',s:2,gar:10,hp:1200,cost:{wood:200},age:0,train:['militia','spear'],los:4},
  archery:{n:'射箭場',ic:'🎯',s:2,gar:10,hp:1200,cost:{wood:220},age:1,train:['archer'],req:'barracks',los:4},
@@ -409,7 +409,7 @@ const BLDS={
  market:{n:'市場',ic:'⚖️',s:2,hp:1400,cost:{wood:175},age:1,market:1,los:4},
  palisade:{n:'木柵欄',ic:'🪵',s:1,hp:250,cost:{wood:4},age:0,wall:1,los:2},
  swall:{n:'石牆',ic:'🧱',s:1,hp:1500,cost:{stone:6},age:1,wall:1,los:2},
- tower:{n:'箭塔',ic:'🗼',s:1,gar:5,hp:1000,cost:{wood:100,stone:175},age:1,atk:6,rng:7,los:8},
+ tower:{n:'箭塔',ic:'🗼',s:2,gar:5,hp:1000,cost:{wood:100,stone:175},age:1,atk:6,rng:7,los:8},
 };
 const ECO=['farm','house','mill','lumber','mine','dock','market','tc'],MIL=['barracks','tower','palisade','swall','archery','stable','smith','hosp'];
 const GATE_COST={palisade:{wood:20},swall:{stone:25}};
@@ -451,6 +451,7 @@ function storyEnd(){try{speechSynthesis.cancel()}catch(e){}$('ovStory').classLis
 function campStart(cid,mi){const M=CAMP[cid].missions[mi];audioInit();clearSave();$('ovCamp').classList.remove('show');$('ovStart').classList.remove('show');$('ovEnd').classList.remove('show');
  playStory(M.intro,()=>{M.setup();G.camp.cid=cid;G.camp.mi=mi;running=true;paused=false;objRender();toast('🎯 '+G.camp.obj[0].t)})}
 function campClear(){for(const b of blds)for(let y=b.ty;y<b.ty+b.s;y++)for(let x=b.tx;x<b.tx+b.s;x++)bldAt[idx(x,y)]=-1;units=[];blds=[];plans=[];ents=new Map();fx=[];for(let i=0;i<NN;i++)updBlk(i);explored.fill(0)}
+function campSpot(x,y,sz){for(let r=0;r<8;r++)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){if(Math.max(Math.abs(dx),Math.abs(dy))!==r)continue;const tx=Math.floor(x+dx-sz/2+.5),ty=Math.floor(y+dy-sz/2+.5);let ok=true;for(let yy=ty-1;yy<ty+sz+1&&ok;yy++)for(let xx=tx-1;xx<tx+sz+1;xx++){if(!inb(xx,yy)||blk[idx(xx,yy)]||bldAt[idx(xx,yy)]>=0){ok=false;break}}if(ok)return{tx,ty}}return null}
 function campJoan1(){newGame('normal',20261123,3,'ffa',0,'std','arabia');
  const tcs=[0,1,2].map(o=>blds.find(b=>b.o===o&&b.type==='tc'));const A={x:tcs[0].x,y:tcs[0].y},B={x:tcs[1].x,y:tcs[1].y};
  campClear();TEAMS=[0,1,0];AIS=[null,null,null];players.forEach((P,o)=>{P.civ=['frank','brit','frank'][o];P.age=1;P.res={food:0,wood:0,gold:0,stone:0};P.cap=150});
@@ -458,11 +459,11 @@ function campJoan1(){newGame('normal',20261123,3,'ffa',0,'std','arabia');
  const put=(o,type,f,off,n)=>{const out=[];for(let k=0;k<n;k++){const p=at(f,off+(k%3-1)*.9+(Math.floor(k/3))*.2);const q=nearestFree(p.x+(Math.floor(k/3))*.9,p.y);out.push(addUnit(o,type,q.x,q.y))}return out};
  const joan=put(0,'joan',.04,0,1)[0];put(0,'militia',.05,1.5,4);put(0,'archer',.02,-1.5,3);put(0,'spear',.03,2.5,2);
  // Chinon
- const ct=nearestFree(B.x,B.y);const tc=addBld(2,'tc',Math.round(ct.x-1.5),Math.round(ct.y-1.5));for(const [dx,dy] of [[-3,-1],[3,2]]){const p=nearestFree(tc.x+dx,tc.y+dy);addBld(2,'tower',Math.floor(p.x),Math.floor(p.y))}
+ const ct=nearestFree(B.x,B.y);const tc=addBld(2,'tc',Math.round(ct.x-1.5),Math.round(ct.y-1.5));for(const [dx,dy] of [[-4,-1],[4,2]]){const sp=campSpot(tc.x+dx,tc.y+dy,2);if(sp)addBld(2,'tower',sp.tx,sp.ty)}
  put(2,'knight',.95,-3,2);
  // English camps along the road
  put(1,'militia',.28,4,4);put(1,'archer',.3,5.5,2);
- {const p=at(.5,-5);addBld(1,'tower',Math.floor(p.x),Math.floor(p.y))}put(1,'spear',.48,-3,3);put(1,'archer',.52,-4,3);
+ {const p=at(.5,-5);const sp=campSpot(p.x,p.y,2);if(sp)addBld(1,'tower',sp.tx,sp.ty)}put(1,'spear',.48,-3,3);put(1,'archer',.52,-4,3);
  put(1,'scout',.58,2,3);
  put(1,'militia',.72,3,5);put(1,'knight',.74,4.5,1);put(1,'archer',.7,1.5,3);
  for(const u of units)if(u.o===1)u.home={x:u.x,y:u.y};
@@ -1827,7 +1828,7 @@ function unb64(str,a){const bin=atob(str);const b=new Uint8Array(a.buffer);for(l
 function saveGame(){if(!G||G.over||!running||NET.on||G.camp)return;try{
  const data={v:2,map:G.map,np:NP,teams:TEAMS,mode:G.mode,amove:G.amove,ver:VERSION,seed:G.seed,diff:G.diff,gt,nid,speed:G.speed,players,AIS,cam:{x:cam.x,y:cam.y,z:cam.z},rt:b64(resType),ra:b64(resAmt),ex:b64(explored),
   plans:plans.map(p=>({o:p.o,type:p.type,tx:p.tx,ty:p.ty,stack:p.stack||0,n:p.n||1})),
-  blds:blds.filter(b=>!b.dead).map(b=>({id:b.id,o:b.o,type:b.type,tx:b.tx,ty:b.ty,hp:b.hp,maxhp:b.maxhp,cnt:b.cnt||1,queue:b.queue,rally:b.rally,farmer:b.farmer,cargo:b.cargo&&b.cargo.length?b.cargo:undefined,gate:b.gate||0})),
+  blds:blds.filter(b=>!b.dead).map(b=>({id:b.id,o:b.o,type:b.type,tx:b.tx,ty:b.ty,s:b.s,hp:b.hp,maxhp:b.maxhp,cnt:b.cnt||1,queue:b.queue,rally:b.rally,farmer:b.farmer,cargo:b.cargo&&b.cargo.length?b.cargo:undefined,gate:b.gate||0})),
   units:units.filter(u=>!u.dead).map(u=>{let t=u.task;if(t&&t.k==='build'){const pi=plans.indexOf(t.p);t=pi>=0?{k:'build',pi,prev:t.prev||null}:(t.prev||null)}else if(t&&t.k==='move')t=null;
    return{id:u.id,o:u.o,type:u.type,x:u.x,y:u.y,hp:u.hp,maxhp:u.maxhp,inShip:u.inShip||0,gprev:u.gprev||null,cargo:u.cargo,task:t,carry:u.carry,ctype:u.ctype,face:u.face,fem:u.fem}})};
  localStorage.setItem(SAVE_KEY,JSON.stringify(data))}catch(e){}}
@@ -1837,7 +1838,7 @@ function resumeGame(d){
  G={diff:d.diff,over:false,win:false,shade:null,speed:d.speed||1,auto0:false,seed:d.seed,np:d.np,mode:d.mode,amove:d.amove??1};NP=d.np;TEAMS=d.teams;ME=0;
  units=[];blds=[];plans=[];ents=new Map();fx=[];marks=[];pings=[];gt=d.gt;nid=d.nid;players=d.players;
  genMap(d.seed,d.map);unb64(d.rt,resType);unb64(d.ra,resAmt);unb64(d.ex,explored);bldAt.fill(-1);
- for(const sb of d.blds){const def=BLDS[sb.type];const b=Object.assign({kind:'b',def,s:def.s,x:sb.tx+def.s/2,y:sb.ty+def.s/2,cd:0,born:-9,flash:0,hitT:0},sb);ents.set(b.id,b);blds.push(b);
+ for(const sb of d.blds){const def=BLDS[sb.type];const sz=sb.s||((sb.type==='lumber'||sb.type==='mine'||sb.type==='tower')?1:def.s);sb.s=sz;const b=Object.assign({kind:'b',def,s:sz,x:sb.tx+sz/2,y:sb.ty+sz/2,cd:0,born:-9,flash:0,hitT:0},sb);ents.set(b.id,b);blds.push(b);
   for(let y=b.ty;y<b.ty+b.s;y++)for(let x=b.tx;x<b.tx+b.s;x++)bldAt[idx(x,y)]=b.id}
  for(let i=0;i<NN;i++)updBlk(i);
  plans=d.plans.map(p=>Object.assign({},p));
