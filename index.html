@@ -89,6 +89,9 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 .seat .dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px}
 .seat small{opacity:.7;margin-left:6px}
 #ovNet{z-index:21;background:#140d06f5}
+.helpbtn{position:absolute;top:calc(env(safe-area-inset-top) + 10px);right:calc(env(safe-area-inset-right) + 10px);padding:6px 12px!important;font-size:14px!important;min-width:0!important}
+#ovHelp{z-index:23;background:#140d06f7;justify-content:flex-start}
+#ovHelp .help{font-size:14px}
 .ov .ver{font-size:11px;opacity:.5;margin-top:10px}
 </style>
 </head>
@@ -110,6 +113,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 <button id="upd">🔄 有新版本，點這裡更新</button>
 
 <div class="ov show" id="ovStart">
+ <button id="bhelp" class="helpbtn">❓ 說明</button>
  <h1>王國紀元</h1>
  <h2>中世紀即時戰略・手機版</h2>
  <div>人數</div>
@@ -123,19 +127,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
  <button class="go" id="bstart">開始新遊戲</button>
  <button id="bnet" class="netbtn">🌐 連線對戰</button>
  <button id="bart" class="artbtn">🎨 上傳美術圖</button>
- <div class="help">
- <b>目標：</b>摧毀所有敵方的城鎮中心<span data-ic="tc"></span>，城鎮中心被摧毀的一方就出局。<br>
- <b>攻擊移動</b>（預設開）：選軍隊後點地面，行軍途中遇到敵人會自動開打。<br>
- <b>點一下</b>單位＝選取；<b>連點兩下</b>＝選取畫面上同類單位。<br>
- 選了單位後<b>點地面</b>＝移動、<b>點資源</b>＝採集、<b>點敵人</b>＝攻擊。<br>
- <b>單指拖曳</b>＝移動畫面；<b>雙指</b>＝縮放；<b>按住空白處，出現圓圈後拖曳</b>＝框選士兵。<br>
- 選了建築後點地面＝設定集結點<span data-ic="flag"></span>。點小地圖可快速跳轉。<br>
- 建築：村民走到現場後<b>瞬間完成</b>，只能蓋在自己領地內。<br>
- 相剋：<span data-ic="spear"></span>長槍兵剋騎兵、<span data-ic="scout"></span>騎兵剋弓兵、<span data-ic="archer"></span>弓兵剋長槍兵。<br>
- 人口上限＝房屋數 × 5，人口滿了就要再蓋房屋。<br>
- 暫停選單裡可切換聲音（全開／只有音效／靜音）和遊戲速度。<br>
- 建議把手機<b>橫放</b>遊玩。
- </div>
+
  <div class="ver" id="ver"></div>
 </div>
 <div class="ov" id="ovArt">
@@ -170,12 +162,31 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
  <div id="netMsg" style="min-height:22px;font-size:13px;color:#ffd27a;margin-top:8px;max-width:420px"></div>
  <div style="font-size:12px;opacity:.6;max-width:420px;margin-top:6px">連線對戰要用 GitHub 網址開啟。房主的手機負責運算，遊戲中請房主不要切到別的 App。</div>
 </div>
+<div class="ov" id="ovHelp">
+ <h1 style="font-size:28px">遊戲說明</h1>
+ <div class="help" style="margin-top:4px">
+ <b>目標：</b>摧毀所有敵方的城鎮中心<span data-ic="tc"></span>，城鎮中心被摧毀的一方就出局。<br>
+ <b>攻擊移動</b>（預設開）：選軍隊後點地面，行軍途中遇到敵人會自動開打。<br>
+ <b>點一下</b>單位＝選取；<b>連點兩下</b>＝選取畫面上同類單位。<br>
+ 選了單位後<b>點地面</b>＝移動、<b>點資源</b>＝採集、<b>點敵人</b>＝攻擊。<br>
+ <b>單指拖曳</b>＝移動畫面；<b>雙指</b>＝縮放；<b>按住空白處，出現圓圈後拖曳</b>＝框選士兵。<br>
+ 選了建築後點地面＝設定集結點<span data-ic="flag"></span>。點小地圖可快速跳轉。<br>
+ 建築：村民走到現場後<b>瞬間完成</b>，只能蓋在自己領地內。<br>
+ 科技：鐵匠鋪（武器、盔甲）、醫護所（回血、生命）、城鎮中心和伐木場、磨坊、採礦場都可以研究升級。<br>
+ 房屋：第二間起會直接加蓋在原本的房屋上（最多 20 間）。<br>
+ 相剋：<span data-ic="spear"></span>長槍兵剋騎兵、<span data-ic="scout"></span>騎兵剋弓兵、<span data-ic="archer"></span>弓兵剋長槍兵。<br>
+ 人口上限＝房屋數 × 5，人口滿了就要再蓋房屋。<br>
+ 暫停選單裡可切換聲音（全開／只有音效／靜音）和遊戲速度。<br>
+ 建議把手機<b>橫放</b>遊玩。
+ </div>
+ <div class="row"><button class="go" id="helpClose">關閉</button></div>
+</div>
 <div class="ov" id="ovMenu">
  <h1>暫停</h1>
  <h2 id="menuInfo"></h2>
  <div class="row"><button id="bresume" class="go">繼續</button></div>
  <div class="row"><button id="bsnd"></button><button id="bspeed">速度 1x</button></div>
- <div class="row"><button id="brestart">重新開始</button></div>
+ <div class="row"><button id="bhelp2">❓ 遊戲說明</button><button id="brestart">重新開始</button></div>
 </div>
 <div class="ov" id="ovEnd">
  <h1 id="endT">勝利</h1>
@@ -185,7 +196,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 
 <script>
 'use strict';
-const VERSION='2026-11-21b';
+const VERSION='2026-11-21c';
 // ================= constants =================
 const W=80,H=80,T=32,NN=W*H,STEP=0.05,CAP=10,MAXPOP=100,TER=9;
 const TEAM=['#3b82f6','#ef4444','#22c55e','#eab308'],TEAMD=['#1e3a8a','#7f1d1d','#14532d','#713f12'],TEAML=['#a0c8ff','#ff9090','#90f0a0','#ffe680'];
@@ -218,22 +229,53 @@ const UNITS={
 };
 const UPG={militia:[[2,'長劍士',{hp:15,atk:3}]],spear:[[2,'長矛兵',{hp:10,atk:2}]],archer:[[2,'弩手',{hp:5,atk:1,rng:.5}]],scout:[[2,'輕騎兵',{hp:20,atk:2}]],knight:[[3,'聖騎士',{hp:40,atk:3,arm:1}]]};
 const BLDS={
- tc:{n:'城鎮中心',ic:'🏰',s:3,hp:2400,cost:{wood:400,stone:200},age:2,drop:['food','wood','gold','stone'],train:['villager'],atk:5,rng:6,los:8},
+ tc:{n:'城鎮中心',ic:'🏰',s:3,hp:2400,cost:{wood:400,stone:200},age:2,tech:['wheel','masonry'],drop:['food','wood','gold','stone'],train:['villager'],atk:5,rng:6,los:8},
  house:{n:'房屋',ic:'🏠',s:1,hp:550,cost:{wood:40},age:0,pop:5,los:3},
- lumber:{n:'伐木場',ic:'🪓',s:1,hp:600,cost:{wood:120},age:0,drop:['wood'],los:4},
- mill:{n:'磨坊',ic:'🌾',s:1,hp:600,cost:{wood:120},age:0,drop:['food'],los:4},
- mine:{n:'採礦場',ic:'⛏️',s:1,hp:600,cost:{wood:120},age:0,drop:['gold','stone'],los:4},
+ lumber:{n:'伐木場',ic:'🪓',s:1,hp:600,cost:{wood:120},age:0,tech:['axe2','saw'],drop:['wood'],los:4},
+ mill:{n:'磨坊',ic:'🌾',s:1,hp:600,cost:{wood:120},age:0,tech:['plow','collar'],drop:['food'],los:4},
+ mine:{n:'採礦場',ic:'⛏️',s:1,hp:600,cost:{wood:120},age:0,tech:['goldm','stonem'],drop:['gold','stone'],los:4},
  farm:{n:'農田',ic:'🌱',s:2,hp:300,cost:{wood:80},age:0,farm:1,req:'mill',los:2},
  barracks:{n:'兵營',ic:'⚔️',s:2,hp:1200,cost:{wood:200},age:0,train:['militia','spear'],los:4},
  archery:{n:'射箭場',ic:'🎯',s:2,hp:1200,cost:{wood:220},age:1,train:['archer'],req:'barracks',los:4},
  stable:{n:'馬廄',ic:'🐴',s:2,hp:1200,cost:{wood:220},age:1,train:['scout','knight'],req:'barracks',los:4},
- smith:{n:'鐵匠鋪',ic:'⚒️',s:2,hp:1200,cost:{wood:180},age:1,tech:['forge','armor'],los:4},
+ smith:{n:'鐵匠鋪',ic:'⚒️',s:2,hp:1200,cost:{wood:180},age:1,tech:['forge','iron','blast','fletch','bodkin','bracer','scale','chain','plate'],los:4},
+ hosp:{n:'醫護所',ic:'🏥',s:2,hp:1000,cost:{wood:175,gold:50},age:1,tech:['fit','herb','chiv'],heal:5,los:5},
  tower:{n:'箭塔',ic:'🗼',s:1,hp:1000,cost:{wood:100,stone:175},age:1,atk:6,rng:7,los:8},
 };
-const ECO=['house','lumber','mill','mine','farm','tc'],MIL=['barracks','archery','stable','smith','tower'];
-const TECHS={forge:{n:'鍛造',ic:'🔥',cost:{food:150,gold:50},t:30,d:'軍隊攻擊+1'},armor:{n:'鎖子甲',ic:'🛡️',cost:{food:150,gold:100},t:30,d:'軍隊防禦+1'}};
+const ECO=['house','lumber','mill','mine','farm','tc'],MIL=['barracks','archery','stable','smith','hosp','tower'];
+const HOUSE_MAX=20;
+const TECHS={
+ forge:{n:'鍛造',ic:'forge',age:1,cost:{food:150,gold:50},t:30,d:'近戰攻擊+1'},
+ iron:{n:'鐵鑄',ic:'forge',age:2,req:'forge',cost:{food:220,gold:120},t:40,d:'近戰攻擊+1'},
+ blast:{n:'高爐',ic:'forge',age:3,req:'iron',cost:{food:300,gold:225},t:50,d:'近戰攻擊+2'},
+ fletch:{n:'箭羽',ic:'archer',age:1,cost:{food:100,wood:50},t:30,d:'弓兵與箭塔攻擊+1'},
+ bodkin:{n:'錐形箭',ic:'archer',age:2,req:'fletch',cost:{food:200,wood:100},t:40,d:'弓兵與箭塔攻擊+1、射程+0.5'},
+ bracer:{n:'穿甲箭',ic:'archer',age:3,req:'bodkin',cost:{food:300,wood:200},t:50,d:'弓兵與箭塔攻擊+2'},
+ scale:{n:'鱗甲',ic:'armor',age:1,cost:{food:100,gold:50},t:30,d:'所有士兵防禦+1'},
+ chain:{n:'鎖子甲',ic:'armor',age:2,req:'scale',cost:{food:200,gold:120},t:40,d:'所有士兵防禦+1'},
+ plate:{n:'板甲',ic:'armor',age:3,req:'chain',cost:{food:300,gold:200},t:50,d:'所有士兵防禦+2'},
+ fit:{n:'強身訓練',ic:'heart',age:2,cost:{food:250,gold:100},t:40,d:'所有士兵生命+15%'},
+ herb:{n:'草藥學',ic:'herb',age:2,cost:{food:200,gold:120},t:40,d:'士兵在任何地方都會慢慢回血'},
+ chiv:{n:'騎士精神',ic:'heart',age:3,req:'fit',cost:{food:350,gold:250},t:50,d:'所有士兵生命再+15%'},
+ masonry:{n:'城牆加固',ic:'wall',age:2,cost:{wood:200,stone:150},t:45,d:'所有建築生命+30%'},
+ wheel:{n:'手推車',ic:'cart',age:1,cost:{food:175,wood:50},t:35,d:'村民攜帶量+5、移動速度+10%'},
+ axe2:{n:'雙刃斧',ic:'axe',age:1,cost:{food:100,wood:50},t:25,d:'砍樹速度+15%'},
+ saw:{n:'弓鋸',ic:'axe',age:2,req:'axe2',cost:{food:150,wood:100},t:35,d:'砍樹速度+15%'},
+ plow:{n:'重犁',ic:'farm',age:1,cost:{food:75,wood:75},t:25,d:'農田產量+15%'},
+ collar:{n:'馬軛',ic:'farm',age:2,req:'plow',cost:{food:125,wood:125},t:35,d:'農田產量+15%'},
+ goldm:{n:'採金術',ic:'gold',age:1,cost:{food:100,wood:75},t:30,d:'挖金速度+15%'},
+ stonem:{n:'採石術',ic:'stone',age:1,cost:{food:100,wood:75},t:30,d:'採石速度+15%'},
+};
+function techOk(o,k){const P=players[o],d=TECHS[k];return d&&!P.tech[k]&&P.age>=d.age&&(!d.req||P.tech[d.req])}
+function techQueued(o,k){return blds.some(b=>b.o===o&&!b.dead&&b.queue.some(q=>q.k==='tech'&&q.type===k))}
+function tsum(o,list){let v=0;for(const [k,n] of list)if(players[o].tech[k])v+=n;return v}
+const MELEE_T=[['forge',1],['iron',1],['blast',2]],RANGE_T=[['fletch',1],['bodkin',1],['bracer',2]],ARM_T=[['scale',1],['chain',1],['plate',2]];
+function bldMult(o){return players[o]&&players[o].tech.masonry?1.3:1}
+function carryCap(o){return CAP+(players[o].tech.wheel?5:0)}
+function ecoMult(o,rt){const T=players[o].tech;return rt===1?1+(T.axe2?.15:0)+(T.saw?.15:0):rt===3?1+(T.goldm?.15:0):rt===4?1+(T.stonem?.15:0):1}
+function farmMult(o){const T=players[o].tech;return 1+(T.plow?.15:0)+(T.collar?.15:0)}
 // optional image assets: put PNG files in img/ with these names; missing ones fall back to built-in drawing
-const ASSET_KEYS=['villager','villager_f','militia2','militia','spear','archer','scout','knight','tc','house','lumber','mill','mine','farm','barracks','archery','stable','smith','tower','tree','berry','gold','stone','grass'];
+const ASSET_KEYS=['villager','villager_f','militia2','hosp','militia','spear','archer','scout','knight','tc','house','lumber','mill','mine','farm','barracks','archery','stable','smith','tower','tree','berry','gold','stone','grass'];
 const IMG={};
 // image sources: built-in drawing < GitHub img/ (list.json) < Supabase (uploaded art)
 const SB_URL='https://bspbwzjcxduloneserea.supabase.co',SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzcGJ3empjeGR1bG9uZXNlcmVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxNzYyNjQsImV4cCI6MjEwODc1MjI2NH0.hPRln_BSwzxxEfKX104LCLOOk_6jUFYBv9YU7LxKnrA';
@@ -294,6 +336,11 @@ const IC={
  flag:'<path d="M6 21.5V3" stroke-width="2.2"/><path d="M6.5 3.5h12l-3 4 3 4h-12z" fill="#d23a2a"/>',
  basket:'<path d="M4 10.5h16l-2.2 9.5H6.2z" fill="#c8a165"/><path d="M7.5 10.5c0-4.6 9-4.6 9 0" fill="none" stroke-width="1.8"/><circle cx="9.5" cy="10" r="1.6" fill="#c2185b"/><circle cx="12.5" cy="9.5" r="1.6" fill="#c2185b"/><circle cx="15" cy="10.2" r="1.4" fill="#c2185b"/><path d="M6.5 14h11M7.2 17h9.6" stroke-width=".8"/>',
  axe:'<path d="M7 20.5 16 6" stroke-width="2.8"/><path d="M7 20.5 16 6" stroke="#c48a45" stroke-width="1.2"/><path d="M13.8 4.6c3.2-1.6 6.3.3 6.3.3l-1.8 5.2s-3.1-1.2-5.6-.5z" fill="#d3d8de"/>',
+ hosp:'<path d="M3.5 21V8.5L12 3l8.5 5.5V21z" fill="#f3ead8"/><rect x="9.5" y="9" width="5" height="11" fill="#d23a2a" stroke="none"/><rect x="7" y="11.5" width="10" height="5" fill="#d23a2a" stroke="none"/>',
+ heart:'<path d="M12 20.5C5 15.5 2.5 12 2.5 8.6 2.5 5.8 4.7 3.8 7.3 3.8c2 0 3.6 1.1 4.7 2.8 1.1-1.7 2.7-2.8 4.7-2.8 2.6 0 4.8 2 4.8 4.8 0 3.4-2.5 6.9-9.5 11.9z" fill="#e23b4e"/><path d="M6.5 8.2c.3-1.4 1.3-2.2 2.5-2.3" fill="none" stroke="#ffb3bd" stroke-width="1.4"/>',
+ herb:'<path d="M12 21.5V10" stroke-width="1.8"/><path d="M12 13C7 13 4.5 9.5 4.5 5c4.5 0 7.5 3 7.5 8zM12 11.5c0-4.5 3-7.5 7.5-7.5 0 4.5-2.5 8-7.5 7.5z" fill="#4caf50"/><path d="M12 17c-3 0-5-1.5-5.5-4 3 0 5 1.5 5.5 4z" fill="#81c784"/>',
+ wall:'<rect x="2.5" y="6" width="19" height="14" fill="#b9a07a"/><path d="M2.5 10.7h19M2.5 15.3h19M8.8 6v4.7M15.2 6v4.7M5.6 10.7v4.6M12 10.7v4.6M18.4 10.7v4.6M8.8 15.3V20M15.2 15.3V20" fill="none" stroke-width="1"/><path d="M2.5 6V3.5h3V6M9 6V3.5h3V6M15.5 6V3.5h3V6" fill="#b9a07a"/>',
+ cart:'<path d="M3 8h13l-1.5 7H4.5z" fill="#c48a45"/><path d="M16 8l3-3h2.5" fill="none" stroke-width="1.6"/><circle cx="7" cy="18.5" r="2.3" fill="#606a75"/><circle cx="13" cy="18.5" r="2.3" fill="#606a75"/><path d="M5 11h9" stroke-width="1"/>',
  tree:'<path d="M12 2.5 19 13H5z" fill="#2e7a38"/><path d="M12 7 20 18H4z" fill="#246b2e"/><rect x="10.8" y="18" width="2.4" height="3.5" fill="#7a4a24"/>',
  berry:'<circle cx="8" cy="14" r="5" fill="#3a7d33"/><circle cx="16" cy="14" r="5" fill="#3a7d33"/><circle cx="12" cy="9.5" r="5" fill="#3a7d33"/><g fill="#c2185b"><circle cx="9" cy="12" r="1.4"/><circle cx="14.5" cy="10" r="1.4"/><circle cx="15.5" cy="15" r="1.4"/><circle cx="10.5" cy="16" r="1.4"/></g>',
 };
@@ -364,11 +411,14 @@ function drawTerrain(){
 
 // ================= entities =================
 function stat(o,type,k){const d=UNITS[type];let v=d[k]||0;const P=players[o];(UPG[type]||[]).forEach(([a,n,m])=>{if(P.age>=a&&m[k])v+=m[k]});
- if(!d.vil){if(k==='atk'){if(P.tech.forge)v+=1;if(P.age>=3)v+=1}if(k==='arm'&&P.tech.armor)v+=1}return v}
+ if(!d.vil){if(k==='atk'){v+=d.rng?tsum(o,RANGE_T):tsum(o,MELEE_T);if(P.age>=3)v+=1}if(k==='arm')v+=tsum(o,ARM_T);if(k==='rng'&&d.rng&&P.tech.bodkin)v+=.5;
+  if(k==='hp')v=Math.round(v*(1+(P.tech.fit?.15:0)+(P.tech.chiv?.15:0)))}
+ if(d.vil&&k==='spd'&&P.tech.wheel)v*=1.1;return v}
 function uname(o,type){let n=UNITS[type].n;(UPG[type]||[]).forEach(([a,nn])=>{if(players[o].age>=a)n=nn});return n}
 function refreshStats(o){for(const u of units)if(u.o===o){const m=stat(o,u.type,'hp');if(m>u.maxhp)u.hp+=m-u.maxhp;u.maxhp=m}}
+function hpUnit(b){return Math.round(b.def.hp*bldMult(b.o))}
 function addBld(o,type,tx,ty){
- const d=BLDS[type];const b={id:++nid,kind:'b',o,type,def:d,tx,ty,s:d.s,x:tx+d.s/2,y:ty+d.s/2,hp:d.hp,maxhp:d.hp,queue:[],rally:null,cd:0,farmer:0,born:gt,flash:0};
+ const d=BLDS[type];const hp0=Math.round(d.hp*bldMult(o));const b={id:++nid,kind:'b',o,type,def:d,tx,ty,s:d.s,x:tx+d.s/2,y:ty+d.s/2,hp:hp0,maxhp:hp0,queue:[],rally:null,cd:0,farmer:0,born:gt,flash:0,cnt:1};
  ents.set(b.id,b);blds.push(b);
  for(let y=ty;y<ty+d.s;y++)for(let x=tx;x<tx+d.s;x++){const i=idx(x,y);bldAt[i]=b.id;updBlk(i)}
  if(!d.farm)for(const u of units){if(u.x>=tx-.2&&u.x<=tx+d.s+.2&&u.y>=ty-.2&&u.y<=ty+d.s+.2){const p=nearestFree(u.x,u.y);u.x=p.x;u.y=p.y;u.path.length=0}}
@@ -381,7 +431,9 @@ function nearestFree(x,y){const cx=Math.floor(x),cy=Math.floor(y);
  for(let r=0;r<12;r++)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){if(Math.max(Math.abs(dx),Math.abs(dy))!==r)continue;const nx=cx+dx,ny=cy+dy;if(inb(nx,ny)&&!blk[idx(nx,ny)])return{x:nx+.5,y:ny+.5}}
  return{x,y}}
 function popUsed(o){let n=0;for(const u of units)if(u.o===o)n++;for(const b of blds)if(b.o===o&&b.queue[0]&&b.queue[0].k==='u'&&b.queue[0].started)n++;return n}
-function popCap(o){let n=0;for(const b of blds)if(b.o===o&&b.def.pop)n+=b.def.pop;return Math.min(MAXPOP,n)}
+function popCap(o){let n=0;for(const b of blds)if(b.o===o&&!b.dead&&b.def.pop)n+=b.def.pop*(b.cnt||1);return Math.min(MAXPOP,n)}
+function houseCount(o){let n=0;for(const b of blds)if(b.o===o&&!b.dead&&b.type==='house')n+=b.cnt||1;for(const p of plans)if(p.o===o&&p.type==='house')n++;return n}
+function myHouse(o,x,y){let best=null,bd=1e9;for(const b of blds)if(b.o===o&&!b.dead&&b.type==='house'){const d=Math.hypot(b.x-x,b.y-y);if(d<bd){bd=d;best=b}}return best}
 function afford(o,c){const r=players[o].res;for(const k in c)if(r[k]<c[k])return false;return true}
 function pay(o,c){for(const k in c)players[o].res[k]-=c[k]}
 function refund(o,c){for(const k in c)players[o].res[k]+=c[k]}
@@ -395,10 +447,10 @@ function tilesFree(o,type,tx,ty,margin){const s=BLDS[type].s;
   const inside=x>=tx&&x<tx+s&&y>=ty&&y<ty+s;
   if(inside){if(blk[i]||bldAt[i]>=0)return false;if(o===ME&&!explored[i])return false}
   else if(margin&&(bldAt[i]>=0&&!ents.get(bldAt[i]).def.farm))return false}
- for(const p of plans){const ps=BLDS[p.type].s;if(tx<p.tx+ps&&tx+s>p.tx&&ty<p.ty+ps&&ty+s>p.ty)return false}
+ for(const p of plans){if(p.stack)continue;const ps=BLDS[p.type].s;if(tx<p.tx+ps&&tx+s>p.tx&&ty<p.ty+ps&&ty+s>p.ty)return false}
  return true}
 function canPlace(o,type,tx,ty,margin=0){const s=BLDS[type].s;return tilesFree(o,type,tx,ty,margin)&&inTerritory(o,tx+s/2,ty+s/2)}
-function lockReason(o,type){const d=BLDS[type],P=players[o];
+function lockReason(o,type){const d=BLDS[type],P=players[o];if(type==='house'&&houseCount(o)>=HOUSE_MAX)return'房屋已達上限（'+HOUSE_MAX+' 間）';
  if(P.age<d.age)return'需要'+AGES[d.age];if(d.req&&!hasB(o,d.req))return'需要先蓋'+BLDS[d.req].n;return null}
 
 // ================= pathfinding =================
@@ -437,7 +489,7 @@ function approach(u,dt,x0,y0,x1,y1,reach){
  moveAlong(u,dt);return false}
 
 // ================= unit update =================
-function moveAlong(u,dt){if(!u.path.length){u.moving=0;return true}u.moving=1;const p=u.path[0];const dx=p.x-u.x,dy=p.y-u.y,d=Math.hypot(dx,dy),sp=u.def.spd*dt;
+function moveAlong(u,dt){if(!u.path.length){u.moving=0;return true}u.moving=1;const p=u.path[0];const dx=p.x-u.x,dy=p.y-u.y,d=Math.hypot(dx,dy),sp=(u.def.vil&&players[u.o]&&players[u.o].tech.wheel?u.def.spd*1.1:u.def.spd)*dt;
  if(Math.abs(dx)>.02)u.face=dx>0?1:-1;
  const last=u.path.length===1;
  if(d<=sp||(!last&&d<.45)||(last&&d<.12)){if(d<=sp){u.x=p.x;u.y=p.y}u.path.shift();return!u.path.length}u.x+=dx/d*sp;u.y+=dy/d*sp;return false}
@@ -471,7 +523,7 @@ function doAttack(u,t,dt){
   else{const ok=pathRect(u,e.tx-1,e.ty-1,e.tx+e.s,e.ty+e.s);if(!ok)u.stuck++}}
  moveAlong(u,dt)}
 function damage(src,e){
- let a=src.kind==='u'?stat(src.o,src.type,'atk'):src.def.atk;
+ let a=src.kind==='u'?stat(src.o,src.type,'atk'):src.def.atk+tsum(src.o,RANGE_T);
  if(src.kind==='u'&&src.def.bonus&&e.kind==='u'){a+=(src.def.bonus[e.type]||0)+(src.def.bonus[e.def.cls]||0)}
  let arm=e.kind==='u'?stat(e.o,e.type,'arm'):0;let dmg=Math.max(1,a-arm);
  if(e.kind==='b'&&src.kind==='u'&&src.def.bldMul)dmg*=src.def.bldMul;
@@ -484,6 +536,7 @@ function hit(src,e,ranged){
  else applyDmg(src,e,dmg)}
 function applyDmg(src,e,dmg){
  if(!e||e.dead)return;e.hp-=dmg;e.hitT=.15;
+ if(e.kind==='b'&&e.type==='house'&&e.cnt>1&&e.hp>0){const hu=hpUnit(e);const nc=Math.max(1,Math.ceil(e.hp/hu));if(nc<e.cnt){e.cnt=nc;e.maxhp=hu*nc;note(e.o,'一間房屋被摧毀了（剩 '+nc+' 間）')}}
  if(gt-(G['la'+e.o]||-99)>12){G['la'+e.o]=gt;note(e.o,'⚠️ 我方遭到攻擊！','alert',{v:'attacked',ping:[+e.x.toFixed(1),+e.y.toFixed(1)]})}
  if(e.kind==='u'&&!e.def.vil&&(!e.task||e.task.k==='move'&&e.task.auto)&&src.kind==='u')e.task={k:'attack',t:src.id,auto:1};
  if(AIS[e.o])AIS[e.o].threat={x:src.x,y:src.y,t:gt,id:src.id};
@@ -516,9 +569,9 @@ function doGather(u,t,dt){
  // work
  const rtype=RT[t.rt];if(u.ctype!==rtype){u.carry=0;u.ctype=rtype}
  u.sndT=(u.sndT||0)-dt;if(u.sndT<=0){u.sndT=.85;sfx(t.rt===1?'chop':t.rt===2?'gather':'mine',u.x,u.y)}
- const amt=Math.min(RATE[t.rt]*gatherMult(u.o)*dt,resAmt[i]);u.carry+=amt;resAmt[i]-=amt;
+ const amt=Math.min(RATE[t.rt]*gatherMult(u.o)*ecoMult(u.o,t.rt)*dt,resAmt[i]);u.carry+=amt;resAmt[i]-=amt;
  if(resAmt[i]<=.001){resType[i]=0;resAmt[i]=0;updBlk(i);fx.push({k:'puff',x:rx+.5,y:ry+.5,t:0,life:.6});if(NET.host){NET.dep.push(i);evp(['p',rx+.5,ry+.5])}}
- if(u.carry>=CAP){u.carry=CAP;t.ph='drop'}}
+ if(u.carry>=carryCap(u.o)){u.carry=carryCap(u.o);t.ph='drop'}}
 function doFarm(u,t,dt){
  const b=ents.get(t.b);if(!b||b.dead){u.task=null;return}
  if(b.farmer&&b.farmer!==u.id){const f=ents.get(b.farmer);if(f&&!f.dead&&f.task&&f.task.k==='farm'&&f.task.b===b.id){const alt=freeFarm(u.o,u.x,u.y);if(alt){t.b=alt.id;alt.farmer=u.id}else u.task=null;return}}
@@ -529,7 +582,7 @@ function doFarm(u,t,dt){
   if(!u.path.length&&u.repath<=0){u.repath=.7;const ok=pathRect(u,b.tx,b.ty,b.tx+b.s-1,b.ty+b.s-1,t.spot);if(!ok)u.stuck++}moveAlong(u,dt);return}
  if(u.ctype!=='food'){u.carry=0;u.ctype='food'}
  u.sndT=(u.sndT||0)-dt;if(u.sndT<=0){u.sndT=1.4;sfx('gather',u.x,u.y)}
- u.carry+=FARM_RATE*gatherMult(u.o)*dt;if(u.carry>=CAP){u.carry=CAP;t.ph='drop'}}
+ u.carry+=FARM_RATE*gatherMult(u.o)*farmMult(u.o)*dt;if(u.carry>=carryCap(u.o)){u.carry=carryCap(u.o);t.ph='drop'}}
 function freeFarm(o,x,y){let best=null,bd=1e9;for(const b of blds)if(b.o===o&&!b.dead&&b.def.farm){const f=b.farmer&&ents.get(b.farmer);const busy=f&&!f.dead&&f.task&&f.task.k==='farm'&&f.task.b===b.id;if(busy)continue;const d=Math.hypot(b.x-x,b.y-y);if(d<bd){bd=d;best=b}}return best}
 function doBuild(u,t,dt){
  const p=t.p;
@@ -538,6 +591,7 @@ function doBuild(u,t,dt){
  const s=BLDS[p.type].s;
  if(approach(u,dt,p.tx,p.ty,p.tx+s-1,p.ty+s-1,.95)){
   plans.splice(plans.indexOf(p),1);
+  if(p.stack){const h=ents.get(p.stack);if(h&&!h.dead&&h.cnt<HOUSE_MAX){const hu=hpUnit(h);h.cnt++;h.maxhp+=hu;h.hp+=hu;h.born=gt;note(p.o,null,'build');p.done=h;postBuild(u,h,t)}else{p.dead=1;refund(p.o,BLDS[p.type].cost);note(p.o,'房屋不見了，已退還資源');u.task=null}return}
   if(tilesFree(p.o,p.type,p.tx,p.ty,0)&&inTerritory(p.o,p.tx+s/2,p.ty+s/2)){const b=addBld(p.o,p.type,p.tx,p.ty);p.done=b;postBuild(u,b,t)}
   else{p.dead=1;refund(p.o,BLDS[p.type].cost);note(p.o,'建造位置被擋住了，已退還資源');u.task=null}}}
 function postBuild(u,b,t){
@@ -567,7 +621,7 @@ function updBld(b,dt){
   if(b.rally){if(b.rally.res>=0&&u.def.vil&&resType[b.rally.res])setGather(u,b.rally.res);else if(b.rally.farm&&u.def.vil){const f=ents.get(b.rally.farm);if(f&&!f.dead){u.task={k:'farm',b:f.id,ph:'go'}}}
    else{u.task={k:'move'};pathRect(u,Math.floor(b.rally.x),Math.floor(b.rally.y),Math.floor(b.rally.x),Math.floor(b.rally.y),b.rally)}}}
  else if(q.k==='age'){P.age++;P.aging=false;refreshStats(b.o);note(b.o,'🎉 進入'+AGES[P.age]+'！','age',{say:'王國進入'+AGES[P.age]+'！'});if(b.o===ME)fx.push({k:'ring',x:b.x,y:b.y,t:0,life:1.5})}
- else if(q.k==='tech'){P.tech[q.type]=1;refreshStats(b.o);note(b.o,'研究完成：'+TECHS[q.type].n)}}
+ else if(q.k==='tech'){P.tech[q.type]=1;refreshStats(b.o);if(q.type==='masonry')for(const x of blds)if(x.o===b.o&&!x.dead){x.maxhp=Math.round(x.maxhp*1.3);x.hp=Math.round(x.hp*1.3)}note(b.o,'研究完成：'+TECHS[q.type].n)}}
 function spawnPoint(b){const tx=b.rally?b.rally.x:b.x,ty=b.rally?b.rally.y:b.y+b.s;let best=null,bd=1e9;
  for(let y=b.ty-1;y<=b.ty+b.s;y++)for(let x=b.tx-1;x<=b.tx+b.s;x++){if(x>=b.tx&&x<b.tx+b.s&&y>=b.ty&&y<b.ty+b.s)continue;if(!inb(x,y)||blk[idx(x,y)])continue;const d=Math.hypot(x+.5-tx,y+.5-ty);if(d<bd){bd=d;best={x:x+.5,y:y+.5}}}
  return best||nearestFree(b.x,b.y+b.s/2+1)}
@@ -584,6 +638,9 @@ function cmdGather(list,i){const rt=resType[i],rx=i%W,ry=(i/W)|0;const used=new 
 function cmdFarm(list,f){list.forEach((u,k)=>{let t=f;if(k>0){t=freeFarm(u.o,f.x,f.y)||null}if(t){t.farmer=u.id;u.task={k:'farm',b:t.id,ph:'go'};u.path.length=0}})}
 function cmdBuild(o,list,type,tx,ty){const d=BLDS[type];
  if(lockReason(o,type)){note(o,lockReason(o,type));return false}
+ if(type==='house'&&list.length){const h=myHouse(o,list[0].x,list[0].y);if(h){if(!afford(o,d.cost)){note(o,'資源不足：缺 '+lackTxt(o,d.cost));return false}
+  pay(o,d.cost);const p={o,type,tx:h.tx,ty:h.ty,stack:h.id};plans.push(p);
+  list.forEach(u=>{const prev=u.task&&(u.task.k==='gather'||u.task.k==='farm')?u.task:(u.task&&u.task.k==='build'?u.task.prev:null);u.task={k:'build',p,prev};u.path.length=0;u.repath=0;u.stuck=0});return true}}
  if(!canPlace(o,type,tx,ty)){note(o,'這裡不能蓋（要在自己領地內的空地）');return false}
  if(!afford(o,d.cost)){note(o,'資源不足：缺 '+lackTxt(o,d.cost));return false}
  pay(o,d.cost);const p={o,type,tx,ty};plans.push(p);
@@ -599,6 +656,7 @@ function aiFindSpot(o,type,cx,cy,maxR=13){const s=BLDS[type].s;const margin=type
  return null}
 function aiBuild(o,type,cx,cy,vils){
  if(lockReason(o,type)||!afford(o,BLDS[type].cost))return false;
+ if(type==='house'){const h=myHouse(o,cx,cy);if(h){let bu=null,bd=1e9;for(const v of vils){if(v.task&&v.task.k==='build')continue;const d=Math.hypot(v.x-h.x,v.y-h.y)-(v.task?0:5);if(d<bd){bd=d;bu=v}}return bu?cmdBuild(o,[bu],'house',h.tx,h.ty):false}}
  const sp=aiFindSpot(o,type,cx,cy);if(!sp)return false;
  let bu=null,bd=1e9;for(const v of vils){if(v.task&&v.task.k==='build')continue;const d=Math.hypot(v.x-sp.tx,v.y-sp.ty)-(v.task?0:5);if(d<bd){bd=d;bu=v}}
  if(!bu)return false;return cmdBuild(o,[bu],type,sp.tx,sp.ty)}
@@ -627,12 +685,12 @@ function aiTick(A){
   if(!has('mill')&&vils.length>=7)wish.push(['mill',at(br)]);
   if(!has('mine')&&vils.length>=9&&g>=0)wish.push(['mine',at(g)]);
   if(!has('barracks')&&vils.length>=11)wish.push(['barracks',tc]);
-  if(P.age>=1){if(!has('archery'))wish.push(['archery',tc]);if(!has('stable'))wish.push(['stable',tc]);if(!has('smith')&&vils.length>=18)wish.push(['smith',tc]);if(nb('tower')<2&&P.res.stone>=175)wish.push(['tower',tc])}
+  if(P.age>=1){if(!has('archery'))wish.push(['archery',tc]);if(!has('stable'))wish.push(['stable',tc]);if(!has('smith')&&vils.length>=18)wish.push(['smith',tc]);if(!has('hosp')&&vils.length>=22)wish.push(['hosp',tc]);if(nb('tower')<2&&P.res.stone>=175)wish.push(['tower',tc])}
   if(P.age>=2){if(nb('barracks')<2)wish.push(['barracks',tc]);if(nb('lumber')<2){const f2=findRes(1,tc.x,tc.y,20);if(f2>=0&&Math.hypot(f2%W-tc.x,((f2/W)|0)-tc.y)>8)wish.push(['lumber',at(f2)])}}
   for(const [t,p] of wish){if(!canSpend(BLDS[t].cost)&&!['lumber','mill','mine'].includes(t))continue;if(aiBuild(o,t,p.x,p.y,vils)||(p!==tc&&aiBuild(o,t,tc.x,tc.y,vils)))break}
  }
  // techs
- const sm=myB.find(b=>b.type==='smith');if(sm&&!sm.queue.length)for(const k of['forge','armor'])if(!P.tech[k]&&!P['q_'+k]&&canSpend(TECHS[k].cost)){if(enqueue(o,sm,{k:'tech',type:k,t:TECHS[k].t,p:0,cost:TECHS[k].cost}))P['q_'+k]=1;break}
+ {let started=0;for(const b of myB){if(started||!b.def.tech||b.queue.length||(b.type==='tc'&&(P.aging||vils.length<vt-4)))continue;for(const k of b.def.tech){if(!techOk(o,k)||techQueued(o,k)||!canSpend(TECHS[k].cost))continue;if(enqueue(o,b,{k:'tech',type:k,t:TECHS[k].t,p:0,cost:TECHS[k].cost})){started=1;break}}}}
  // idle villagers
  const want=[[.55,.42,.03,0],[.45,.35,.17,.03],[.42,.28,.25,.05],[.40,.25,.30,.05]][P.age].slice();
  const stock=[P.res.food,P.res.wood,P.res.gold,P.res.stone];for(let k=0;k<4;k++){if(stock[k]>800)want[k]*=.35;else if(stock[k]>500)want[k]*=.7;else if(stock[k]<120&&want[k]>0)want[k]*=1.5}
@@ -683,8 +741,11 @@ function tick(dt){
  if(units.some(u=>u.dead)){units=units.filter(u=>{if(u.dead){ents.delete(u.id);return false}return true})}
  if(blds.some(b=>b.dead)){blds=blds.filter(b=>{if(b.dead){ents.delete(b.id);return false}return true})}
  fogT-=dt;if(fogT<=0){fogT=.25;updFog()}
- aiT-=dt;if(aiT<=0){aiT=1;for(const A of AIS)if(A)aiTick(A)}
+ aiT-=dt;if(aiT<=0){aiT=1;for(const A of AIS)if(A)aiTick(A);healTick()}
  winT-=dt;if(winT<=0){winT=1;checkWin();cleanPlans()}}
+function healTick(){for(const u of units){if(u.dead||u.def.vil||u.hp>=u.maxhp)continue;let h=players[u.o].tech.herb?.4:0;
+  for(const b of blds)if(b.o===u.o&&!b.dead&&b.def.heal&&Math.hypot(b.x-u.x,b.y-u.y)<=b.def.heal+b.s/2){h+=2;break}
+  if(h)u.hp=Math.min(u.maxhp,u.hp+h)}}
 function cleanPlans(){for(let k=plans.length-1;k>=0;k--){const p=plans[k];if(!units.some(u=>!u.dead&&u.task&&u.task.k==='build'&&u.task.p===p)){plans.splice(k,1);p.dead=1;refund(p.o,BLDS[p.type].cost);note(p.o,'建造已取消，資源已退還')}}}
 function separate(){const grid=new Map();for(const u of units){if(u.dead)continue;const k=Math.floor(u.x)+Math.floor(u.y)*W;let a=grid.get(k);if(!a)grid.set(k,a=[]);a.push(u)}
  for(const u of units){if(u.dead)continue;const cx=Math.floor(u.x),cy=Math.floor(u.y);
@@ -712,7 +773,7 @@ function newGame(diff,seed,np,mode,me){
  players=Array.from({length:np},()=>({res:{food:200,wood:250,gold:100,stone:200},age:0,aging:false,tech:{},cap:10,trained:0,kills:0,gathered:0,out:false}));
  genMap(seed);
  for(let o=0;o<np;o++){const r=BASES[o].r;const [tx,ty]=rotR(P0.x-2,P0.y-2,BLDS.tc.s,r);const tc=addBld(o,'tc',tx,ty);
-  for(const [hx,hy] of [[P0.x-3,P0.y-6],[P0.x,P0.y-6]]){const [x,y]=rotR(hx,hy,BLDS.house.s,r);addBld(o,'house',x,y)}
+  {const [x,y]=rotR(P0.x-3,P0.y-6,BLDS.house.s,r);const h=addBld(o,'house',x,y);h.cnt=2;h.maxhp=h.hp=hpUnit(h)*2}
   const sx=Math.sign(W/2-tc.x),sy=Math.sign(H/2-tc.y);
   [[2.6,-1.5],[2.7,0],[2.6,1.5]].forEach(([dx,dy])=>{const p=nearestFree(tc.x+dx*sx,tc.y+dy*sy);addUnit(o,'villager',p.x,p.y)});
   const ps=nearestFree(tc.x+2*sx,tc.y+3*sy);addUnit(o,'scout',ps.x,ps.y)}
@@ -768,7 +829,7 @@ function pickAt(wx,wy){const r=Math.max(.5,22/(T*cam.z));let best=null,bd=r;
  // forgiving search for resource nearby
  let bi=-1,bdd=.75;for(let yy=ty-1;yy<=ty+1;yy++)for(let xx=tx-1;xx<=tx+1;xx++){if(!inb(xx,yy))continue;const j=idx(xx,yy);if(!resType[j]||!explored[j])continue;const d=distRect(wx,wy,xx,yy,xx+1,yy+1);if(d<bdd){bdd=d;bi=j}}
  return bi>=0?{kind:'r',i:bi}:null}
-function mark(x,y,c){marks.push({x,y,c,t:.6})}
+function mark(x,y,c,big){marks.push({x,y,c,t:big?1:.6,big})}
 function handleTap(sx,sy){if(!G||G.over)return;const w=toWorld(sx,sy);
  if(placing){const s=BLDS[placing.type].s;placing.tx=Math.round(w.x-s/2);placing.ty=Math.round(w.y-s/2);lastSig='';return}
  const hit=pickAt(w.x,w.y);const selU=selEnts().filter(e=>e.kind==='u'&&e.o===ME);const vils=selU.filter(u=>u.def.vil);const now=performance.now();
@@ -783,10 +844,10 @@ function handleTap(sx,sy){if(!G||G.over)return;const w=toWorld(sx,sy);
  if(hit&&hit.kind==='r'){
   if(vils.length){act({t:'gat',u:ids(vils),i:hit.i});sayUnit(vils[0],['','wood','food','gold','stone'][resType[hit.i]]);const mil=selU.filter(u=>!u.def.vil);if(mil.length)act({t:'mv',u:ids(mil),x:w.x,y:w.y,am:0});mark((hit.i%W)+.5,((hit.i/W)|0)+.5,'#ffd27a');return}
   if(selU.length){act({t:'mv',u:ids(selU),x:w.x,y:w.y,am:0});mark(w.x,w.y,'#7fd27f');return}
-  const sb=selEnts()[0];if(sb&&sb.kind==='b'&&sb.o===ME&&sb.def.train){act({t:'rally',b:sb.id,x:w.x,y:w.y,res:hit.i});toast('🚩 集結點：新村民會自動去採集');return}
+  const sb=selEnts()[0];if(sb&&sb.kind==='b'&&sb.o===ME&&sb.def.train){act({t:'rally',b:sb.id,x:w.x,y:w.y,res:hit.i});sb.rally={x:w.x,y:w.y,res:hit.i};mark(w.x,w.y,'#ffd23a',1);toast('🚩 集結點：新村民會自動去採集');return}
   selIds=[];G.selRes=hit.i;lastSig='';return}
  if(selU.length){const am=G.amove&&selU.some(u=>!u.def.vil);act({t:'mv',u:ids(selU),x:w.x,y:w.y,am:am?1:0});sayUnit(selU[0],am?'attack':'move');mark(w.x,w.y,am?'#ff7050':'#7fd27f');return}
- const sb=selEnts()[0];if(sb&&sb.kind==='b'&&sb.o===ME&&sb.def.train){act({t:'rally',b:sb.id,x:w.x,y:w.y,res:-1});mark(w.x,w.y,'#ffd27a');toast('🚩 集結點已設定');return}
+ const sb=selEnts()[0];if(sb&&sb.kind==='b'&&sb.o===ME&&sb.def.train){act({t:'rally',b:sb.id,x:w.x,y:w.y,res:-1});sb.rally={x:w.x,y:w.y,res:-1};mark(w.x,w.y,'#ffd23a',1);toast('🚩 集結點已設定');return}
  selIds=[];G.selRes=-1;lastSig=''}
 
 // minimap
@@ -840,9 +901,10 @@ function drawBld(b,sel){const x=b.tx*T,y=b.ty*T,s=b.s*T;const age=gt-b.born;cons
   drawIcon(b.type,s/2,s*.55,b.s===1?s*.78:s*.55)}
  if(b.queue.length){const q=b.queue[0];ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(4,s-9,s-8,5);ctx.fillStyle='#ffd27a';ctx.fillRect(4,s-9,(s-8)*Math.min(1,q.p/q.t),5);if(b.o===ME||vis[idx(b.tx,b.ty)]){const sm=Math.sin(gt*6)*1.5;ctx.globalAlpha=.6;ctx.fillStyle='#ddd';ctx.beginPath();ctx.arc(s*.8,-2+sm,4,0,7);ctx.arc(s*.85,-8+sm,3,0,7);ctx.fill();ctx.globalAlpha=1}}
  ctx.restore();
+ if(b.cnt>1){const bx=x+s-4,by=y+4;ctx.fillStyle='#2a1d10';ctx.strokeStyle='#ffd27a';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(bx,by,9,0,7);ctx.fill();ctx.stroke();ctx.fillStyle='#ffe9b0';ctx.font='bold 11px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('×'+b.cnt,bx,by+.5)}
  if(sel){ctx.setLineDash([6,4]);ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.strokeRect(x,y,s,s);ctx.setLineDash([])}
  if(sel||b.hp<b.maxhp)hpBar(x+4,y-6,s-8,b.hp/b.maxhp);
- if(sel&&b.rally&&b.o===ME){ctx.strokeStyle='rgba(255,255,255,.5)';ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(b.x*T,b.y*T);ctx.lineTo(b.rally.x*T,b.rally.y*T);ctx.stroke();ctx.setLineDash([]);drawIcon('flag',b.rally.x*T+5,b.rally.y*T-8,20)}}
+}
 function unitImg(u){let k=u.type;if(k==='villager'&&u.fem&&IMG.villager_f)k='villager_f';if(k==='militia'&&players[u.o].age>=2&&IMG.militia2)k='militia2';const im=IMG[k];if(!im)return null;return u.o?(IMG[k+'_'+u.o]||im):im}
 function drawUnit(u,sel){
  const x=u.x*T,y=u.y*T;const walk=u.moving?Math.abs(Math.sin(u.anim*10))*3:0;
@@ -868,6 +930,15 @@ function drawUnit(u,sel){
  const top=im?cy+r*.95-T*(cav?1.55:1.35)*.92:cy-r;
  if(u.carry>0){ctx.save();ctx.translate(cx-r-2,top+8);drawIcon(u.ctype,0,0,13);ctx.restore()}
  if(sel||u.hp<u.maxhp)hpBar(x-r,top-6,r*2,u.hp/u.maxhp)}
+function drawRally(b){const x1=b.x*T,y1=b.y*T,x2=b.rally.x*T,y2=b.rally.y*T;const now=performance.now()/1000;
+ ctx.save();ctx.setLineDash([10,7]);ctx.lineDashOffset=-now*40;ctx.lineCap='round';
+ ctx.strokeStyle='rgba(0,0,0,.45)';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+ ctx.strokeStyle='#ffd23a';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.restore();
+ ctx.fillStyle='rgba(0,0,0,.3)';ctx.beginPath();ctx.ellipse(x2,y2,9,4,0,0,7);ctx.fill();
+ ctx.strokeStyle='#3b2414';ctx.lineWidth=3.5;ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2,y2-34);ctx.stroke();
+ ctx.fillStyle=TEAM[b.o];ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x2+1,y2-34);
+ for(let i=0;i<=6;i++)ctx.lineTo(x2+1+i*3.4,y2-34+Math.sin(now*6-i*.9)*2.2);for(let i=6;i>=0;i--)ctx.lineTo(x2+1+i*3.4,y2-21+Math.sin(now*6-i*.9)*2.2);ctx.closePath();ctx.fill();ctx.stroke();
+ ctx.fillStyle='#ffd23a';ctx.beginPath();ctx.arc(x2,y2-35,2.5,0,7);ctx.fill()}
 function render(){
  ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0b0b0b';ctx.fillRect(0,0,cv.width,cv.height);if(!G)return;
  const z=cam.z*DPR;ctx.setTransform(z,0,0,z,-cam.x*z,-cam.y*z);ctx.imageSmoothingEnabled=true;
@@ -879,7 +950,7 @@ function render(){
  // territory hint while placing
  if(placing){ctx.fillStyle='rgba(255,255,255,.07)';ctx.strokeStyle='rgba(255,255,255,.35)';ctx.setLineDash([6,6]);ctx.lineWidth=1.5;for(const b of blds)if(b.o===ME){ctx.beginPath();ctx.arc(b.x*T,b.y*T,(TER+b.s/2)*T,0,7);ctx.fill();ctx.stroke()}ctx.setLineDash([])}
  // plans
- for(const p of plans)if(p.o===ME){const s=BLDS[p.type].s;ctx.setLineDash([5,4]);ctx.strokeStyle='#ffd27a';ctx.lineWidth=2;ctx.strokeRect(p.tx*T+2,p.ty*T+2,s*T-4,s*T-4);ctx.setLineDash([]);ctx.globalAlpha=.55;drawIcon(p.type,(p.tx+s/2)*T,(p.ty+s/2)*T,s*T*.45);ctx.globalAlpha=1}
+ for(const p of plans)if(p.o===ME&&!p.stack){const s=BLDS[p.type].s;ctx.setLineDash([5,4]);ctx.strokeStyle='#ffd27a';ctx.lineWidth=2;ctx.strokeRect(p.tx*T+2,p.ty*T+2,s*T-4,s*T-4);ctx.setLineDash([]);ctx.globalAlpha=.55;drawIcon(p.type,(p.tx+s/2)*T,(p.ty+s/2)*T,s*T*.45);ctx.globalAlpha=1}
  // corpses
  for(const f of fx)if(f.k==='corpse'){ctx.globalAlpha=Math.max(0,1-f.t/f.life)*.8;ctx.save();ctx.translate(f.x*T,f.y*T);ctx.rotate(Math.PI/2*Math.min(1,f.t*4)*(f.face||1));ctx.fillStyle=TEAMD[f.o];ctx.beginPath();ctx.arc(0,0,T*.28,0,7);ctx.fill();drawIcon(f.type,0,0,T*.45);ctx.restore();ctx.globalAlpha=1}
  // depth-sorted: resources, buildings, units
@@ -897,11 +968,13 @@ function render(){
   else if(f.k==='puff'){ctx.globalAlpha=(1-p)*.7;ctx.fillStyle='#ddd';for(let k=0;k<5;k++){ctx.beginPath();ctx.arc(f.x*T+Math.cos(k*1.3)*p*14,f.y*T+Math.sin(k*1.3)*p*10-p*8,4+p*4,0,7);ctx.fill()}ctx.globalAlpha=1}
   else if(f.k==='boom'){ctx.globalAlpha=1-p;for(let k=0;k<10;k++){const a=k*.63;ctx.fillStyle=k%2?'#ff9800':'#777';ctx.beginPath();ctx.arc(f.x*T+Math.cos(a)*p*f.s*T*.6,f.y*T+Math.sin(a)*p*f.s*T*.5-p*20,6+p*10,0,7);ctx.fill()}ctx.globalAlpha=1}
   else if(f.k==='ring'){ctx.strokeStyle=`rgba(255,210,122,${1-p})`;ctx.lineWidth=4;ctx.beginPath();ctx.arc(f.x*T,f.y*T,p*T*6,0,7);ctx.stroke()}}
- for(const m of marks){ctx.strokeStyle=m.c;ctx.globalAlpha=m.t/.6;ctx.lineWidth=2.5;ctx.beginPath();ctx.ellipse(m.x*T,m.y*T,(1.2-m.t)*16,(1.2-m.t)*8,0,0,7);ctx.stroke();ctx.globalAlpha=1}
+ for(const m of marks){ctx.strokeStyle=m.c;if(m.big){ctx.globalAlpha=m.t;ctx.lineWidth=4;ctx.beginPath();ctx.ellipse(m.x*T,m.y*T,(1.2-m.t)*60+8,(1.2-m.t)*30+4,0,0,7);ctx.stroke()}else{ctx.globalAlpha=m.t/.6;ctx.lineWidth=2.5;ctx.beginPath();ctx.ellipse(m.x*T,m.y*T,(1.2-m.t)*16,(1.2-m.t)*8,0,0,7);ctx.stroke()}ctx.globalAlpha=1}
  // fog
  const unseen=new Path2D(),dim=new Path2D();
  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const i=idx(x,y);if(!explored[i])unseen.rect(x*T,y*T,T+.5,T+.5);else if(!vis[i])dim.rect(x*T,y*T,T+.5,T+.5)}
  ctx.fillStyle='rgba(0,0,0,.42)';ctx.fill(dim);ctx.fillStyle='#000';ctx.fill(unseen);
+ // rally points of selected own buildings (drawn even if the building is off screen)
+ for(const id of selIds){const b=ents.get(id);if(!b||b.kind!=='b'||b.o!==ME||!b.rally)continue;drawRally(b)}
  // ghost
  if(placing&&placing.tx!=null){const s=BLDS[placing.type].s;const ok=canPlace(ME,placing.type,placing.tx,placing.ty);ctx.fillStyle=ok?'rgba(80,220,80,.35)':'rgba(230,60,60,.4)';ctx.fillRect(placing.tx*T,placing.ty*T,s*T,s*T);ctx.strokeStyle=ok?'#7fd27f':'#ff6b6b';ctx.lineWidth=2;ctx.strokeRect(placing.tx*T,placing.ty*T,s*T,s*T);drawIcon(placing.type,(placing.tx+s/2)*T,(placing.ty+s/2)*T,s*T*.5)}
  // box + long-press hint ring
@@ -932,12 +1005,14 @@ function renderPanel(force){if(!G)return;const es=selEnts();selIds=es.map(e=>e.i
    if(es.some(u=>!u.def.vil))acts+=btn('amove',ico('barracks'),'攻擊移動',G.amove?'開':'關',G.amove?'ok':'');
    acts+=btn('stop',ico('stop'),'停止','');acts+=btn('desel',ico('back'),'取消選取','')}
   else if(e.kind==='b'&&e.o===ME){const d=e.def;info=`<div class="big">${ico(e.type)}</div><div class="nm">${d.n}</div><div class="hp"><div style="width:${e.hp/e.maxhp*100}%"></div></div><div>❤️${Math.ceil(e.hp)}/${e.maxhp}</div>`;
-   if(e.queue.length){info+='<div>'+e.queue.map((q,k)=>`<span class="q" data-a="q:${k}">${q.k==='age'?ico('age'):ico(q.type)}</span>`).join('')+'</div><div id="qbar"><div></div></div>'}
+   if(e.queue.length){info+='<div>'+e.queue.map((q,k)=>`<span class="q" data-a="q:${k}">${q.k==='age'?ico('age'):q.k==='tech'?ico(TECHS[q.type].ic):ico(q.type)}</span>`).join('')+'</div><div id="qbar"><div></div></div>'}
    if(d.train)for(const t of d.train){const ud=UNITS[t];const lk=P.age<ud.age;acts+=btn('train:'+t,ico(t),uname(ME,t),lk?'🔒'+AGES[ud.age]:costTxt(ud.cost),lk||!afford(ME,ud.cost)?'na':'')}
    if(e.type==='tc'&&P.age<3)acts+=btn('age',ico('age'),'升'+AGES[P.age+1].slice(0,2),P.aging?'升級中':costTxt(AGE_COST[P.age+1]),P.aging||!afford(ME,AGE_COST[P.age+1])?'na':'');
-   if(d.tech)for(const k of d.tech){if(P.tech[k]||e.queue.some(q=>q.type===k))continue;acts+=btn('tech:'+k,ico(k),TECHS[k].n,costTxt(TECHS[k].cost),afford(ME,TECHS[k].cost)?'':'na')}
+   if(d.tech){let shown=0;for(const k of d.tech){const td=TECHS[k];if(P.tech[k]||techQueued(ME,k))continue;if(td.req&&!P.tech[td.req])continue;shown++;const lk=P.age<td.age;acts+=btn('tech:'+k,ico(td.ic),td.n,lk?'🔒'+AGES[td.age].slice(0,2):costTxt(td.cost),lk||!afford(ME,td.cost)?'na':'')}
+    const done=d.tech.filter(k=>P.tech[k]);if(done.length)info+='<div style="font-size:11px;opacity:.75">已研究：'+done.map(k=>TECHS[k].n).join('、')+'</div>'}
+   if(d.heal)acts+=`<span class="hint">附近 ${d.heal} 格內受傷的士兵會回血</span>`;
    if(d.train)acts+=`<span class="hint">點地圖設定集結點${ico('flag','s')}<br>點佇列圖示可取消</span>`;
-   if(!d.train&&!d.tech)acts+=`<span class="hint">${d.pop?'人口上限 +'+d.pop:d.drop?'可存放：'+d.drop.map(k=>ico(k,'s')).join(''):d.farm?'點村民再點農田即可耕種':d.atk?'會自動射擊附近敵人':''}</span>`;
+   if(!d.train&&!d.tech)acts+=`<span class="hint">${d.pop?'這裡有 '+(e.cnt||1)+' 間房屋，人口上限 +'+d.pop*(e.cnt||1)+'<br>再按村民的「房屋」就會加蓋在這裡':d.drop?'可存放：'+d.drop.map(k=>ico(k,'s')).join(''):d.farm?'點村民再點農田即可耕種':d.atk?'會自動射擊附近敵人':''}</span>`;
    acts+=btn('desel',ico('back'),'取消選取','')}
   else{info=`<div class="big">${ico(e.type)}</div><div class="nm" style="color:#ff9090">${isEnemy(ME,e.o)?'敵方':'盟友'}${PNAME[e.o]}・${e.kind==='u'?uname(e.o,e.type):e.def.n}</div><div class="hp"><div style="width:${e.hp/e.maxhp*100}%;background:#ef4444"></div></div><div>❤️${Math.ceil(e.hp)}/${e.maxhp}</div>`;acts=btn('desel',ico('back'),'取消選取','')}}
  const sig=info+'|'+acts;if(!force&&sig===lastSig)return;lastSig=sig;$('info').innerHTML=info;$('acts').innerHTML=acts;layout()}
@@ -945,6 +1020,7 @@ function onAct(a){const P=players[ME];const es=selEnts();
  if(a==='tab'){buildTab^=1}
  else if(a==='amove'){G.amove=G.amove?0:1;toast(G.amove?'攻擊移動：開（行軍途中遇敵就開打）':'攻擊移動：關（只走路，不理敵人）')}
  else if(a.startsWith('build:')){const t=a.slice(6);const lr=lockReason(ME,t);if(lr){toast(lr);return}if(!afford(ME,BLDS[t].cost)){toast('資源不足：缺 '+lackTxt(ME,BLDS[t].cost));return}
+  {const vils=es.filter(u=>u.kind==='u'&&u.def.vil);const h=t==='house'&&vils.length?myHouse(ME,vils[0].x,vils[0].y):null;if(h){act({t:'bld',u:ids(vils),type:'house',tx:h.tx,ty:h.ty});sayUnit(vils[0],'build');mark(h.x,h.y,'#ffd27a');toast('加蓋房屋（第 '+(houseCount(ME)+1)+' 間）');lastSig='';renderPanel(true);return}}
   const s=BLDS[t].s;const w=toWorld(VW/2,VH/2);const v=es.find(u=>u.kind==='u');let sp=null;
   if(v){const near=aiFindSpot(ME,t,v.x,v.y,10);if(near)sp=near}
   placing={type:t,tx:sp?sp.tx:Math.round(w.x-s/2),ty:sp?sp.ty:Math.round(w.y-s/2)};if(sp){const sx=(sp.tx+s/2)*T,sy=(sp.ty+s/2)*T;const px=(sx-cam.x)*cam.z,py=(sy-cam.y)*cam.z;if(px<40||px>VW-40||py<80||py>VH-140)centerOn(sp.tx+s/2,sp.ty+s/2)}}
@@ -955,7 +1031,7 @@ function onAct(a){const P=players[ME];const es=selEnts();
  else if(a==='desel'){selIds=[];placing=null}
  else if(a.startsWith('train:')){const t=a.slice(6),b=es[0];if(P.age<UNITS[t].age){toast('需要'+AGES[UNITS[t].age]);return}if(b.queue.length>=5){toast('佇列已滿');return}if(!afford(ME,UNITS[t].cost)){toast('資源不足：缺 '+lackTxt(ME,UNITS[t].cost));return}act({t:'train',b:b.id,type:t})}
  else if(a==='age'){const b=es[0];if(P.aging){toast('正在升級中');return}if(!afford(ME,AGE_COST[P.age+1])){toast('資源不足：缺 '+lackTxt(ME,AGE_COST[P.age+1]));return}act({t:'age',b:b.id})}
- else if(a.startsWith('tech:')){const k=a.slice(5);if(!afford(ME,TECHS[k].cost)){toast('資源不足：缺 '+lackTxt(ME,TECHS[k].cost));return}act({t:'tech',b:es[0].id,k})}
+ else if(a.startsWith('tech:')){const k=a.slice(5);if(P.age<TECHS[k].age){toast('需要'+AGES[TECHS[k].age]+'：'+TECHS[k].n+'（'+TECHS[k].d+'）');return}if(!afford(ME,TECHS[k].cost)){toast('資源不足：缺 '+lackTxt(ME,TECHS[k].cost));return}act({t:'tech',b:es[0].id,k})}
  else if(a.startsWith('q:')){const b=es[0];const k=+a.slice(2);if(b&&b.queue[k])act({t:'cq',b:b.id,k})}
  lastSig='';renderPanel(true)}
 document.getElementById('bottom').addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(b){sfx('click');onAct(b.dataset.a)}});
@@ -968,6 +1044,7 @@ $('bspeed').onclick=()=>{G.speed=G.speed===1?1.5:G.speed===1.5?2:1;$('bspeed').t
 $('bmenu').onclick=()=>{paused=!NET.on;$('bspeed').style.display=NET.on?'none':'';$('menuInfo').textContent=G?'遊戲時間 '+fmtT(gt)+'・'+DIFF[G.diff].n:'';$('ovMenu').classList.add('show')};
 $('bsnd').onclick=()=>{audioInit();SND.mode=(SND.mode+2)%3;try{localStorage.setItem('ke_snd',SND.mode)}catch(e){}updSndBtn();if(SND.mode<2)try{speechSynthesis.cancel()}catch(e){}toast('聲音：'+['靜音','只有音效','音效＋語音'][SND.mode]);if(SND.mode===2)say('遵命，陛下！',1,true)};
 $('upd').onclick=doUpdate;
+$('bhelp').onclick=()=>$('ovHelp').classList.add('show');$('bhelp2').onclick=()=>$('ovHelp').classList.add('show');$('helpClose').onclick=()=>$('ovHelp').classList.remove('show');
 $('bresume').onclick=()=>{paused=false;$('ovMenu').classList.remove('show')};
 $('brestart').onclick=()=>{if(NET.on){netLeave(1);NET.on=false}saveGame();$('ovMenu').classList.remove('show');$('ovStart').classList.add('show');running=false;paused=false;refreshContinue()};
 let diffSel='normal',npSel=4,modeSel='ffa';
@@ -1044,8 +1121,8 @@ function b64(a){let s='';const b=new Uint8Array(a.buffer);for(let i=0;i<b.length
 function unb64(str,a){const bin=atob(str);const b=new Uint8Array(a.buffer);for(let i=0;i<b.length&&i<bin.length;i++)b[i]=bin.charCodeAt(i)}
 function saveGame(){if(!G||G.over||!running||NET.on)return;try{
  const data={v:2,np:NP,teams:TEAMS,mode:G.mode,amove:G.amove,ver:VERSION,seed:G.seed,diff:G.diff,gt,nid,speed:G.speed,players,AIS,cam:{x:cam.x,y:cam.y,z:cam.z},rt:b64(resType),ra:b64(resAmt),ex:b64(explored),
-  plans:plans.map(p=>({o:p.o,type:p.type,tx:p.tx,ty:p.ty})),
-  blds:blds.filter(b=>!b.dead).map(b=>({id:b.id,o:b.o,type:b.type,tx:b.tx,ty:b.ty,hp:b.hp,maxhp:b.maxhp,queue:b.queue,rally:b.rally,farmer:b.farmer})),
+  plans:plans.map(p=>({o:p.o,type:p.type,tx:p.tx,ty:p.ty,stack:p.stack||0})),
+  blds:blds.filter(b=>!b.dead).map(b=>({id:b.id,o:b.o,type:b.type,tx:b.tx,ty:b.ty,hp:b.hp,maxhp:b.maxhp,cnt:b.cnt||1,queue:b.queue,rally:b.rally,farmer:b.farmer})),
   units:units.filter(u=>!u.dead).map(u=>{let t=u.task;if(t&&t.k==='build'){const pi=plans.indexOf(t.p);t=pi>=0?{k:'build',pi,prev:t.prev||null}:(t.prev||null)}else if(t&&t.k==='move')t=null;
    return{id:u.id,o:u.o,type:u.type,x:u.x,y:u.y,hp:u.hp,maxhp:u.maxhp,task:t,carry:u.carry,ctype:u.ctype,face:u.face,fem:u.fem}})};
  localStorage.setItem(SAVE_KEY,JSON.stringify(data))}catch(e){}}
@@ -1076,7 +1153,7 @@ function doUpdate(){if(running&&G&&!G.over){saveGame();try{sessionStorage.setIte
 
 // ================= art upload (美術圖上傳) =================
 const ART_SLOTS=[['villager','村民（男）'],['villager_f','村民（女）'],['militia','民兵'],['militia2','長劍士（城堡時代的民兵）'],['spear','長槍兵'],['archer','弓箭手'],['scout','斥候騎兵'],['knight','騎士'],
- ['tc','城鎮中心'],['house','房屋'],['lumber','伐木場'],['mill','磨坊'],['mine','採礦場'],['farm','農田',1],['barracks','兵營'],['archery','射箭場'],['stable','馬廄'],['smith','鐵匠鋪'],['tower','箭塔'],
+ ['tc','城鎮中心'],['house','房屋'],['lumber','伐木場'],['mill','磨坊'],['mine','採礦場'],['farm','農田',1],['barracks','兵營'],['archery','射箭場'],['stable','馬廄'],['smith','鐵匠鋪'],['hosp','醫護所'],['tower','箭塔'],
  ['tree','樹木'],['berry','漿果叢'],['gold','金礦'],['stone','石礦'],['grass','草地圖磚',1]];
 // remove baked checkerboard / plain background, trim, square (feet at bottom), resize
 function processArt(img,doCut,flat){
@@ -1166,7 +1243,7 @@ function applyCmd(o,c){if(!c||!players[o]||players[o].out)return;const P=players
  case'stop':{ownU(o,c.u).forEach(u=>{u.task=null;u.path.length=0});break}
  case'train':{const b=ownB(o,c.b);const d=UNITS[c.type];if(b&&d&&b.def.train&&b.def.train.includes(c.type)&&P.age>=d.age)enqueue(o,b,{k:'u',type:c.type,t:d.t,p:0,cost:d.cost});break}
  case'age':{const b=ownB(o,c.b);if(b&&b.type==='tc'&&!P.aging&&P.age<3&&enqueue(o,b,{k:'age',t:AGE_T[P.age+1],p:0,cost:AGE_COST[P.age+1]}))P.aging=true;break}
- case'tech':{const b=ownB(o,c.b);if(b&&b.def.tech&&b.def.tech.includes(c.k)&&!P.tech[c.k]&&!b.queue.some(q=>q.type===c.k))enqueue(o,b,{k:'tech',type:c.k,t:TECHS[c.k].t,p:0,cost:TECHS[c.k].cost});break}
+ case'tech':{const b=ownB(o,c.b);if(b&&b.def.tech&&b.def.tech.includes(c.k)&&techOk(o,c.k)&&!techQueued(o,c.k)&&enqueue(o,b,{k:'tech',type:c.k,t:TECHS[c.k].t,p:0,cost:TECHS[c.k].cost}))note(o,'開始研究：'+TECHS[c.k].n+'（'+TECHS[c.k].d+'）');break}
  case'cq':{const b=ownB(o,c.b);const q=b&&b.queue[c.k];if(q){b.queue.splice(c.k,1);refund(o,q.cost);if(q.k==='age')P.aging=false;note(o,'已取消，資源退還')}break}
  case'rally':{const b=ownB(o,c.b);if(b&&b.def.train)b.rally={x:+c.x,y:+c.y,res:c.res>=0?c.res:-1};break}
  }}
@@ -1181,9 +1258,9 @@ function tcode(t){return t?(TK.indexOf(t.k)>0?TK.indexOf(t.k):0):0}
 function snapshot(){
  const U=[];for(const u of units){if(u.dead)continue;const t=u.task;const fl=(u.moving?1:0)|(t&&(t.k==='gather'||t.k==='farm')&&t.ph==='work'?2:0)|(u.fem?8:0);
   U.push([u.id,u.o,UT.indexOf(u.type),Math.round(u.x*100),Math.round(u.y*100),Math.ceil(u.hp),u.maxhp,fl,u.face,Math.floor(u.carry),RTI[u.ctype]||0,tcode(t),t&&t.rt||0,t?(t.ph==='drop'?2:t.ph==='work'?1:0):0,t&&t.k==='attack'?t.t:0,t&&t.k==='build'&&t.p?BT.indexOf(t.p.type):-1,Math.round(u.atkT*100)])}
- const B=[];for(const b of blds){if(b.dead)continue;B.push([b.id,b.o,BT.indexOf(b.type),b.tx,b.ty,Math.ceil(b.hp),b.maxhp,b.queue.map(q=>[q.k==='u'?0:q.k==='age'?1:2,q.type||'',Math.round(q.p*10),q.t]),b.rally?[+b.rally.x.toFixed(2),+b.rally.y.toFixed(2),b.rally.res]:0])}
+ const B=[];for(const b of blds){if(b.dead)continue;B.push([b.id,b.o,BT.indexOf(b.type),b.tx,b.ty,Math.ceil(b.hp),b.maxhp,b.queue.map(q=>[q.k==='u'?0:q.k==='age'?1:2,q.type||'',Math.round(q.p*10),q.t]),b.rally?[+b.rally.x.toFixed(2),+b.rally.y.toFixed(2),b.rally.res]:0,b.cnt||1])}
  return{g:Math.round(gt*10),P:players.map(P=>({res:{food:Math.floor(P.res.food),wood:Math.floor(P.res.wood),gold:Math.floor(P.res.gold),stone:Math.floor(P.res.stone)},age:P.age,aging:P.aging,tech:P.tech,cap:P.cap,trained:P.trained,kills:P.kills,out:P.out})),
-  U,B,L:plans.map(p=>[p.o,BT.indexOf(p.type),p.tx,p.ty]),D:NET.dep.splice(0),E:NET.ev.splice(0)}}
+  U,B,L:plans.map(p=>[p.o,BT.indexOf(p.type),p.tx,p.ty,p.stack?1:0]),D:NET.dep.splice(0),E:NET.ev.splice(0)}}
 function applySnap(s){
  gt=s.g/10;for(let o=0;o<s.P.length;o++)players[o]=Object.assign(players[o]||{},s.P[o]);
  const seen=new Set();
@@ -1194,11 +1271,11 @@ function applySnap(s){
   u.task=tc?{k:TK[tc],rt,ph:['go','work','drop'][ph],t:tg,p:bt>=0?{type:BT[bt]}:null}:null;if(atk>Math.round(u.atkT*100)+5)u.atkT=atk/100}
  for(const u of units)if(!seen.has(u.id)){u.dead=1;ents.delete(u.id)}units=units.filter(u=>!u.dead);
  let changed=false;const seenB=new Set();
- for(const a of s.B){const [id,o,ti,tx,ty,hp,maxhp,q,r]=a;seenB.add(id);let b=ents.get(id);
+ for(const a of s.B){const [id,o,ti,tx,ty,hp,maxhp,q,r,cnt]=a;seenB.add(id);let b=ents.get(id);
   if(!b||b.kind!=='b'){const type=BT[ti],def=BLDS[type];b={id,kind:'b',o,type,def,tx,ty,s:def.s,x:tx+def.s/2,y:ty+def.s/2,queue:[],born:gt,cd:0,hitT:0,hp};ents.set(id,b);blds.push(b);changed=true}
-  if(hp<b.hp)b.hitT=.15;b.hp=hp;b.maxhp=maxhp;b.queue=q.map(([k,type,pp,tt])=>({k:['u','age','tech'][k],type,p:pp/10,t:tt}));b.rally=r?{x:r[0],y:r[1],res:r[2]}:null}
+  if(hp<b.hp)b.hitT=.15;b.hp=hp;b.maxhp=maxhp;b.queue=q.map(([k,type,pp,tt])=>({k:['u','age','tech'][k],type,p:pp/10,t:tt}));b.rally=r?{x:r[0],y:r[1],res:r[2]}:null;if(cnt>(b.cnt||1))b.born=gt;b.cnt=cnt||1}
  for(const b of blds)if(!seenB.has(b.id)){b.dead=1;ents.delete(b.id);changed=true}blds=blds.filter(b=>!b.dead);
- plans=s.L.map(([o,bt,tx,ty])=>({o,type:BT[bt],tx,ty}));
+ plans=s.L.map(([o,bt,tx,ty,st])=>({o,type:BT[bt],tx,ty,stack:st?1:0}));
  for(const i of s.D){resType[i]=0;resAmt[i]=0;changed=true}
  if(changed){bldAt.fill(-1);for(const b of blds)for(let y=b.ty;y<b.ty+b.s;y++)for(let x=b.tx;x<b.tx+b.s;x++)bldAt[idx(x,y)]=b.id;for(let i=0;i<NN;i++)updBlk(i)}
  for(const e of s.E)clientEvent(e);NET.last=performance.now()}
