@@ -199,7 +199,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 
 <script>
 'use strict';
-const VERSION='2026-11-21d';
+const VERSION='2026-11-21e';
 // ================= constants =================
 const W=80,H=80,T=32,NN=W*H,STEP=0.05,CAP=10,MAXPOP=100,TER=9;
 const TEAM=['#3b82f6','#ef4444','#22c55e','#eab308'],TEAMD=['#1e3a8a','#7f1d1d','#14532d','#713f12'],TEAML=['#a0c8ff','#ff9090','#90f0a0','#ffe680'];
@@ -437,7 +437,7 @@ function nearestFree(x,y){const cx=Math.floor(x),cy=Math.floor(y);
  return{x,y}}
 function popUsed(o){let n=0;for(const u of units)if(u.o===o)n++;for(const b of blds)if(b.o===o&&b.queue[0]&&b.queue[0].k==='u'&&b.queue[0].started)n++;return n}
 function popCap(o){let n=0;for(const b of blds)if(b.o===o&&!b.dead&&b.def.pop)n+=b.def.pop*(b.cnt||1);return Math.min(MAXPOP,n)}
-function houseCount(o){let n=0;for(const b of blds)if(b.o===o&&!b.dead&&b.type==='house')n+=b.cnt||1;for(const p of plans)if(p.o===o&&p.type==='house')n++;return n}
+function houseCount(o){let n=0;for(const b of blds)if(b.o===o&&!b.dead&&b.type==='house')n+=b.cnt||1;for(const p of plans)if(p.o===o&&p.type==='house')n+=p.n||1;return n}
 function myHouse(o,x,y){let best=null,bd=1e9;for(const b of blds)if(b.o===o&&!b.dead&&b.type==='house'){const d=Math.hypot(b.x-x,b.y-y);if(d<bd){bd=d;best=b}}return best}
 function afford(o,c){const r=players[o].res;for(const k in c)if(r[k]<c[k])return false;return true}
 function pay(o,c){for(const k in c)players[o].res[k]-=c[k]}
@@ -596,7 +596,7 @@ function doBuild(u,t,dt){
  const s=BLDS[p.type].s;
  if(approach(u,dt,p.tx,p.ty,p.tx+s-1,p.ty+s-1,.95)){
   plans.splice(plans.indexOf(p),1);
-  if(p.stack){const h=ents.get(p.stack);if(h&&!h.dead&&h.cnt<HOUSE_MAX){const hu=hpUnit(h);h.cnt++;h.maxhp+=hu;h.hp+=hu;h.born=gt;note(p.o,null,'build');p.done=h;postBuild(u,h,t)}else{p.dead=1;refund(p.o,BLDS[p.type].cost);note(p.o,'房屋不見了，已退還資源');u.task=null}return}
+  if(p.stack){const h=ents.get(p.stack);if(h&&!h.dead&&h.cnt<HOUSE_MAX){const hu=hpUnit(h);const add=Math.min(p.n||1,HOUSE_MAX-h.cnt);h.cnt+=add;h.maxhp+=hu*add;h.hp+=hu*add;h.born=gt;if((p.n||1)>add)refund(p.o,{wood:BLDS.house.cost.wood*((p.n||1)-add)});note(p.o,add>1?'加蓋了 '+add+' 間房屋（共 '+h.cnt+' 間）':null,'build');p.done=h;postBuild(u,h,t)}else{p.dead=1;refund(p.o,{wood:BLDS.house.cost.wood*(p.n||1)});note(p.o,'房屋不見了，已退還資源');u.task=null}return}
   if(tilesFree(p.o,p.type,p.tx,p.ty,0)&&inTerritory(p.o,p.tx+s/2,p.ty+s/2)){const b=addBld(p.o,p.type,p.tx,p.ty);p.done=b;postBuild(u,b,t)}
   else{p.dead=1;refund(p.o,BLDS[p.type].cost);note(p.o,'建造位置被擋住了，已退還資源');u.task=null}}}
 function postBuild(u,b,t){
@@ -644,8 +644,8 @@ function cmdFarm(list,f){list.forEach((u,k)=>{let t=f;if(k>0){t=freeFarm(u.o,f.x
 function cmdBuild(o,list,type,tx,ty){const d=BLDS[type];
  if(lockReason(o,type)){note(o,lockReason(o,type));return false}
  if(type==='house'&&list.length){const h=myHouse(o,list[0].x,list[0].y);if(h){if(!afford(o,d.cost)){note(o,'資源不足：缺 '+lackTxt(o,d.cost));return false}
-  pay(o,d.cost);const p={o,type,tx:h.tx,ty:h.ty,stack:h.id};plans.push(p);
-  list.forEach(u=>{const prev=u.task&&(u.task.k==='gather'||u.task.k==='farm')?u.task:(u.task&&u.task.k==='build'?u.task.prev:null);u.task={k:'build',p,prev};u.path.length=0;u.repath=0;u.stuck=0});return true}}
+  pay(o,d.cost);let p=plans.find(q=>q.o===o&&q.stack===h.id&&!q.done&&!q.dead);if(p)p.n=(p.n||1)+1;else{p={o,type,tx:h.tx,ty:h.ty,stack:h.id,n:1};plans.push(p)}
+  list.forEach(u=>{if(u.task&&u.task.k==='build'&&u.task.p===p)return;const prev=u.task&&(u.task.k==='gather'||u.task.k==='farm')?u.task:(u.task&&u.task.k==='build'?u.task.prev:null);u.task={k:'build',p,prev};u.path.length=0;u.repath=0;u.stuck=0});return true}}
  if(!canPlace(o,type,tx,ty)){note(o,'這裡不能蓋（要在自己領地內的空地）');return false}
  if(!afford(o,d.cost)){note(o,'資源不足：缺 '+lackTxt(o,d.cost));return false}
  pay(o,d.cost);const p={o,type,tx,ty};plans.push(p);
@@ -751,7 +751,7 @@ function tick(dt){
 function healTick(){for(const u of units){if(u.dead||u.def.vil||u.hp>=u.maxhp)continue;let h=players[u.o].tech.herb?.4:0;
   for(const b of blds)if(b.o===u.o&&!b.dead&&b.def.heal&&Math.hypot(b.x-u.x,b.y-u.y)<=b.def.heal+b.s/2){h+=2;break}
   if(h)u.hp=Math.min(u.maxhp,u.hp+h)}}
-function cleanPlans(){for(let k=plans.length-1;k>=0;k--){const p=plans[k];if(!units.some(u=>!u.dead&&u.task&&u.task.k==='build'&&u.task.p===p)){plans.splice(k,1);p.dead=1;refund(p.o,BLDS[p.type].cost);note(p.o,'建造已取消，資源已退還')}}}
+function cleanPlans(){for(let k=plans.length-1;k>=0;k--){const p=plans[k];if(!units.some(u=>!u.dead&&u.task&&u.task.k==='build'&&u.task.p===p)){plans.splice(k,1);p.dead=1;refund(p.o,p.stack?{wood:BLDS.house.cost.wood*(p.n||1)}:BLDS[p.type].cost);note(p.o,'建造已取消，資源已退還')}}}
 function separate(){const grid=new Map();for(const u of units){if(u.dead)continue;const k=Math.floor(u.x)+Math.floor(u.y)*W;let a=grid.get(k);if(!a)grid.set(k,a=[]);a.push(u)}
  for(const u of units){if(u.dead)continue;const cx=Math.floor(u.x),cy=Math.floor(u.y);
   for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const a=grid.get(cx+dx+(cy+dy)*W);if(!a)continue;for(const v of a){if(v.id<=u.id)continue;let ddx=v.x-u.x,ddy=v.y-u.y;let d=Math.hypot(ddx,ddy);if(d>=.5)continue;if(d<.01){ddx=Math.random()-.5;ddy=Math.random()-.5;d=Math.hypot(ddx,ddy)}
@@ -906,6 +906,7 @@ function drawBld(b,sel){const x=b.tx*T,y=b.ty*T,s=b.s*T;const age=gt-b.born;cons
   drawIcon(b.type,s/2,s*.55,b.s===1?s*.78:s*.55)}
  if(b.queue.length){const q=b.queue[0];ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(4,s-9,s-8,5);ctx.fillStyle='#ffd27a';ctx.fillRect(4,s-9,(s-8)*Math.min(1,q.p/q.t),5);if(b.o===ME||vis[idx(b.tx,b.ty)]){const sm=Math.sin(gt*6)*1.5;ctx.globalAlpha=.6;ctx.fillStyle='#ddd';ctx.beginPath();ctx.arc(s*.8,-2+sm,4,0,7);ctx.arc(s*.85,-8+sm,3,0,7);ctx.fill();ctx.globalAlpha=1}}
  ctx.restore();
+ if(b.type==='house'&&b.o===ME){const pp=plans.find(q=>q.o===ME&&q.stack===b.id);if(pp){const t2='+'+(pp.n||1)+' 建造中';ctx.font='bold 10px sans-serif';const tw=ctx.measureText(t2).width+8;ctx.fillStyle='rgba(40,25,10,.85)';ctx.fillRect(x+s/2-tw/2,y+s+2,tw,14);ctx.fillStyle='#ffd27a';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(t2,x+s/2,y+s+9.5)}}
  if(b.cnt>1){const bx=x+s-4,by=y+4;ctx.fillStyle='#2a1d10';ctx.strokeStyle='#ffd27a';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(bx,by,9,0,7);ctx.fill();ctx.stroke();ctx.fillStyle='#ffe9b0';ctx.font='bold 11px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('×'+b.cnt,bx,by+.5)}
  if(sel){ctx.setLineDash([6,4]);ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.strokeRect(x,y,s,s);ctx.setLineDash([])}
  if(sel||b.hp<b.maxhp)hpBar(x+4,y-6,s-8,b.hp/b.maxhp);
@@ -1006,7 +1007,7 @@ function renderPanel(force){if(!G)return;const es=selEnts();selIds=es.map(e=>e.i
    if(es.length===1){info=`<div class="big">${ico(e.type)}</div><div class="nm">${uname(ME,e.type)}</div><div class="hp"><div style="width:${e.hp/e.maxhp*100}%"></div></div><div>❤️${Math.ceil(e.hp)}/${e.maxhp} ⚔️${stat(ME,e.type,'atk')} 🛡️${stat(ME,e.type,'arm')}${e.def.rng?' 🎯'+stat(ME,e.type,'rng'):''}</div>`+(e.def.vil?`<div>${vilState(e)}${e.carry>0?' '+ico(e.ctype,'s')+Math.floor(e.carry):''}</div>`:'')}
    else{const c={};es.forEach(u=>c[u.type]=(c[u.type]||0)+1);info=`<div class="nm">已選 ${es.length} 個</div><div>${Object.keys(c).map(k=>ico(k)+c[k]).join(' ')}</div>`}
    if(vils.length){const list=buildTab?MIL:ECO;acts+=btn('tab',ico(buildTab?'house':'armor'),buildTab?'經濟建築':'軍事建築','','tb');
-    for(const t of list){const d=BLDS[t];const lr=lockReason(ME,t);acts+=btn('build:'+t,ico(t),d.n,lr?'🔒'+(players[ME].age<d.age?AGES[d.age].slice(0,2):BLDS[d.req].n):costTxt(d.cost),lr||!afford(ME,d.cost)?'na':'')}}
+    for(const t of list){const d=BLDS[t];const lr=lockReason(ME,t);acts+=btn('build:'+t,ico(t),d.n,lr?'🔒'+(players[ME].age<d.age?AGES[d.age].slice(0,2):d.req&&!hasB(ME,d.req)?BLDS[d.req].n:'已滿'):costTxt(d.cost),lr||!afford(ME,d.cost)?'na':'')}}
    if(es.some(u=>!u.def.vil))acts+=btn('amove',ico('barracks'),'攻擊移動',G.amove?'開':'關',G.amove?'ok':'');
    acts+=btn('stop',ico('stop'),'停止','');acts+=btn('desel',ico('back'),'取消選取','')}
   else if(e.kind==='b'&&e.o===ME){const d=e.def;info=`<div class="big">${ico(e.type)}</div><div class="nm">${d.n}</div><div class="hp"><div style="width:${e.hp/e.maxhp*100}%"></div></div><div>❤️${Math.ceil(e.hp)}/${e.maxhp}</div>`;
@@ -1025,7 +1026,7 @@ function onAct(a){const P=players[ME];const es=selEnts();
  if(a==='tab'){buildTab^=1}
  else if(a==='amove'){G.amove=G.amove?0:1;toast(G.amove?'攻擊移動：開（行軍途中遇敵就開打）':'攻擊移動：關（只走路，不理敵人）')}
  else if(a.startsWith('build:')){const t=a.slice(6);const lr=lockReason(ME,t);if(lr){toast(lr);return}if(!afford(ME,BLDS[t].cost)){toast('資源不足：缺 '+lackTxt(ME,BLDS[t].cost));return}
-  {const vils=es.filter(u=>u.kind==='u'&&u.def.vil);const h=t==='house'&&vils.length?myHouse(ME,vils[0].x,vils[0].y):null;if(h){act({t:'bld',u:ids(vils),type:'house',tx:h.tx,ty:h.ty});sayUnit(vils[0],'build');mark(h.x,h.y,'#ffd27a');toast('加蓋房屋（第 '+(houseCount(ME)+1)+' 間）');lastSig='';renderPanel(true);return}}
+  {const vils=es.filter(u=>u.kind==='u'&&u.def.vil);const h=t==='house'&&vils.length?myHouse(ME,vils[0].x,vils[0].y):null;if(h){act({t:'bld',u:ids(vils),type:'house',tx:h.tx,ty:h.ty});sayUnit(vils[0],'build');mark(h.x,h.y,'#ffd27a');{const pend=plans.find(q=>q.o===ME&&q.stack===h.id);toast('加蓋房屋：共 '+(houseCount(ME)+(NET.client?1:0))+' 間'+(pend&&pend.n>1?'（這趟一次蓋 '+(pend.n+(NET.client?1:0))+' 間）':''))}lastSig='';renderPanel(true);return}}
   const s=BLDS[t].s;const w=toWorld(VW/2,VH/2);const v=es.find(u=>u.kind==='u');let sp=null;
   if(v){const near=aiFindSpot(ME,t,v.x,v.y,10);if(near)sp=near}
   placing={type:t,tx:sp?sp.tx:Math.round(w.x-s/2),ty:sp?sp.ty:Math.round(w.y-s/2)};if(sp){const sx=(sp.tx+s/2)*T,sy=(sp.ty+s/2)*T;const px=(sx-cam.x)*cam.z,py=(sy-cam.y)*cam.z;if(px<40||px>VW-40||py<80||py>VH-140)centerOn(sp.tx+s/2,sp.ty+s/2)}}
@@ -1126,7 +1127,7 @@ function b64(a){let s='';const b=new Uint8Array(a.buffer);for(let i=0;i<b.length
 function unb64(str,a){const bin=atob(str);const b=new Uint8Array(a.buffer);for(let i=0;i<b.length&&i<bin.length;i++)b[i]=bin.charCodeAt(i)}
 function saveGame(){if(!G||G.over||!running||NET.on)return;try{
  const data={v:2,np:NP,teams:TEAMS,mode:G.mode,amove:G.amove,ver:VERSION,seed:G.seed,diff:G.diff,gt,nid,speed:G.speed,players,AIS,cam:{x:cam.x,y:cam.y,z:cam.z},rt:b64(resType),ra:b64(resAmt),ex:b64(explored),
-  plans:plans.map(p=>({o:p.o,type:p.type,tx:p.tx,ty:p.ty,stack:p.stack||0})),
+  plans:plans.map(p=>({o:p.o,type:p.type,tx:p.tx,ty:p.ty,stack:p.stack||0,n:p.n||1})),
   blds:blds.filter(b=>!b.dead).map(b=>({id:b.id,o:b.o,type:b.type,tx:b.tx,ty:b.ty,hp:b.hp,maxhp:b.maxhp,cnt:b.cnt||1,queue:b.queue,rally:b.rally,farmer:b.farmer})),
   units:units.filter(u=>!u.dead).map(u=>{let t=u.task;if(t&&t.k==='build'){const pi=plans.indexOf(t.p);t=pi>=0?{k:'build',pi,prev:t.prev||null}:(t.prev||null)}else if(t&&t.k==='move')t=null;
    return{id:u.id,o:u.o,type:u.type,x:u.x,y:u.y,hp:u.hp,maxhp:u.maxhp,task:t,carry:u.carry,ctype:u.ctype,face:u.face,fem:u.fem}})};
@@ -1265,7 +1266,7 @@ function snapshot(){
   U.push([u.id,u.o,UT.indexOf(u.type),Math.round(u.x*100),Math.round(u.y*100),Math.ceil(u.hp),u.maxhp,fl,u.face,Math.floor(u.carry),RTI[u.ctype]||0,tcode(t),t&&t.rt||0,t?(t.ph==='drop'?2:t.ph==='work'?1:0):0,t&&t.k==='attack'?t.t:0,t&&t.k==='build'&&t.p?BT.indexOf(t.p.type):-1,Math.round(u.atkT*100)])}
  const B=[];for(const b of blds){if(b.dead)continue;B.push([b.id,b.o,BT.indexOf(b.type),b.tx,b.ty,Math.ceil(b.hp),b.maxhp,b.queue.map(q=>[q.k==='u'?0:q.k==='age'?1:2,q.type||'',Math.round(q.p*10),q.t]),b.rally?[+b.rally.x.toFixed(2),+b.rally.y.toFixed(2),b.rally.res]:0,b.cnt||1])}
  return{g:Math.round(gt*10),P:players.map(P=>({res:{food:Math.floor(P.res.food),wood:Math.floor(P.res.wood),gold:Math.floor(P.res.gold),stone:Math.floor(P.res.stone)},age:P.age,aging:P.aging,tech:P.tech,cap:P.cap,trained:P.trained,kills:P.kills,out:P.out})),
-  U,B,L:plans.map(p=>[p.o,BT.indexOf(p.type),p.tx,p.ty,p.stack?1:0]),D:NET.dep.splice(0),E:NET.ev.splice(0)}}
+  U,B,L:plans.map(p=>[p.o,BT.indexOf(p.type),p.tx,p.ty,p.stack||0,p.n||1]),D:NET.dep.splice(0),E:NET.ev.splice(0)}}
 function applySnap(s){
  gt=s.g/10;for(let o=0;o<s.P.length;o++)players[o]=Object.assign(players[o]||{},s.P[o]);
  const seen=new Set();
@@ -1280,7 +1281,7 @@ function applySnap(s){
   if(!b||b.kind!=='b'){const type=BT[ti],def=BLDS[type];b={id,kind:'b',o,type,def,tx,ty,s:def.s,x:tx+def.s/2,y:ty+def.s/2,queue:[],born:gt,cd:0,hitT:0,hp};ents.set(id,b);blds.push(b);changed=true}
   if(hp<b.hp)b.hitT=.15;b.hp=hp;b.maxhp=maxhp;b.queue=q.map(([k,type,pp,tt])=>({k:['u','age','tech'][k],type,p:pp/10,t:tt}));b.rally=r?{x:r[0],y:r[1],res:r[2]}:null;if(cnt>(b.cnt||1))b.born=gt;b.cnt=cnt||1}
  for(const b of blds)if(!seenB.has(b.id)){b.dead=1;ents.delete(b.id);changed=true}blds=blds.filter(b=>!b.dead);
- plans=s.L.map(([o,bt,tx,ty,st])=>({o,type:BT[bt],tx,ty,stack:st?1:0}));
+ plans=s.L.map(([o,bt,tx,ty,st,n])=>({o,type:BT[bt],tx,ty,stack:st||0,n:n||1}));
  for(const i of s.D){resType[i]=0;resAmt[i]=0;changed=true}
  if(changed){bldAt.fill(-1);for(const b of blds)for(let y=b.ty;y<b.ty+b.s;y++)for(let x=b.tx;x<b.tx+b.s;x++)bldAt[idx(x,y)]=b.id;for(let i=0;i<NN;i++)updBlk(i)}
  for(const e of s.E)clientEvent(e);NET.last=performance.now()}
