@@ -129,6 +129,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
  <div class="row" id="diffRow"><button data-d="easy">簡單</button><button data-d="normal" class="sel">普通</button><button data-d="hard">困難</button></div>
  <button class="go" id="bcont" style="display:none"></button>
  <button class="go" id="bstart">開始新遊戲</button>
+ <button id="bnetBack" class="netbtn" style="display:none;background:#7a4a10!important;border-color:#ffd27a!important"></button>
  <button id="bnet" class="netbtn">🌐 連線對戰</button>
  <button id="bart" class="artbtn">🎨 上傳美術圖</button>
 
@@ -152,6 +153,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
  <div id="netStep1">
   <div class="row"><input id="netName" maxlength="8" placeholder="你的暱稱" class="netin"></div>
   <div class="row"><button class="go" id="netCreate">建立房間</button></div>
+  <div class="row"><button id="netNewCode" style="font-size:13px;padding:6px 12px">換新房號</button></div>
   <div class="row" style="align-items:center"><input id="netRoom" inputmode="numeric" maxlength="4" placeholder="房號" class="netin" style="width:110px;text-align:center"><button id="netJoin">加入房間</button></div>
   <div class="row"><button id="netBack">返回</button></div>
  </div>
@@ -203,7 +205,7 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 
 <script>
 'use strict';
-const VERSION='2026-11-21h';
+const VERSION='2026-11-21i';
 // ================= constants =================
 const W=80,H=80,T=32,NN=W*H,STEP=0.05,CAP=10,MAXPOP=150,TER=9;
 const TEAMA=['rgba(59,130,246,.5)','rgba(239,68,68,.5)','rgba(34,197,94,.5)','rgba(234,179,8,.55)'];
@@ -314,9 +316,10 @@ const IC={
  pop:'<path d="M4.5 21c0-4.2 3.3-7.5 7.5-7.5s7.5 3.3 7.5 7.5z" fill="#4a7bd0"/><circle cx="12" cy="8" r="4" fill="#f1c27d"/>',
  house:'<path d="M5 11h14v9.5H5z" fill="#ead6aa"/><path d="M2.5 12.2 12 3.8l9.5 8.4z" fill="#c0392b"/><rect x="10" y="14" width="4" height="6.5" fill="#7a4a24"/><rect x="15.5" y="13" width="2.4" height="2.4" fill="#7fb6e0" stroke-width="1"/>',
  tc:'<path d="M3.5 21.5V9.5h3v-2h2.2v2h2.1v-2h2.4v2h2.1v-2h2.2v2h3v12z" fill="#c3c7cd"/><path d="M9.5 21.5v-5a2.5 2.5 0 0 1 5 0v5z" fill="#6b3f1f"/><path d="M12 7.5V2" fill="none"/><path d="M12 2.2l4.5 1.6L12 5.4z" fill="#d23a2a"/><path d="M5 13h1.5M17.5 13H19" stroke-width="1.2"/>',
- lumber:'<path d="M4.5 20.5h13v-4.2h-13z" fill="#a0682f"/><ellipse cx="11" cy="16.3" rx="6.5" ry="1.9" fill="#e0b77a"/><path d="M12.5 16 17 5.5" stroke-width="2.6"/><path d="M12.5 16 17 5.5" stroke="#c48a45" stroke-width="1.1"/><path d="M15.2 4.6c3-1.4 5.8.3 5.8.3l-1.7 4.8s-2.9-1.1-5.2-.4z" fill="#d3d8de"/>',
+ lumber:'<path d="M5.5 21.5 15.5 5" stroke-width="3.4"/><path d="M5.5 21.5 15.5 5" stroke="#c48a45" stroke-width="1.7"/><path d="M12.6 2.4c4.6-2.4 9.4.3 9.4.3l-2.7 7.8s-4.6-1.9-8.4-.7z" fill="#d3d8de"/><path d="M20.4 3.6l-2.3 6.6" stroke="#f3f5f7" stroke-width="1.1"/><path d="M12.3 4.6c-.6 1.6-.5 3.3.2 4.6" fill="none" stroke-width="1.2"/>',
  mill:'<path d="M8.5 21.5 10.2 11h3.6l1.7 10.5z" fill="#ead6aa"/><path d="M12 9.5 5.5 3 4 4.5zM12 9.5 18.5 3 20 4.5zM12 9.5 5.5 16 4 14.5zM12 9.5 18.5 16 20 14.5z" fill="#f3ead8"/><circle cx="12" cy="9.5" r="1.6" fill="#7a4a24"/><rect x="11" y="17.5" width="2" height="4" fill="#7a4a24" stroke-width=".8"/>',
- mine:'<path d="M5.5 20 15.5 7.5" stroke-width="2.8"/><path d="M5.5 20 15.5 7.5" stroke="#c48a45" stroke-width="1.2"/><path d="M6.5 6.5c4.5-3 10.5-2.5 14.5 2-3.6-1.6-8.4-2.2-12.2-1z" fill="#d3d8de"/>',
+ mine:'<g transform="rotate(28 12 12)"><path d="M8.6 2.8h6.8" stroke-width="3.2"/><path d="M8.6 2.8h6.8" stroke="#8a5a2c" stroke-width="1.6"/><path d="M12 3v10.5" stroke-width="3.2"/><path d="M12 3v10.5" stroke="#c48a45" stroke-width="1.6"/><path d="M7 12.8h10v4.6c0 2.7-2.3 4.4-5 5-2.7-.6-5-2.3-5-5z" fill="#c3c7cd"/><path d="M9 14.6v2.8c0 1.3.8 2.3 2 2.9" fill="none" stroke="#f3f5f7" stroke-width="1.1"/></g>',
+ pick:'<path d="M5.5 20 15.5 7.5" stroke-width="2.8"/><path d="M5.5 20 15.5 7.5" stroke="#c48a45" stroke-width="1.2"/><path d="M6.5 6.5c4.5-3 10.5-2.5 14.5 2-3.6-1.6-8.4-2.2-12.2-1z" fill="#d3d8de"/>',
  farm:'<path d="M12 22V5.5" fill="none" stroke-width="1.6"/><g fill="#e8b92a"><ellipse cx="9.6" cy="8.5" rx="1.6" ry="2.8" transform="rotate(-28 9.6 8.5)"/><ellipse cx="14.4" cy="8.5" rx="1.6" ry="2.8" transform="rotate(28 14.4 8.5)"/><ellipse cx="9.6" cy="12.5" rx="1.6" ry="2.8" transform="rotate(-28 9.6 12.5)"/><ellipse cx="14.4" cy="12.5" rx="1.6" ry="2.8" transform="rotate(28 14.4 12.5)"/><ellipse cx="9.6" cy="16.5" rx="1.6" ry="2.8" transform="rotate(-28 9.6 16.5)"/><ellipse cx="14.4" cy="16.5" rx="1.6" ry="2.8" transform="rotate(28 14.4 16.5)"/><ellipse cx="12" cy="4.6" rx="1.5" ry="2.6"/></g>',
  barracks:'<path d="M4 4l10 10M20 4 10 14" stroke-width="3"/><path d="M4 4l10 10M20 4 10 14" stroke="#e6eaee" stroke-width="1.3"/><path d="M12.3 15.7l3.4-3.4M8.3 12.3l3.4 3.4" stroke-width="3"/><path d="M12.3 15.7l3.4-3.4M8.3 12.3l3.4 3.4" stroke="#e0ad25" stroke-width="1.4"/><path d="M14.5 14.5l3.5 3.5M9.5 14.5 6 18" stroke-width="2.8"/><path d="M14.5 14.5l3.5 3.5M9.5 14.5 6 18" stroke="#8a5a2c" stroke-width="1.3"/><circle cx="18.8" cy="18.8" r="1.4" fill="#e0ad25"/><circle cx="5.2" cy="18.8" r="1.4" fill="#e0ad25"/>',
  archery:'<circle cx="11" cy="13" r="8.5" fill="#f3ead8"/><circle cx="11" cy="13" r="6" fill="#c0392b"/><circle cx="11" cy="13" r="3.6" fill="#f3ead8"/><circle cx="11" cy="13" r="1.5" fill="#c0392b"/><path d="M11 13 20 4" stroke-width="1.8"/><path d="M18.5 2.5l3 3M20.5 1.8l.8 2.9 2.9.8" fill="none" stroke-width="1.2"/>',
@@ -590,7 +593,7 @@ function doGather(u,t,dt){
  const rtype=RT[t.rt];if(u.ctype!==rtype){u.carry=0;u.ctype=rtype}
  u.sndT=(u.sndT||0)-dt;if(u.sndT<=0){u.sndT=.85;sfx(t.rt===1?'chop':t.rt===2?'gather':'mine',u.x,u.y)}
  const amt=Math.min(RATE[t.rt]*gatherMult(u.o)*ecoMult(u.o,t.rt)*dt,resAmt[i]);u.carry+=amt;resAmt[i]-=amt;
- if(resAmt[i]<=.001){resType[i]=0;resAmt[i]=0;updBlk(i);fx.push({k:'puff',x:rx+.5,y:ry+.5,t:0,life:.6});if(NET.host){NET.dep.push(i);evp(['p',rx+.5,ry+.5])}}
+ if(resAmt[i]<=.001){resType[i]=0;resAmt[i]=0;updBlk(i);fx.push({k:'puff',x:rx+.5,y:ry+.5,t:0,life:.6});if(NET.host){NET.dep.push(i);NET.depAll&&NET.depAll.push(i);evp(['p',rx+.5,ry+.5])}}
  if(u.carry>=carryCap(u.o)){u.carry=carryCap(u.o);t.ph='drop'}}
 function doFarm(u,t,dt){
  const b=ents.get(t.b);if(!b||b.dead){u.task=null;return}
@@ -956,7 +959,7 @@ function drawUnit(u,sel){
   if(sel){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,y+r*.75,r*1.1,r*.48,0,0,7);ctx.stroke()}
   ctx.fillStyle=u.hitT>0?'#fff':TEAM[u.o];ctx.beginPath();ctx.arc(cx,cy,r,0,7);ctx.fill();ctx.lineWidth=2;ctx.strokeStyle=TEAMD[u.o];ctx.stroke();
   ctx.save();ctx.translate(cx,cy-1);if(u.face<0)ctx.scale(-1,1);drawIcon(u.type,0,0,T*(cav?.6:.54));ctx.restore()}
- if(working){const sw=Math.sin(u.anim*7);const tool=u.task.k==='farm'||u.task.rt===2?'basket':u.task.rt===1?'axe':'mine';ctx.save();ctx.translate(cx+u.face*r*1.1,cy-r*.2);ctx.rotate(sw*.7*u.face);if(u.face<0)ctx.scale(-1,1);drawIcon(tool,0,-5,15);ctx.restore();
+ if(working){const sw=Math.sin(u.anim*7);const tool=u.task.k==='farm'||u.task.rt===2?'basket':u.task.rt===1?'axe':'pick';ctx.save();ctx.translate(cx+u.face*r*1.1,cy-r*.2);ctx.rotate(sw*.7*u.face);if(u.face<0)ctx.scale(-1,1);drawIcon(tool,0,-5,15);ctx.restore();
   if(sw>.95&&Math.random()<.5)fx.push({k:'chip',x:u.x+u.face*.4,y:u.y-.2,vx:(Math.random()-.5)*2,vy:-1.5-Math.random(),t:0,life:.5,c:u.task.rt===1?'#c8a165':u.task.rt===3?'#f2c230':u.task.rt===4?'#bbb':'#e57373'})}
  const top=im?cy+r*.95-T*(cav?1.55:1.35)*.92:cy-r;
  if(u.carry>0){ctx.save();ctx.translate(cx-r-2,top+8);drawIcon(u.ctype,0,0,13);ctx.restore()}
@@ -1095,7 +1098,7 @@ $('bstart').onclick=()=>{audioInit();clearSave();$('ovStart').classList.remove('
 $('bagain').onclick=()=>{if(NET.ch)netLeave(1);$('ovEnd').classList.remove('show');$('ovStart').classList.add('show');running=false;refreshContinue()};
 $('ver').textContent='版本 '+VERSION;
 function fmtT(s){s=Math.floor(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
-function showEnd(){if(!NET.host)running=false;clearSave();sfx(G.win?'win':'lose');say(G.win?'勝利！王國萬歲！':'我們戰敗了',1,true);$('endT').textContent=G.win?'🏆 勝利！':'💀 戰敗';$('endT').style.color=G.win?'#ffd27a':'#ff8080';const P=players[ME];
+function showEnd(){if(NET.on)try{sessionStorage.removeItem('ke_room')}catch(e){}if(!NET.host)running=false;clearSave();sfx(G.win?'win':'lose');say(G.win?'勝利！王國萬歲！':'我們戰敗了',1,true);$('endT').textContent=G.win?'🏆 勝利！':'💀 戰敗';$('endT').style.color=G.win?'#ffd27a':'#ff8080';const P=players[ME];
  $('endS').innerHTML=(G.hostLeft?'房主已離線，遊戲結束<br>':'')+`時間 ${fmtT(gt)}・難度 ${DIFF[G.diff].n}${NET.on?'・連線對戰':''}<br>到達 ${AGES[P.age]}・訓練 ${P.trained} 個單位・擊殺 ${P.kills}`;$('ovEnd').classList.add('show')}
 function updTop(){const P=players[ME];$('rf').textContent=Math.floor(P.res.food);$('rw').textContent=Math.floor(P.res.wood);$('rg').textContent=Math.floor(P.res.gold);$('rs').textContent=Math.floor(P.res.stone);
  const pu=popUsed(ME);$('rp').textContent=pu+'/'+P.cap;$('rp').style.color=pu>=P.cap?'#ff8080':'';$('age').textContent=(VW<500?AGES[P.age].slice(0,2):AGES[P.age])+(P.aging?'↑':'');$('clock').textContent=fmtT(gt);
@@ -1181,7 +1184,7 @@ function refreshContinue(){const d=loadSave();const b=$('bcont');if(d){b.style.d
 let newVer=null;
 function checkUpdate(){fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.v||j.v===VERSION)return;newVer=j.v;
  let tried=null;try{tried=sessionStorage.getItem('ke_upd_try')}catch(e){}
- if(!running&&tried!==newVer)doUpdate();else $('upd').classList.add('show')}).catch(()=>{})}
+ if(!running&&!NET.ch&&tried!==newVer)doUpdate();else $('upd').classList.add('show')}).catch(()=>{})}
 function doUpdate(){if(running&&G&&!G.over){saveGame();try{sessionStorage.setItem('ke_resume','1')}catch(e){}}
  try{sessionStorage.setItem('ke_upd_try',newVer||'')}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(newVer||Date.now()))}
 
@@ -1331,14 +1334,15 @@ function clientTick(dt){gt+=dt;const k=Math.min(1,dt*8);for(const u of units){if
 const LOBBY={np:4,mode:'ffa',diff:'normal',sr:'rich',seats:[null,null,null,null],names:{}};
 function netName(){return($('netName').value||'').trim().slice(0,8)||'玩家'}
 function netShow(step){$('ovNet').classList.add('show');$('netStep1').style.display=step===1?'':'none';$('netStep2').style.display=step===2?'':'none'}
-async function netConnect(code,asHost){
+async function netConnect(code,asHost,rejoin){NET.rejoining=!!rejoin;
  $('netMsg').textContent='連線中…';try{localStorage.setItem('ke_name',netName())}catch(e){}
  try{await loadSB();if(!SBC)SBC=window.supabase.createClient(SB_URL,SB_KEY,{realtime:{params:{eventsPerSecond:30}}})}catch(e){$('netMsg').textContent='❌ 連不上連線服務。請用 GitHub 網址開啟遊戲。';return}
  NET.code=code;NET.host=asHost;NET.client=!asHost;NET.on=false;NET.started=false;
  const ch=SBC.channel('ke-room-'+code,{config:{broadcast:{self:false},presence:{key:NET.myId}}});NET.ch=ch;
  ch.on('presence',{event:'sync'},onPresence);
  ch.on('broadcast',{event:'lobby'},({payload})=>{if(!NET.host){Object.assign(LOBBY,payload);NET.gotLobby=1;renderLobby()}});
- ch.on('broadcast',{event:'start'},({payload})=>{if(!NET.host)startOnline(payload)});
+ ch.on('broadcast',{event:'start'},({payload})=>{if(!NET.host&&(!payload.to||payload.to===NET.myId))startOnline(payload)});
+ ch.on('broadcast',{event:'rejoin'},({payload})=>{if(NET.host&&NET.started&&NET.startP&&payload&&NET.seats.includes(payload.id))netSend('start',Object.assign({},NET.startP,{rejoin:1,to:payload.id,dep:NET.depAll||[]}))});
  ch.on('broadcast',{event:'st'},({payload})=>{if(NET.client&&NET.started)applySnap(payload)});
  ch.on('broadcast',{event:'cmd'},({payload})=>{if(NET.host&&NET.started&&payload&&NET.seats[payload.o]===payload.id)applyCmd(payload.o,payload.c)});
  ch.on('broadcast',{event:'over'},({payload})=>{if(NET.client&&G&&!G.over){G.over=true;G.win=TEAMS[ME]===payload.wt;showEnd()}});
@@ -1346,7 +1350,8 @@ async function netConnect(code,asHost){
  ch.on('broadcast',{event:'hello'},()=>{if(NET.host)netSend('lobby',lobbyPayload())});
  ch.subscribe(st=>{if(st==='SUBSCRIBED'){ch.track({id:NET.myId,name:netName(),host:asHost});netShow(2);
    if(asHost){LOBBY.seats=[NET.myId,null,null,null];LOBBY.names={[NET.myId]:netName()};renderLobby();netSend('lobby',lobbyPayload())}
-   else{NET.gotLobby=0;netSend('hello',{});renderLobby();setTimeout(()=>{if(!NET.gotLobby&&!NET.host){$('netMsg').textContent='找不到房號 '+code+' 的房間';netLeave(1)}},5000)}}
+   else if(NET.rejoining){netSend('rejoin',{id:NET.myId});$('netMsg').textContent='正在接回對戰…';setTimeout(()=>{if(!NET.started){$('netMsg').textContent='接不回去：這局可能已經結束了';netLeave(1);try{sessionStorage.removeItem('ke_room')}catch(e){}}},6000)}
+   else{NET.gotLobby=0;netSend('hello',{});renderLobby();setTimeout(()=>{if(!NET.gotLobby&&!NET.host&&!NET.started){$('netMsg').textContent='找不到房號 '+code+' 的房間';netLeave(1)}},5000)}}
   else if(st==='CHANNEL_ERROR'||st==='TIMED_OUT'){$('netMsg').textContent='❌ 連線失敗，請再試一次（要用 GitHub 網址開啟）'}})}
 function lobbyPayload(){return{sr:LOBBY.sr,np:LOBBY.np,mode:LOBBY.mode,diff:LOBBY.diff,seats:LOBBY.seats,names:LOBBY.names,code:NET.code}}
 function onPresence(){const st=NET.ch.presenceState();const present={};for(const k in st){const m=st[k][0];if(m)present[m.id]=m}
@@ -1355,8 +1360,15 @@ function onPresence(){const st=NET.ch.presenceState();const present={};for(const
   for(const id in present){if(!LOBBY.seats.includes(id)){const i=LOBBY.seats.indexOf(null);if(i>=0){LOBBY.seats[i]=id;ch=true}}LOBBY.names[id]=present[id].name}
   const humans=LOBBY.seats.filter(Boolean).length;if(LOBBY.np<humans)LOBBY.np=humans;renderLobby();netSend('lobby',lobbyPayload())}
  if(NET.started){
-  if(NET.host){NET.seats.forEach((id,o)=>{if(id&&id!==NET.myId&&!present[id]&&NET.human[o]){NET.human[o]=0;vcDrop(id);if(!players[o].out)AIS[o]=aiInit(o);note(-1,(LOBBY.names[id]||PNAME[o])+' 離線了，改由電腦接手')}})}
-  else{const hid=NET.seats[0];if(!present[hid]){clearTimeout(NET.hostGone);NET.hostGone=setTimeout(()=>{const st2=NET.ch&&NET.ch.presenceState();let back=false;for(const k in st2||{}){if(st2[k][0]&&st2[k][0].id===hid)back=true}if(!back&&G&&!G.over){G.over=true;G.win=false;G.hostLeft=1;showEnd()}},6000)}}}}
+  if(NET.host){NET.seats.forEach((id,o)=>{if(!id||id===NET.myId||players[o].out)return;const nm=LOBBY.names[id]||PNAME[o];
+    if(!present[id]&&!NET.away[o]){NET.away[o]=performance.now();note(-1,nm+' 暫時離開，等待回來…（60 秒後由電腦代打）')}
+    else if(present[id]&&NET.away[o]){delete NET.away[o];NET.human[o]=1;AIS[o]=null;vcDrop(id);if(VC.on)setTimeout(()=>vcPc(id,o),800);note(-1,nm+' 回來了！')}})}
+  else{const hid=NET.seats[0];
+   if(!present[hid]){if(!NET.hostAway){NET.hostAway=performance.now();toast('房主暫時離開，等待房主回來…');clearTimeout(NET.hostGone);NET.hostGone=setTimeout(()=>{if(NET.hostAway&&G&&!G.over){G.over=true;G.win=false;G.hostLeft=1;showEnd()}},180000)}}
+   else if(NET.hostAway){NET.hostAway=0;clearTimeout(NET.hostGone);toast('房主回來了！');NET.last=performance.now();NET.lostShown=0;
+    const pc=VC.pcs[hid];if(VC.on&&(!pc||pc.connectionState!=='connected')){vcDrop(hid);setTimeout(()=>vcPc(hid,0),800)}}}}}
+// host: after 60 s away the computer plays for that seat (the player can still take it back)
+setInterval(()=>{if(!NET.host||!NET.started||!G||G.over)return;for(const o in NET.away){if(performance.now()-NET.away[o]>60000&&NET.human[o]){NET.human[o]=0;if(!players[o].out)AIS[o]=aiInit(+o);note(-1,(LOBBY.names[NET.seats[o]]||PNAME[o])+' 還沒回來，先由電腦代打（回來後可以拿回控制）')}}},2000);
 function renderLobby(){$('netCode').textContent=NET.code||'----';const host=NET.host;
  $('netSeats').innerHTML=[0,1,2,3].map(i=>{const id=LOBBY.seats[i];const used=i<LOBBY.np;const nm=id?(LOBBY.names[id]||'玩家')+(id===NET.myId?'（你）':''):(used?'電腦':'—');
   const team=LOBBY.mode==='2v2'&&LOBBY.np===4?(i%2===0?'A隊':'B隊'):'';return`<div class="seat" style="opacity:${used?1:.35}"><span class="dot" style="background:${TEAM[i]}"></span><b>${PNAME[i]}</b> ${nm} <small>${team}</small></div>`}).join('');
@@ -1367,21 +1379,28 @@ function renderLobby(){$('netCode').textContent=NET.code||'----';const host=NET.
  document.querySelectorAll('#netSr button').forEach(b=>{b.classList.toggle('sel',b.dataset.r===LOBBY.sr);b.disabled=!host});
  $('netGo').style.display=host?'':'none';$('netWait').style.display=host?'none':'';
  $('netMsg').textContent=host?'把房號告訴朋友，大家加入後按「開始」。空位由電腦補上。':(NET.gotLobby?'已加入，等待房主開始…':'尋找房間中…')}
-function netLeave(keepMsg){vcStop();try{if(NET.ch){NET.ch.untrack();SBC.removeChannel(NET.ch)}}catch(e){}NET.ch=null;NET.on=NET.host=NET.client=NET.started=false;if(!keepMsg)$('netMsg').textContent='';netShow(1)}
+function netLeave(keepMsg){vcStop();try{sessionStorage.removeItem('ke_room')}catch(e){}try{if(NET.ch){NET.ch.untrack();SBC.removeChannel(NET.ch)}}catch(e){}NET.ch=null;NET.on=NET.host=NET.client=NET.started=false;if(!keepMsg)$('netMsg').textContent='';netShow(1)}
 function startOnline(p){
+ if(NET.started&&!p.rejoin)return;
  NET.seats=p.seats;const me=p.seats.indexOf(NET.myId);if(me<0){$('netMsg').textContent='房間已滿';return}
- NET.on=true;NET.started=true;NET.ev=[];NET.dep=[];NET.human=p.seats.map(Boolean);NET.last=performance.now();NET.lostShown=0;LOBBY.names=p.names||LOBBY.names;
+ NET.on=true;NET.started=true;NET.ev=[];NET.dep=[];NET.away={};NET.hostAway=0;NET.human=p.seats.map(Boolean);if(NET.host){NET.startP=p;NET.depAll=[]}
+ try{sessionStorage.setItem('ke_room',JSON.stringify({code:NET.code,host:NET.host}))}catch(e){}NET.last=performance.now();NET.lostShown=0;LOBBY.names=p.names||LOBBY.names;
  audioInit();$('ovNet').classList.remove('show');$('ovStart').classList.remove('show');
  newGame(p.diff,p.seed,p.np,p.mode,me,p.sr);
  if(NET.host)AIS=players.map((P,o)=>NET.human[o]?null:aiInit(o));else AIS=players.map(()=>null);
+ if(p.dep){for(const i of p.dep){resType[i]=0;resAmt[i]=0;updBlk(i)}}if(p.rejoin)toast('已回到連線對戰！');
  running=true;paused=false;G.speed=1;toast('連線對戰開始！你是'+PNAME[me]);NET.sT=0;
  if(NET.human.filter(Boolean).length>1)setTimeout(()=>{vcStart();if(VC.on)setTimeout(()=>toast('左側 🎤 可以開麥克風和其他玩家講話'),2500)},1200)}
 function hostStart(){const np=LOBBY.np;const seats=LOBBY.seats.slice(0,np);
  const p={seed:(Math.random()*1e9)|0,np,mode:np===4?LOBBY.mode:'ffa',diff:LOBBY.diff,sr:LOBBY.sr,seats,names:LOBBY.names};netSend('start',p);startOnline(p)}
-$('bnet').onclick=()=>{audioInit();try{$('netName').value=localStorage.getItem('ke_name')||''}catch(e){}$('netMsg').textContent='';netShow(1)};
+$('bnet').onclick=()=>{audioInit();try{$('netName').value=localStorage.getItem('ke_name')||'';$('netRoom').value=localStorage.getItem('ke_join')||'';$('netCreate').textContent='建立房間（房號 '+myRoomCode()+'）'}catch(e){}$('netMsg').textContent='';netShow(1)};
 $('netBack').onclick=()=>{$('ovNet').classList.remove('show')};
-$('netCreate').onclick=()=>{const code=String(1000+Math.floor(Math.random()*9000));netConnect(code,true)};
-$('netJoin').onclick=()=>{const code=($('netRoom').value||'').replace(/\D/g,'');if(code.length!==4){$('netMsg').textContent='請輸入 4 位數房號';return}netConnect(code,false)};
+function myRoomCode(renew){let c=null;try{c=localStorage.getItem('ke_code')}catch(e){}if(!c||renew){c=String(1000+Math.floor(Math.random()*9000));try{localStorage.setItem('ke_code',c)}catch(e){}}return c}
+$('netCreate').onclick=()=>{$('netCreate').textContent='建立房間（房號 '+myRoomCode()+'）';netConnect(myRoomCode(),true)};
+$('netNewCode').onclick=()=>{const c=myRoomCode(true);toast('你的房號換成 '+c);$('netMsg').textContent='新房號：'+c+'（之後建立房間都用這個）'};
+$('netJoin').onclick=()=>{const code=($('netRoom').value||'').replace(/\D/g,'');if(code.length!==4){$('netMsg').textContent='請輸入 4 位數房號';return}try{localStorage.setItem('ke_join',code)}catch(e){}netConnect(code,false)};
+$('bnetBack').onclick=()=>{let r=null;try{r=JSON.parse(sessionStorage.getItem('ke_room')||'null')}catch(e){}if(!r)return;audioInit();$('ovStart').classList.remove('show');try{$('netName').value=localStorage.getItem('ke_name')||''}catch(e){}netShow(1);netConnect(r.code,false,true)};
+(()=>{let r=null;try{r=JSON.parse(sessionStorage.getItem('ke_room')||'null')}catch(e){}if(r&&!r.host){$('bnetBack').style.display='';$('bnetBack').textContent='↩️ 回到連線對戰（房號 '+r.code+'）'}})();
 $('netExit').onclick=()=>netLeave();
 $('netGo').onclick=()=>{if(NET.host)hostStart()};
 document.querySelectorAll('#netNp button').forEach(b=>b.onclick=()=>{if(!NET.host||b.disabled)return;LOBBY.np=+b.dataset.n;if(LOBBY.np!==4)LOBBY.mode='ffa';renderLobby();netSend('lobby',lobbyPayload())});
@@ -1436,7 +1455,7 @@ function frame(now){const dt=Math.min(.1,(now-last)/1000);last=now;
  saveT-=dt;if(saveT<=0){saveT=15;if(running&&!paused)saveGame()}
  render();uiT-=dt;if(G&&uiT<=0){uiT=.2;renderPanel();updTop()}mmT-=dt;if(G&&mmT<=0){mmT=.4;drawMinimap()}
  requestAnimationFrame(frame)}
-addEventListener('resize',resize);document.addEventListener('visibilitychange',()=>{if(document.hidden){if(running&&!NET.on){saveGame();paused=true;$('ovMenu').classList.add('show')}}else checkUpdate()});
+addEventListener('resize',resize);document.addEventListener('visibilitychange',()=>{if(!document.hidden&&NET.ch){try{NET.ch.track({id:NET.myId,name:netName(),host:NET.host})}catch(e){}}if(document.hidden){if(running&&!NET.on){saveGame();paused=true;$('ovMenu').classList.add('show')}}else checkUpdate()});
 addEventListener('pagehide',saveGame);
 document.addEventListener('pointerdown',audioInit,{once:false,passive:true});
 resize();updSndBtn();refreshContinue();
