@@ -348,7 +348,7 @@ body.mmoff #mm,body.mmoff #mmMin{display:none!important}body.mmoff #mmDot{displa
 
 <script>
 'use strict';
-const VERSION='2026-11-23j';
+const VERSION='2026-11-23k';
 // ================= constants =================
 const W=80,H=80,T=32,NN=W*H,STEP=0.05,CAP=10,MAXPOP=150,TER=9;
 const TEAMA=['rgba(59,130,246,.5)','rgba(239,68,68,.5)','rgba(34,197,94,.5)','rgba(234,179,8,.55)'];
@@ -1878,9 +1878,12 @@ function processArt(img,doCut,flat){
   let cell=0;
   if(t.length>6){cell=(t[t.length-1]-t[0])/(t.length-1);const offs=t.map((tt,i)=>tt-i*cell).sort((p,q)=>p-q);const ph=offs[offs.length>>1]-cell;const grayLvl=gn?gs/gn:171;
    const md=(v,m)=>((v%m)+m)%m;const dark0=L[y0*w+Math.floor(md(ph+cell/2,w))]<85;
-   for(let y=0;y<h;y++)for(let x=0;x<w;x++){const i=y*w+x;if(sat[i]>12)continue;const cx=Math.floor((x-ph)/cell),cy=Math.floor((y-ph)/cell);const par=md(cx+cy,2)===0;const expD=dark0?par:!par;
+   // measure the real dark tone of the checkerboard and how grey (unsaturated) the checker is, from the image border
+   let ds=0,dn=0;for(let x=0;x<w;x++)for(const i of [x,(h-1)*w+x]){if(L[i]<85){ds+=L[i];dn++}}
+   const darkLvl=dn?ds/dn:30;const sTol=sat.length?Math.max(4,(()=>{const v=[];for(let x=0;x<w;x+=3)v.push(sat[x],sat[(h-1)*w+x]);v.sort((p,q)=>p-q);return v[Math.floor(v.length*.9)]+2})()):12;
+   for(let y=0;y<h;y++)for(let x=0;x<w;x++){const i=y*w+x;if(sat[i]>sTol)continue;const cx=Math.floor((x-ph)/cell),cy=Math.floor((y-ph)/cell);const par=md(cx+cy,2)===0;const expD=dark0?par:!par;
     const fx=md((x-ph)/cell,1),fy=md((y-ph)/cell,1);const edge=Math.min(fx,1-fx)*cell<2.2||Math.min(fy,1-fy)*cell<2.2;
-    if((expD&&L[i]<45)||(!expD&&Math.abs(L[i]-grayLvl)<28)||(edge&&L[i]<200))cand[i]=1}}
+    if((expD&&Math.abs(L[i]-darkLvl)<22)||(!expD&&Math.abs(L[i]-grayLvl)<28)||(edge&&L[i]>darkLvl-15&&L[i]<grayLvl+20))cand[i]=1}}
   else{const cr=a[0],cg=a[1],cb=a[2];for(let i=0;i<N;i++){const dr=a[i*4]-cr,dg=a[i*4+1]-cg,db=a[i*4+2]-cb;if(dr*dr+dg*dg+db*db<1600)cand[i]=1}}
   const q=new Int32Array(N);let qh=0,qt=0;const push=i=>{if(cand[i]&&!bg[i]){bg[i]=1;q[qt++]=i}};
   for(let x=0;x<w;x++){push(x);push((h-1)*w+x)}for(let y=0;y<h;y++){push(y*w);push(y*w+w-1)}
